@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-自动从公开 GitHub 项目下载 Tracker 列表，合并去重后写入本地仓库，
+自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与多 CDN 镜像清单。
+
+订阅源:
+  - https://cf.trackerslist.com/best.txt
+  - https://cf.trackerslist.com/http.txt
+  - https://trackers.run/s/rw_ws_up_hp_hs_v4_v6.txt
 """
 
 import os
@@ -12,18 +17,9 @@ import urllib.request
 import datetime
 
 SOURCES = [
-    ("trackers_all.txt",
-     "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt"),
-    ("trackers_all_ip.txt",
-     "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ip.txt"),
-    ("trackers_all_ws.txt",
-     "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ws.txt"),
-    ("trackers_all_i2p.txt",
-     "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_i2p.txt"),
-    ("trackers_all_yggdrasil.txt",
-     "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil.txt"),
-    ("trackers_all_yggdrasil_ip.txt",
-     "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil_ip.txt"),
+    ("trackers_best.txt", "https://cf.trackerslist.com/best.txt"),
+    ("trackers_http.txt", "https://cf.trackerslist.com/http.txt"),
+    ("trackers_run.txt", "https://trackers.run/s/rw_ws_up_hp_hs_v4_v6.txt"),
 ]
 
 MIRRORS = [
@@ -32,7 +28,7 @@ MIRRORS = [
     ("jsDelivr Fastly", "https://fastly.jsdelivr.net/gh/{repo}@main/trackers/{file}"),
     ("jsDelivr Gcore", "https://gcore.jsdelivr.net/gh/{repo}@main/trackers/{file}"),
     ("ghproxy", "https://ghproxy.net/https://raw.githubusercontent.com/{repo}/main/trackers/{file}"),
-    ("gh-proxy", "https://gh-proxy.com/https://raw.githubusercontent.com/{repo}@main/trackers/{file}"),
+    ("gh-proxy", "https://gh-proxy.com/https://raw.githubusercontent.com/{repo}/main/trackers/{file}"),
 ]
 
 SHORT_LINKS = [
@@ -40,30 +36,23 @@ SHORT_LINKS = [
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_alive.txt"),
     ("alive-cdn",  "核心订阅", "存活 Tracker（jsDelivr CDN）",
      "https://cdn.jsdelivr.net/gh/{repo}@main/trackers/trackers_alive.txt"),
+    ("best",       "核心订阅", "最佳 Tracker 列表（best）",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_best.txt"),
+    ("http",       "核心订阅", "HTTP/HTTPS Tracker 列表",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_http.txt"),
+    ("run",        "核心订阅", "混合 Tracker 列表（trackers.run）",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_run.txt"),
     ("all",        "核心订阅", "合并总表（Raw 直连）",
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_merged.txt"),
     ("all-cdn",     "核心订阅", "合并总表（jsDelivr CDN）",
      "https://cdn.jsdelivr.net/gh/{repo}@main/trackers/trackers_merged.txt"),
-    ("all-fastly",  "核心订阅", "合并总表（Fastly 节点）",
+    ("all-fastly",  "核心订阅", "合并总表（Fastly）",
      "https://fastly.jsdelivr.net/gh/{repo}@main/trackers/trackers_merged.txt"),
-    ("all-gcore",   "核心订阅", "合并总表（Gcore 节点）",
+    ("all-gcore",   "核心订阅", "合并总表（Gcore）",
      "https://gcore.jsdelivr.net/gh/{repo}@main/trackers/trackers_merged.txt"),
-    ("all-proxy",   "核心订阅", "合并总表（ghproxy 代理）",
-     "https://ghproxy.net/https://raw.githubusercontent.com/{repo}@main/trackers/trackers_merged.txt"),
-    ("trackers", "分类列表", "全部 Tracker 列表",
-     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all.txt"),
-    ("ip",       "分类列表", "IP 类 Tracker",
-     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_ip.txt"),
-    ("ws",       "分类列表", "WebSocket 类 Tracker",
-     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_ws.txt"),
-    ("i2p",      "分类列表", "I2P 网络 Tracker",
-     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_i2p.txt"),
-    ("ygg",      "分类列表", "Yggdrasil 网络 Tracker",
-     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_yggdrasil.txt"),
-    ("ygg-ip",   "分类列表", "Yggdrasil IP 类 Tracker",
-     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_yggdrasil_ip.txt"),
-    ("repo", "其他", "GitHub 仓库主页",
-     "https://github.com/{repo}"),
+    ("all-proxy",   "核心订阅", "合并总表（ghproxy）",
+     "https://ghproxy.net/https://raw.githubusercontent.com/{repo}/main/trackers/trackers_merged.txt"),
+    ("repo", "其他", "GitHub 仓库主页", "https://github.com/{repo}"),
 ]
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -94,11 +83,10 @@ def download_trackers(url):
         except Exception as e:
             last_error = e
             if attempt < MAX_RETRIES:
-                print(f"  [RETRY] {attempt}/{MAX_RETRIES} failed: {e}")
+                print(f"  [RETRY] {attempt}/{MAX_RETRIES}: {e}")
                 time.sleep(RETRY_DELAY)
             else:
                 raise last_error
-
     trackers = set()
     for line in raw.splitlines():
         line = line.strip()
@@ -159,11 +147,9 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
     owner = repo.split("/")[0]
     rn = repo.split("/")[-1]
     pages_base = f"https://{owner}.github.io/{rn}"
-
     groups = {}
     for short, group, desc, target in short_links_with_urls:
         groups.setdefault(group, []).append((short, desc, target))
-
     sections_html = ""
     for group_name in ["核心订阅", "分类列表", "其他"]:
         items = groups.get(group_name, [])
@@ -176,10 +162,8 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
                       f'<div class="ld">{html.escape(desc)}</div>'
                       f'<div class="lt">&#8594; {html.escape(target)}</div></div>\n')
         sections_html += f'<section><h2>{group_name}</h2>{cards}</section>\n'
-
     counts_rows = "".join(
         f"<tr><td>{html.escape(n)}</td><td>{c}</td></tr>\n" for n, c in tracker_counts)
-
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tracker List - Auto Subscription</title>
@@ -221,10 +205,10 @@ font-size:.85rem;color:#7ee787;margin-top:.5rem;word-break:break-all}}
 <div class="u">{pages_base}/s/alive</div>
 <p style="margin-top:.8rem;font-size:.88rem;color:#8b949e">
 <code style="color:#7ee787">/s/alive</code> contains only trackers that passed the liveness test.
-Full list: <code style="color:#7ee787">/s/all</code> &middot;
-CDN: <code style="color:#7ee787">/s/alive-cdn</code>, <code style="color:#7ee787">/s/all-cdn</code>.</p></section>
+Full list: <code style="color:#7ee787">/s/all</code>.</p></section>
 <div class="ft"><p>Updated: {now}</p>
-<p>Source: <a href="https://github.com/ngosang/trackerslist">ngosang/trackerslist</a> &middot;
+<p>Sources: <a href="https://cf.trackerslist.com/best.txt">cf.trackerslist.com</a> &middot;
+<a href="https://trackers.run/s/rw_ws_up_hp_hs_v4_v6.txt">trackers.run</a> &middot;
 Repo: <a href="https://github.com/{repo}">{repo}</a></p></div>
 </div></body></html>"""
 
@@ -238,7 +222,6 @@ def generate_pages(repo, results):
         with open(os.path.join(SHORT_LINKS_DIR, f"{short}.html"), "w", encoding="utf-8", newline="\n") as f:
             f.write(generate_redirect_page(target, desc))
         print(f"[OK] /s/{short}")
-
     with open(os.path.join(PAGES_DIR, "index.html"), "w", encoding="utf-8", newline="\n") as f:
         f.write(generate_index_page(repo, short_links_with_urls, results))
     nj = os.path.join(PAGES_DIR, ".nojekyll")
@@ -251,7 +234,6 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     repo = get_repo()
     print(f"[INFO] Repo: {repo}")
-
     all_merged = set()
     results = []
     for filename, url in SOURCES:
@@ -267,14 +249,11 @@ def main():
         all_merged.update(trackers)
         results.append((filename, len(trackers)))
         print(f"[OK] {filename}: {len(trackers)}")
-
     if all_merged:
         ms = sorted(all_merged)
-        write_trackers(os.path.join(OUTPUT_DIR, MERGED_FILE), ms,
-                       ", ".join(u for _, u in SOURCES))
+        write_trackers(os.path.join(OUTPUT_DIR, MERGED_FILE), ms, ", ".join(u for _, u in SOURCES))
         results.append((MERGED_FILE, len(ms)))
         print(f"[OK] merged: {len(ms)}")
-
     write_mirrors_file(repo)
     print("\n[INFO] Pages...")
     generate_pages(repo, results)
