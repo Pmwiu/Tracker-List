@@ -1,8 +1,8 @@
 # Tracker 订阅镜像地址清单
-# Generated: 2026-09-27 13:54:44 UTC
-# 若默认链接无法访问，请依次尝试以下镜像：
+# Generated: 2026-09-27 22:22:02 UTC
+# 默认链接不可用时依次尝试：
 
-# [GitHub Raw 直连]
+# [GitHub Raw]
 https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt
 
 # [jsDelivr CDN]
@@ -14,8 +14,8 @@ https://fastly.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_merged.
 # [jsDelivr Gcore]
 https://gcore.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_merged.txt
 
-# [ghproxy 代理]
+# [ghproxy]
 https://ghproxy.net/https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt
 
-# [gh-proxy 代理]
+# [gh-proxy]
 https://gh-proxy.com/https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt
