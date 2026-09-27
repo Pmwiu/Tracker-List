@@ -1,0 +1,29 @@
+# ===== Python（本地运行脚本产生的缓存，不入库保持纯净）=====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ===== 虚拟环境 =====
+venv/
+.venv/
+env/
+ENV/
+
+# ===== 操作系统杂项 =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 编辑器 / IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== 临时与探针文件 =====
+tmp_*
+*.tmp
+*.log

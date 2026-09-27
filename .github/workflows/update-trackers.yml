@@ -2,7 +2,9 @@ name: Auto Update Trackers
 
 on:
   schedule:
+    # 每天 UTC 00:00 运行（北京时间 08:00），约每 24 小时一次
     - cron: "0 0 * * *"
+  # 支持手动触发
   workflow_dispatch:
 
 permissions:
@@ -11,6 +13,8 @@ permissions:
 jobs:
   update-trackers:
     runs-on: ubuntu-latest
+    # 安全：限制最大运行时长，防止脚本失控或被挂起占用资源
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,12 +26,15 @@ jobs:
         with:
           python-version: "3.x"
 
+      # 步骤 1：下载源列表、合并去重、生成短链接页面
       - name: Download, merge and deduplicate trackers
         run: python scripts/update_trackers.py
 
+      # 步骤 2：协议级活性测试，剔除失效 tracker
       - name: Test tracker liveness and remove dead trackers
         run: python scripts/test_trackers.py --timeout 12 --workers 25
 
+      # 步骤 3：检测变更
       - name: Check for changes
         id: git-check
         run: |
@@ -38,6 +45,7 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
+      # 步骤 4：提交推送
       - name: Commit and push changes
         if: steps.git-check.outputs.changed == 'true'
         run: |
@@ -47,6 +55,7 @@ jobs:
           git commit -m "chore: auto-update and liveness test $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
 
+      # 步骤 5：健康检查
       - name: Health check
         run: python scripts/health_check.py --rounds 3
         continue-on-error: true
