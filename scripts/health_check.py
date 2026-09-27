@@ -13,16 +13,18 @@ TRACKER_FILES = [
     "trackers_all.txt", "trackers_all_ip.txt", "trackers_all_ws.txt",
     "trackers_all_i2p.txt", "trackers_all_yggdrasil.txt",
     "trackers_all_yggdrasil_ip.txt", "trackers_merged.txt",
+    "trackers_alive.txt", "trackers_dead.txt",
 ]
+EXTRA_FILES = ["MIRRORS.txt", "test_report.md"]
 MIRRORS = [
-    ("Raw", "https://raw.githubusercontent.com/{r}/main/trackers/trackers_merged.txt"),
-    ("jsDelivr", "https://cdn.jsdelivr.net/gh/{r}@main/trackers/trackers_merged.txt"),
-    ("Fastly", "https://fastly.jsdelivr.net/gh/{r}@main/trackers/trackers_merged.txt"),
-    ("Gcore", "https://gcore.jsdelivr.net/gh/{r}@main/trackers/trackers_merged.txt"),
-    ("ghproxy", "https://ghproxy.net/https://raw.githubusercontent.com/{r}/main/trackers/trackers_merged.txt"),
-    ("gh-proxy", "https://gh-proxy.com/https://raw.githubusercontent.com/{r}/main/trackers/trackers_merged.txt"),
+    ("Raw", "https://raw.githubusercontent.com/{r}/main/trackers/trackers_alive.txt"),
+    ("jsDelivr", "https://cdn.jsdelivr.net/gh/{r}@main/trackers/trackers_alive.txt"),
+    ("Fastly", "https://fastly.jsdelivr.net/gh/{r}@main/trackers/trackers_alive.txt"),
+    ("Gcore", "https://gcore.jsdelivr.net/gh/{r}@main/trackers/trackers_alive.txt"),
+    ("ghproxy", "https://ghproxy.net/https://raw.githubusercontent.com/{r}/main/trackers/trackers_alive.txt"),
+    ("gh-proxy", "https://gh-proxy.com/https://raw.githubusercontent.com/{r}/main/trackers/trackers_alive.txt"),
 ]
-PAGES = ["all","all-cdn","all-fastly","all-gcore","all-proxy",
+PAGES = ["alive","alive-cdn","all","all-cdn","all-fastly","all-gcore","all-proxy",
          "trackers","ip","ws","i2p","ygg","ygg-ip","repo"]
 
 
@@ -44,14 +46,26 @@ def fetch(url):
 def check_local(res):
     for f in TRACKER_FILES:
         p = os.path.join(TD, f)
-        if os.path.exists(p) and os.path.getsize(p) > 0:
+        if not os.path.exists(p):
+            res.append(("FAIL", f"tracker: {f}", "missing"))
+            continue
+        if f == "trackers_dead.txt":
+            res.append(("PASS", f"tracker: {f}", "exists (may be empty)"))
+            continue
+        if os.path.getsize(p) > 0:
             res.append(("PASS", f"tracker: {f}", f"{count(open(p,encoding='utf-8').read())} entries"))
         else:
-            res.append(("FAIL", f"tracker: {f}", "missing"))
-    mp = os.path.join(TD, "MIRRORS.txt")
-    res.append(("PASS" if os.path.exists(mp) else "FAIL", "MIRRORS.txt", "ok" if os.path.exists(mp) else "missing"))
+            res.append(("FAIL", f"tracker: {f}", "empty"))
+
+    for ef in EXTRA_FILES:
+        p = os.path.join(TD, ef)
+        ok = os.path.exists(p) and os.path.getsize(p) > 0
+        res.append(("PASS" if ok else "FAIL", ef, "ok" if ok else "missing"))
+
     ip = os.path.join(PD, "index.html")
-    res.append(("PASS" if os.path.exists(ip) else "FAIL", "index.html", "ok" if os.path.exists(ip) else "missing"))
+    ok = os.path.exists(ip) and os.path.getsize(ip) > 0
+    res.append(("PASS" if ok else "FAIL", "index.html", "ok" if ok else "missing"))
+
     for sp in PAGES:
         p = os.path.join(SD, f"{sp}.html")
         if os.path.exists(p):
