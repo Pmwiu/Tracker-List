@@ -2,16 +2,6 @@
 """
 自动从公开 GitHub 项目下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与多 CDN 镜像清单。
-
-DNS 防污染策略:
-  - GitHub raw 直连（默认）
-  - jsDelivr CDN（cdn.jsdelivr.net）
-  - jsDelivr Fastly 节点（fastly.jsdelivr.net）
-  - jsDelivr Gcore 节点（gcore.jsdelivr.net）
-  - ghproxy 代理镜像
-  - GitHub Pages 跳转层
-
-数据源: ngosang/trackerslist
 """
 
 import os
@@ -42,33 +32,37 @@ MIRRORS = [
     ("jsDelivr Fastly", "https://fastly.jsdelivr.net/gh/{repo}@main/trackers/{file}"),
     ("jsDelivr Gcore", "https://gcore.jsdelivr.net/gh/{repo}@main/trackers/{file}"),
     ("ghproxy", "https://ghproxy.net/https://raw.githubusercontent.com/{repo}/main/trackers/{file}"),
-    ("gh-proxy", "https://gh-proxy.com/https://raw.githubusercontent.com/{repo}/main/trackers/{file}"),
+    ("gh-proxy", "https://gh-proxy.com/https://raw.githubusercontent.com/{repo}@main/trackers/{file}"),
 ]
 
 SHORT_LINKS = [
-    ("all",       "核心订阅", "合并总表（Raw，推荐）",
+    ("alive",      "核心订阅", "存活 Tracker（经活性测试，最推荐）",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_alive.txt"),
+    ("alive-cdn",  "核心订阅", "存活 Tracker（jsDelivr CDN）",
+     "https://cdn.jsdelivr.net/gh/{repo}@main/trackers/trackers_alive.txt"),
+    ("all",        "核心订阅", "合并总表（Raw 直连）",
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_merged.txt"),
-    ("all-cdn",   "核心订阅", "合并总表（jsDelivr CDN）",
+    ("all-cdn",     "核心订阅", "合并总表（jsDelivr CDN）",
      "https://cdn.jsdelivr.net/gh/{repo}@main/trackers/trackers_merged.txt"),
-    ("all-fastly","核心订阅", "合并总表（Fastly）",
+    ("all-fastly",  "核心订阅", "合并总表（Fastly 节点）",
      "https://fastly.jsdelivr.net/gh/{repo}@main/trackers/trackers_merged.txt"),
-    ("all-gcore", "核心订阅", "合并总表（Gcore）",
+    ("all-gcore",   "核心订阅", "合并总表（Gcore 节点）",
      "https://gcore.jsdelivr.net/gh/{repo}@main/trackers/trackers_merged.txt"),
-    ("all-proxy", "核心订阅", "合并总表（ghproxy）",
-     "https://ghproxy.net/https://raw.githubusercontent.com/{repo}/main/trackers/trackers_merged.txt"),
-    ("trackers",  "分类列表", "全部 Tracker",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_all.txt"),
-    ("ip",        "分类列表", "IP 类 Tracker",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_all_ip.txt"),
-    ("ws",        "分类列表", "WebSocket 类 Tracker",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_all_ws.txt"),
-    ("i2p",       "分类列表", "I2P 网络 Tracker",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_all_i2p.txt"),
-    ("ygg",       "分类列表", "Yggdrasil 网络 Tracker",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_all_yggdrasil.txt"),
-    ("ygg-ip",    "分类列表", "Yggdrasil IP 类 Tracker",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_all_yggdrasil_ip.txt"),
-    ("repo",      "其他", "GitHub 仓库主页",
+    ("all-proxy",   "核心订阅", "合并总表（ghproxy 代理）",
+     "https://ghproxy.net/https://raw.githubusercontent.com/{repo}@main/trackers/trackers_merged.txt"),
+    ("trackers", "分类列表", "全部 Tracker 列表",
+     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all.txt"),
+    ("ip",       "分类列表", "IP 类 Tracker",
+     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_ip.txt"),
+    ("ws",       "分类列表", "WebSocket 类 Tracker",
+     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_ws.txt"),
+    ("i2p",      "分类列表", "I2P 网络 Tracker",
+     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_i2p.txt"),
+    ("ygg",      "分类列表", "Yggdrasil 网络 Tracker",
+     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_yggdrasil.txt"),
+    ("ygg-ip",   "分类列表", "Yggdrasil IP 类 Tracker",
+     "https://raw.githubusercontent.com/{repo}@main/trackers/trackers_all_yggdrasil_ip.txt"),
+    ("repo", "其他", "GitHub 仓库主页",
      "https://github.com/{repo}"),
 ]
 
@@ -77,6 +71,8 @@ OUTPUT_DIR = os.path.join(PROJECT_ROOT, "trackers")
 PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
 SHORT_LINKS_DIR = os.path.join(PAGES_DIR, "s")
 MERGED_FILE = "trackers_merged.txt"
+ALIVE_FILE = "trackers_alive.txt"
+DEAD_FILE = "trackers_dead.txt"
 TIMEOUT = 30
 MAX_RETRIES = 3
 RETRY_DELAY = 5
@@ -102,6 +98,7 @@ def download_trackers(url):
                 time.sleep(RETRY_DELAY)
             else:
                 raise last_error
+
     trackers = set()
     for line in raw.splitlines():
         line = line.strip()
@@ -134,12 +131,12 @@ def write_mirrors_file(repo):
     print(f"[OK] MIRRORS.txt ({len(MIRRORS)} mirrors)")
 
 
-def redirect_page(target, desc):
-    e = html.escape(target, quote=True)
-    d = html.escape(desc)
+def generate_redirect_page(target_url, description=""):
+    e = html.escape(target_url, quote=True)
+    d = html.escape(description)
     return f"""<!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="0; url={e}">
 <link rel="canonical" href="{e}">
 <title>Redirecting... | Tracker List</title>
@@ -157,27 +154,32 @@ a{{color:#58a6ff}}
 """
 
 
-def index_page(repo, links, counts):
+def generate_index_page(repo, short_links_with_urls, tracker_counts):
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     owner = repo.split("/")[0]
     rn = repo.split("/")[-1]
-    base = f"https://{owner}.github.io/{rn}"
+    pages_base = f"https://{owner}.github.io/{rn}"
+
     groups = {}
-    for s, g, d, t in links:
-        groups.setdefault(g, []).append((s, d, t))
-    sec = ""
-    for gn in ["核心订阅", "分类列表", "其他"]:
-        items = groups.get(gn, [])
+    for short, group, desc, target in short_links_with_urls:
+        groups.setdefault(group, []).append((short, desc, target))
+
+    sections_html = ""
+    for group_name in ["核心订阅", "分类列表", "其他"]:
+        items = groups.get(group_name, [])
         if not items:
             continue
         cards = ""
-        for s, d, t in items:
-            su = f"{base}/s/{s}"
-            cards += (f'<div class="lc"><div class="ls"><a href="{su}">{su}</a></div>'
-                      f'<div class="ld">{html.escape(d)}</div>'
-                      f'<div class="lt">&#8594; {html.escape(t)}</div></div>\n')
-        sec += f'<section><h2>{gn}</h2>{cards}</section>\n'
-    rows = "".join(f"<tr><td>{html.escape(n)}</td><td>{c}</td></tr>" for n, c in counts)
+        for short, desc, target in items:
+            short_url = f"{pages_base}/s/{short}"
+            cards += (f'<div class="lc"><div class="ls"><a href="{short_url}">{short_url}</a></div>'
+                      f'<div class="ld">{html.escape(desc)}</div>'
+                      f'<div class="lt">&#8594; {html.escape(target)}</div></div>\n')
+        sections_html += f'<section><h2>{group_name}</h2>{cards}</section>\n'
+
+    counts_rows = "".join(
+        f"<tr><td>{html.escape(n)}</td><td>{c}</td></tr>\n" for n, c in tracker_counts)
+
     return f"""<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tracker List - Auto Subscription</title>
@@ -203,7 +205,7 @@ h2{{font-size:1.15rem;color:#f0f6fc;margin-bottom:1rem;padding-bottom:.5rem;bord
 .lt{{color:#8b949e;font-size:.78rem;margin-top:.2rem;word-break:break-all}}
 table{{width:100%;border-collapse:collapse;font-size:.9rem}}
 th,td{{text-align:left;padding:.5rem .75rem;border-bottom:1px solid #21262d}}
-th{{color:#8b949e}}
+th{{color:#8b949e;font-weight:600}}
 td:last-child{{text-align:right;font-variant-numeric:tabular-nums}}
 .u{{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:1rem;font-family:monospace;
 font-size:.85rem;color:#7ee787;margin-top:.5rem;word-break:break-all}}
@@ -213,13 +215,14 @@ font-size:.85rem;color:#7ee787;margin-top:.5rem;word-break:break-all}}
 <header><h1>Tracker List</h1><p class="sub">Auto Subscription &middot; Deduplicated &middot; Short Links &middot; Multi-CDN</p>
 <div class="bd"><span class="b">7x24H Auto Update</span><span class="b bl">DNS Anti-Pollution</span>
 <span class="b bl">Multi-CDN Failover</span></div></header>
-{sec}<section><h2>Tracker Statistics</h2>
-<table><thead><tr><th>List</th><th>Count</th></tr></thead><tbody>{rows}</tbody></table></section>
+{sections_html}<section><h2>Tracker Statistics</h2>
+<table><thead><tr><th>List</th><th>Count</th></tr></thead><tbody>{counts_rows}</tbody></table></section>
 <section><h2>Quick Start</h2><p>Copy into your BitTorrent client:</p>
-<div class="u">{base}/s/all</div>
-<p style="margin-top:.8rem;font-size:.88rem;color:#8b949e">Blocked? Try:
-<code style="color:#7ee787">/s/all-cdn</code>, <code style="color:#7ee787">/s/all-fastly</code>,
-<code style="color:#7ee787">/s/all-gcore</code>, <code style="color:#7ee787">/s/all-proxy</code>.</p></section>
+<div class="u">{pages_base}/s/alive</div>
+<p style="margin-top:.8rem;font-size:.88rem;color:#8b949e">
+<code style="color:#7ee787">/s/alive</code> contains only trackers that passed the liveness test.
+Full list: <code style="color:#7ee787">/s/all</code> &middot;
+CDN: <code style="color:#7ee787">/s/alive-cdn</code>, <code style="color:#7ee787">/s/all-cdn</code>.</p></section>
 <div class="ft"><p>Updated: {now}</p>
 <p>Source: <a href="https://github.com/ngosang/trackerslist">ngosang/trackerslist</a> &middot;
 Repo: <a href="https://github.com/{repo}">{repo}</a></p></div>
@@ -228,15 +231,16 @@ Repo: <a href="https://github.com/{repo}">{repo}</a></p></div>
 
 def generate_pages(repo, results):
     os.makedirs(SHORT_LINKS_DIR, exist_ok=True)
-    links = []
-    for s, g, d, template in SHORT_LINKS:
-        t = template.format(repo=repo)
-        links.append((s, g, d, t))
-        with open(os.path.join(SHORT_LINKS_DIR, f"{s}.html"), "w", encoding="utf-8", newline="\n") as f:
-            f.write(redirect_page(t, d))
-        print(f"[OK] /s/{s}")
+    short_links_with_urls = []
+    for short, group, desc, template in SHORT_LINKS:
+        target = template.format(repo=repo)
+        short_links_with_urls.append((short, group, desc, target))
+        with open(os.path.join(SHORT_LINKS_DIR, f"{short}.html"), "w", encoding="utf-8", newline="\n") as f:
+            f.write(generate_redirect_page(target, desc))
+        print(f"[OK] /s/{short}")
+
     with open(os.path.join(PAGES_DIR, "index.html"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(index_page(repo, links, results))
+        f.write(generate_index_page(repo, short_links_with_urls, results))
     nj = os.path.join(PAGES_DIR, ".nojekyll")
     if not os.path.exists(nj):
         open(nj, "w").close()
@@ -247,27 +251,30 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     repo = get_repo()
     print(f"[INFO] Repo: {repo}")
-    merged = set()
+
+    all_merged = set()
     results = []
-    for fn, url in SOURCES:
-        print(f"[INFO] {fn}")
+    for filename, url in SOURCES:
+        print(f"[INFO] {filename}")
         try:
-            tr = download_trackers(url)
+            trackers = download_trackers(url)
         except Exception as e:
-            print(f"[ERROR] {fn}: {e}", file=sys.stderr)
-            if os.path.exists(os.path.join(OUTPUT_DIR, fn)):
-                print(f"[WARN] keeping existing {fn}")
+            print(f"[ERROR] {filename}: {e}", file=sys.stderr)
+            if os.path.exists(os.path.join(OUTPUT_DIR, filename)):
+                print(f"[WARN] keeping existing {filename}")
             continue
-        write_trackers(os.path.join(OUTPUT_DIR, fn), tr, url)
-        merged.update(tr)
-        results.append((fn, len(tr)))
-        print(f"[OK] {fn}: {len(tr)}")
-    if merged:
-        ms = sorted(merged)
+        write_trackers(os.path.join(OUTPUT_DIR, filename), trackers, url)
+        all_merged.update(trackers)
+        results.append((filename, len(trackers)))
+        print(f"[OK] {filename}: {len(trackers)}")
+
+    if all_merged:
+        ms = sorted(all_merged)
         write_trackers(os.path.join(OUTPUT_DIR, MERGED_FILE), ms,
                        ", ".join(u for _, u in SOURCES))
         results.append((MERGED_FILE, len(ms)))
         print(f"[OK] merged: {len(ms)}")
+
     write_mirrors_file(repo)
     print("\n[INFO] Pages...")
     generate_pages(repo, results)
