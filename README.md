@@ -1,7 +1,5 @@
 # Tracker List 自动订阅、活性测试与短链接服务
 
-自动从 [ngosang/trackerslist](https://github.com/ngosang/trackerslist) 检索 Tracker，**合并去重、协议级活性测试、自动剔除失效节点**，通过 GitHub Pages 提供 7×24H 短链接服务，每 24 小时自动维护。
-
 ## 三大自动化能力
 
 1. **自动检索更新**：定时拉取 6 类公开 Tracker 列表
