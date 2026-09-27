@@ -1,10 +1,10 @@
-# Tracker Liveness Test Report
+# Tracker 活性测试报告
 
-- Test time: 2026-09-27 22:37:44 UTC
-- Total trackers: 155
-- Alive: **122** (78%)
-- Dead: **16** (10%)
-- Untestable: 17
-- Duration: 24.3 seconds
+- 测试时间: 2026-09-27 23:38:02 UTC
+- 总 Tracker 数: 116
+- 存活 (alive): **94** (81%)
+- 失效 (dead): **22** (18%)
+- 无法测试 (untestable): 0
+- 耗时: 26.7 秒
 
-See trackers_alive.txt (recommended subscription) and trackers_dead.txt.
+存活列表见 trackers_alive.txt（推荐订阅），失效列表见 trackers_dead.txt。
