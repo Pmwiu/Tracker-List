@@ -10,10 +10,8 @@ SD = os.path.join(PD, "s")
 TIMEOUT = 20
 
 TRACKER_FILES = [
-    "trackers_all.txt", "trackers_all_ip.txt", "trackers_all_ws.txt",
-    "trackers_all_i2p.txt", "trackers_all_yggdrasil.txt",
-    "trackers_all_yggdrasil_ip.txt", "trackers_merged.txt",
-    "trackers_alive.txt", "trackers_dead.txt",
+    "trackers_best.txt", "trackers_http.txt", "trackers_run.txt",
+    "trackers_merged.txt", "trackers_alive.txt", "trackers_dead.txt",
 ]
 EXTRA_FILES = ["MIRRORS.txt", "test_report.md"]
 MIRRORS = [
@@ -24,8 +22,8 @@ MIRRORS = [
     ("ghproxy", "https://ghproxy.net/https://raw.githubusercontent.com/{r}/main/trackers/trackers_alive.txt"),
     ("gh-proxy", "https://gh-proxy.com/https://raw.githubusercontent.com/{r}/main/trackers/trackers_alive.txt"),
 ]
-PAGES = ["alive","alive-cdn","all","all-cdn","all-fastly","all-gcore","all-proxy",
-         "trackers","ip","ws","i2p","ygg","ygg-ip","repo"]
+PAGES = ["alive","alive-cdn","best","http","run",
+         "all","all-cdn","all-fastly","all-gcore","all-proxy","repo"]
 
 
 def count(text):
@@ -56,16 +54,13 @@ def check_local(res):
             res.append(("PASS", f"tracker: {f}", f"{count(open(p,encoding='utf-8').read())} entries"))
         else:
             res.append(("FAIL", f"tracker: {f}", "empty"))
-
     for ef in EXTRA_FILES:
         p = os.path.join(TD, ef)
         ok = os.path.exists(p) and os.path.getsize(p) > 0
         res.append(("PASS" if ok else "FAIL", ef, "ok" if ok else "missing"))
-
     ip = os.path.join(PD, "index.html")
     ok = os.path.exists(ip) and os.path.getsize(ip) > 0
     res.append(("PASS" if ok else "FAIL", "index.html", "ok" if ok else "missing"))
-
     for sp in PAGES:
         p = os.path.join(SD, f"{sp}.html")
         if os.path.exists(p):
