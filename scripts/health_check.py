@@ -3,7 +3,7 @@
 健康检查脚本：验证本地文件、云端仓库与短链接的可用性。
 
 检查项:
-  1. 本地 Tracker 文件完整性（3个订阅源 + 合并/存活/失效列表）
+  1. 本地 Tracker 文件完整性（4个订阅源 + 合并/存活/失效列表）
   2. 本地 GitHub Pages 文件完整性（主页 + 短链接页面 + 纯文本文件）
   3. GitHub Raw 直链 URL 的 HTTP 可达性
   4. 短链接页面是否包含正确的重定向目标
@@ -29,6 +29,7 @@ TIMEOUT = 20
 TRACKER_FILES = [
     "trackers_best.txt",
     "trackers_ngosang.txt",
+    "trackers_ngosang_ip.txt",
     "trackers_adysec.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
@@ -43,12 +44,12 @@ MIRROR_URLS = [
 ]
 
 SHORT_PAGES = [
-    "alive", "best", "ngosang", "adysec", "all",
+    "alive", "best", "ngosang", "ngosang-ip", "adysec", "all",
 ]
 
 # docs/ 下的纯文本文件（供 BT 客户端直接订阅）
 PLAIN_TEXT_FILES = [
-    "alive.txt", "merged.txt", "best.txt", "ngosang.txt", "adysec.txt",
+    "alive.txt", "merged.txt", "best.txt", "ngosang.txt", "ngosang_ip.txt", "adysec.txt",
 ]
 
 

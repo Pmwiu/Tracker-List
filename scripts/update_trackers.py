@@ -6,6 +6,7 @@
 订阅源（均为 best 精选列表）:
   - https://cf.trackerslist.com/best.txt
   - https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
+  - https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt
   - https://tracker.adysec.com/trackers_best.txt
 
 特性:
@@ -25,6 +26,7 @@ import datetime
 SOURCES = [
     ("trackers_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
     ("trackers_ngosang.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt", "ngosang-best"),
+    ("trackers_ngosang_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt", "ngosang-best-ip"),
     ("trackers_adysec.txt", "https://tracker.adysec.com/trackers_best.txt", "adysec-best"),
 ]
 
@@ -41,6 +43,8 @@ SHORT_LINKS = [
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_best.txt"),
     ("ngosang", "订阅源", "ngosang trackers_best",
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_ngosang.txt"),
+    ("ngosang-ip", "订阅源", "ngosang trackers_best_ip",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_ngosang_ip.txt"),
     ("adysec", "订阅源", "adysec trackers_best",
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_adysec.txt"),
     ("all", "合并总表", "合并去重总表",
@@ -147,7 +151,32 @@ def write_mirrors_file(repo):
 def generate_redirect_page(target_url, description=""):
     eu = html.escape(target_url, quote=True)
     ed = html.escape(description)
-    return f"""<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<meta http-equiv=\"refresh\" content=\"0; url={eu}\">\n<link rel=\"canonical\" href=\"{eu}\">\n<title>Redirect &mdash; Tracker List</title>\n<style>\n  body{{font-family:\"SF Pro Display\",\"Helvetica Neue\",Arial,sans-serif;background:#fafafa;color:#666;\n       display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}}\n  .box{{text-align:center}}\n  .box p{{margin:8px 0;font-size:14px}}\n  a{{color:#2563eb;text-decoration:none}}\n  a:hover{{text-decoration:underline}}\n</style>\n</head>\n<body>\n<div class=\"box\">\n  <p>{ed}</p>\n  <p><a href=\"{eu}\">Continue &rarr;</a></p>\n</div>\n<script>window.location.replace(\"{eu}\");</script>\n</body>\n</html>\n"""
+    return f"""<!DOCTYPE html>
+<html lang=\"zh-CN\">
+<head>
+<meta charset=\"UTF-8\">
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+<meta http-equiv=\"refresh\" content=\"0; url={eu}\">
+<link rel=\"canonical\" href=\"{eu}\">
+<title>Redirect &mdash; Tracker List</title>
+<style>
+  body{{font-family:"SF Pro Display","Helvetica Neue",Arial,sans-serif;background:#fafafa;color:#666;
+       display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}}
+  .box{{text-align:center}}
+  .box p{{margin:8px 0;font-size:14px}}
+  a{{color:#2563eb;text-decoration:none}}
+  a:hover{{text-decoration:underline}}
+</style>
+</head>
+<body>
+<div class="box">
+  <p>{ed}</p>
+  <p><a href=\"{eu}\">Continue &rarr;</a></p>
+</div>
+<script>window.location.replace("{eu}");</script>
+</body>
+</html>
+"""
 
 
 def generate_index_page(repo, short_links_with_urls, tracker_counts):
@@ -155,9 +184,11 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
     owner = repo.split("/")[0] if "/" in repo else repo
     repo_name = repo.split("/")[-1] if "/" in repo else "Tracker-List"
     pages_base = f"https://{owner}.github.io/{repo_name}"
+
     groups = {}
     for short, group, desc, target in short_links_with_urls:
         groups.setdefault(group, []).append((short, desc, target))
+
     sections_html = ""
     for group_name in ["核心订阅", "订阅源", "合并总表"]:
         items = groups.get(group_name, [])
@@ -166,12 +197,105 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
         rows = ""
         for short, desc, target in items:
             short_url = f"{pages_base}/s/{short}"
-            rows += f"""      <div class=\"row\">\n        <div class=\"row-label\">{html.escape(desc)}</div>\n        <div class=\"row-link\"><a href=\"{html.escape(short_url)}\">{html.escape(short_url)}</a></div>\n      </div>\n"""
-        sections_html += f"""    <div class=\"block\">\n      <div class=\"block-title\">{html.escape(group_name)}</div>\n{rows}    </div>\n"""
+            rows += f"""      <div class=\"row\">
+        <div class=\"row-label\">{html.escape(desc)}</div>
+        <div class=\"row-link\"><a href=\"{html.escape(short_url)}\">{html.escape(short_url)}</a></div>
+      </div>
+"""
+        sections_html += f"""    <div class=\"block\">
+      <div class=\"block-title\">{html.escape(group_name)}</div>
+{rows}    </div>
+"""
+
     counts_rows = ""
     for name, count in tracker_counts:
-        counts_rows += f"""      <tr><td>{html.escape(name)}</td><td class=\"num\">{count}</td></tr>\n"""
-    return f"""<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Tracker List</title>\n<style>\n  *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}\n  html{{-webkit-font-smoothing:antialiased}}\n  body{{font-family:\"SF Pro Display\",\"Helvetica Neue\",Arial,sans-serif;\n        background:#fafafa;color:#1a1a1a;line-height:1.7;font-size:15px}}\n  .wrap{{max-width:680px;margin:0 auto;padding:64px 32px 48px}}\n  header{{margin-bottom:56px}}\n  .brand{{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#999;margin-bottom:16px}}\n  h1{{font-size:32px;font-weight:600;letter-spacing:-0.5px;color:#111;margin-bottom:12px}}\n  .tagline{{font-size:14px;color:#666;max-width:480px}}\n  .meta{{display:flex;gap:24px;margin-top:24px;font-size:12px;color:#999;flex-wrap:wrap}}\n  .meta span{{display:flex;align-items:center;gap:6px}}\n  .meta .dot{{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block}}\n  .block{{border-top:1px solid #e5e5e5;padding:28px 0}}\n  .block-title{{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:16px}}\n  .row{{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid #f0f0f0}}\n  .row:last-child{{border-bottom:none}}\n  .row-label{{font-size:14px;color:#333;flex-shrink:0;margin-right:16px}}\n  .row-link{{font-size:13px;font-family:\"SF Mono\",Menlo,monospace;text-align:right}}\n  .row-link a{{color:#2563eb;text-decoration:none;word-break:break-all}}\n  .row-link a:hover{{text-decoration:underline}}\n  table{{width:100%;border-collapse:collapse;font-size:13px}}\n  th,td{{text-align:left;padding:8px 0;border-bottom:1px solid #f0f0f0}}\n  th{{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#999;font-weight:500}}\n  td.num{{text-align:right;font-family:\"SF Mono\",Menlo,monospace;color:#333}}\n  .subscribe{{background:#111;color:#fff;padding:32px;border-radius:4px;margin:32px 0}}\n  .subscribe-label{{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:12px}}\n  .subscribe-url{{font-family:\"SF Mono\",Menlo,monospace;font-size:14px;color:#fff;word-break:break-all}}\n  .subscribe-url a{{color:#fff;text-decoration:none;border-bottom:1px solid #444}}\n  .subscribe-url a:hover{{border-bottom-color:#fff}}\n  .subscribe-note{{font-size:12px;color:#888;margin-top:12px}}\n  footer{{margin-top:56px;padding-top:24px;border-top:1px solid #e5e5e5;font-size:12px;color:#999}}\n  footer a{{color:#666;text-decoration:none}}\n  footer a:hover{{color:#111}}\n  footer .sources{{margin-top:8px}}\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <header>\n    <div class=\"brand\">Pmwiu / Tracker-List</div>\n    <h1>Tracker List</h1>\n    <p class=\"tagline\">自动聚合、去重、活性测试与测速排序的 BitTorrent Tracker 订阅服务。每日更新，仅保留最快最稳定的 {MAX_TRACKERS} 个。</p>\n    <div class=\"meta\">\n      <span><span class=\"dot\"></span> 7x24H Auto Update</span>\n      <span>Top {MAX_TRACKERS} by Speed</span>\n      <span>Direct Links Only</span>\n    </div>\n  </header>\n\n{sections_html}  <div class=\"block\">\n    <div class=\"block-title\">Statistics</div>\n    <table>\n      <thead><tr><th>List</th><th>Count</th></tr></thead>\n      <tbody>\n{counts_rows}      </tbody>\n    </table>\n  </div>\n\n  <div class=\"subscribe\">\n    <div class=\"subscribe-label\">BT Client Subscription</div>\n    <div class=\"subscribe-url\"><a href=\"{pages_base}/alive.txt\">{pages_base}/alive.txt</a></div>\n    <p class=\"subscribe-note\">纯文本直链，qBittorrent 等客户端可直接订阅。经活性测试 + 测速排序，最多 {MAX_TRACKERS} 个。</p>\n  </div>\n\n  <footer>\n    <p>Last updated: {now}</p>\n    <p class=\"sources\">Sources:\n      <a href=\"https://cf.trackerslist.com/best.txt\">cf/best</a> &middot;\n      <a href=\"https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt\">ngosang/best</a> &middot;\n      <a href=\"https://tracker.adysec.com/trackers_best.txt\">adysec/best</a> &middot;\n      <a href=\"https://github.com/{repo}\">GitHub</a>\n    </p>\n  </footer>\n</div>\n</body>\n</html>\n"""
+        counts_rows += f"""      <tr><td>{html.escape(name)}</td><td class=\"num\">{count}</td></tr>
+"""
+
+    return f"""<!DOCTYPE html>
+<html lang=\"zh-CN\">
+<head>
+<meta charset=\"UTF-8\">
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+<title>Tracker List</title>
+<style>
+  *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+  html{{-webkit-font-smoothing:antialiased}}
+  body{{font-family:"SF Pro Display","Helvetica Neue",Arial,sans-serif;
+        background:#fafafa;color:#1a1a1a;line-height:1.7;font-size:15px}}
+  .wrap{{max-width:680px;margin:0 auto;padding:64px 32px 48px}}
+  header{{margin-bottom:56px}}
+  .brand{{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#999;margin-bottom:16px}}
+  h1{{font-size:32px;font-weight:600;letter-spacing:-0.5px;color:#111;margin-bottom:12px}}
+  .tagline{{font-size:14px;color:#666;max-width:480px}}
+  .meta{{display:flex;gap:24px;margin-top:24px;font-size:12px;color:#999;flex-wrap:wrap}}
+  .meta span{{display:flex;align-items:center;gap:6px}}
+  .meta .dot{{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block}}
+  .block{{border-top:1px solid #e5e5e5;padding:28px 0}}
+  .block-title{{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:16px}}
+  .row{{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid #f0f0f0}}
+  .row:last-child{{border-bottom:none}}
+  .row-label{{font-size:14px;color:#333;flex-shrink:0;margin-right:16px}}
+  .row-link{{font-size:13px;font-family:"SF Mono",Menlo,monospace;text-align:right}}
+  .row-link a{{color:#2563eb;text-decoration:none;word-break:break-all}}
+  .row-link a:hover{{text-decoration:underline}}
+  table{{width:100%;border-collapse:collapse;font-size:13px}}
+  th,td{{text-align:left;padding:8px 0;border-bottom:1px solid #f0f0f0}}
+  th{{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#999;font-weight:500}}
+  td.num{{text-align:right;font-family:"SF Mono",Menlo,monospace;color:#333}}
+  .subscribe{{background:#111;color:#fff;padding:32px;border-radius:4px;margin:32px 0}}
+  .subscribe-label{{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:12px}}
+  .subscribe-url{{font-family:"SF Mono",Menlo,monospace;font-size:14px;color:#fff;word-break:break-all}}
+  .subscribe-url a{{color:#fff;text-decoration:none;border-bottom:1px solid #444}}
+  .subscribe-url a:hover{{border-bottom-color:#fff}}
+  .subscribe-note{{font-size:12px;color:#888;margin-top:12px}}
+  footer{{margin-top:56px;padding-top:24px;border-top:1px solid #e5e5e5;font-size:12px;color:#999}}
+  footer a{{color:#666;text-decoration:none}}
+  footer a:hover{{color:#111}}
+  footer .sources{{margin-top:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Pmwiu / Tracker-List</div>
+    <h1>Tracker List</h1>
+    <p class="tagline">自动聚合、去重、活性测试与测速排序的 BitTorrent Tracker 订阅服务。每日更新，仅保留最快最稳定的 {MAX_TRACKERS} 个。</p>
+    <div class="meta">
+      <span><span class="dot"></span> 7x24H Auto Update</span>
+      <span>Top {MAX_TRACKERS} by Speed</span>
+      <span>Direct Links Only</span>
+    </div>
+  </header>
+
+{sections_html}  <div class="block">
+    <div class="block-title">Statistics</div>
+    <table>
+      <thead><tr><th>List</th><th>Count</th></tr></thead>
+      <tbody>
+{counts_rows}      </tbody>
+    </table>
+  </div>
+
+  <div class="subscribe">
+    <div class="subscribe-label">BT Client Subscription</div>
+    <div class="subscribe-url"><a href="{pages_base}/alive.txt">{pages_base}/alive.txt</a></div>
+    <p class="subscribe-note">纯文本直链，qBittorrent 等客户端可直接订阅。经活性测试 + 测速排序，最多 {MAX_TRACKERS} 个。</p>
+  </div>
+
+  <footer>
+    <p>Last updated: {now}</p>
+    <p class="sources">Sources:
+      <a href="https://cf.trackerslist.com/best.txt">cf/best</a> &middot;
+      <a href="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt">ngosang/best</a> &middot;
+      <a href="https://tracker.adysec.com/trackers_best.txt">adysec/best</a> &middot;
+      <a href="https://github.com/{repo}">GitHub</a>
+    </p>
+  </footer>
+</div>
+</body>
+</html>
+"""
 
 
 def generate_pages(repo, results):
@@ -194,6 +318,7 @@ def generate_pages(repo, results):
 def sync_plain_text_files():
     mapping = {"trackers_alive.txt": "alive.txt", "trackers_merged.txt": "merged.txt",
                "trackers_best.txt": "best.txt", "trackers_ngosang.txt": "ngosang.txt",
+               "trackers_ngosang_ip.txt": "ngosang_ip.txt",
                "trackers_adysec.txt": "adysec.txt"}
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():
