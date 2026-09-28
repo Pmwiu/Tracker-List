@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
 """
-Tracker 活性自动测试 + 测速排序脚本。
+Tracker 活性自动测试 + 测速排序脚本（v3.0 优化版）。
 
 对合并列表中的每个 Tracker 执行:
-  1. 安全过滤（排除内网/localhost/非标准地址）
+  1. 安全过滤（排除内网/localhost/非标准地址，DNS 解析缓存）
   2. 协议级探活 + 响应速度测量
-     - http/https : 发送标准 BitTorrent announce 请求，验证 bencoded 响应，记录耗时
-     - udp        : 完整 UDP tracker connect 握手，记录耗时
-     - wss        : TCP + TLS 连通性检查，记录耗时
-  3. 存活 Tracker 按响应速度升序排序
-  4. 取前 MAX_TRACKERS 个写入 alive.txt，超出部分标记为 speed-capped
+     - http/https : 发送标准 BitTorrent announce 请求，验证 bencoded 响应
+     - udp        : 完整 UDP tracker connect 握手（带重试），记录耗时
+     - wss/ws     : TCP + TLS 连通性检查
+  3. 第二轮精测：对第一轮存活的前 100 个再次测速，取较优值
+  4. 历史加权：读取上一次 alive 列表，连续存活的 tracker 获得稳定性加分
+  5. 综合评分排序：速度(70%) + 历史稳定性(30%)
+  6. 取前 MAX_TRACKERS 个写入 alive.txt
 
 输出:
-  - trackers/trackers_alive.txt   通过测试且速度最快的前 N 个（推荐订阅）
-  - trackers/trackers_dead.txt    失效 / 被限速淘汰的 Tracker
-  - trackers/test_report.md       人类可读测试报告（含速度排名）
-
-用法:
-  python scripts/test_trackers.py
-  python scripts/test_trackers.py --timeout 12 --workers 25
+  - trackers/trackers_alive.txt   通过测试且综合评分最高的前 N 个
+  - trackers/trackers_dead.txt    失效 / 被淘汰的 Tracker
+  - trackers/test_report.md       人类可读测试报告
+  - trackers/test_state.json      测试状态持久化（供下次加权）
 """
 
 import os
 import sys
 import ssl
+import json
 import time
 import random
 import socket
@@ -35,15 +35,24 @@ import urllib.request
 import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# 复用主脚本的路径、常量与页面生成函数
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 import update_trackers as ut
 
+_dns_cache = {}
 
-# ============================================================
-# bencode 解码器（用于验证 HTTP tracker 响应）
-# ============================================================
+def cached_getaddrinfo(host, port=None):
+    key = (host, port)
+    if key in _dns_cache:
+        return _dns_cache[key]
+    try:
+        result = socket.getaddrinfo(host, port)
+        _dns_cache[key] = result
+        return result
+    except socket.gaierror as e:
+        _dns_cache[key] = e
+        raise
+
 def bdecode(data):
     def parse(index):
         c = data[index:index + 1]
@@ -69,71 +78,49 @@ def bdecode(data):
         length = int(data[index:colon])
         start = colon + 1
         return data[start:start + length], start + length
-
     obj, _ = parse(0)
     return obj
 
-
-# ============================================================
-# 构造测试用固定身份
-# ============================================================
 def make_identity():
     info_hash = os.urandom(20)
-    peer_id = b'-TT0200-' + os.urandom(12)
+    peer_id = b'-TT0300-' + os.urandom(12)
     return info_hash, peer_id
 
-
 def encode_bytes(b):
-    """按 BitTorrent 规范对二进制参数逐字节 URL 编码。"""
     return ''.join('%%%02X' % x for x in b)
 
-
-# ============================================================
-# 安全过滤：排除内网、localhost、保留地址等危险/无效 Tracker
-# ============================================================
 def is_safe_tracker(tracker_url):
-    """检查 tracker 地址是否安全（非内网、非保留地址、非 localhost）。"""
     try:
         parsed = urllib.parse.urlparse(tracker_url)
     except Exception:
         return False, "unparseable URL"
-
     host = parsed.hostname
     if not host:
         return False, "no hostname"
-
     host_lower = host.lower()
-    # 排除 localhost 和本地域名
     if host_lower in ('localhost', 'localhost.localdomain') or host_lower.endswith('.local'):
         return False, "localhost address"
-
-    # 尝试解析为 IP，检查是否为内网/保留地址
     try:
         ip = ipaddress.ip_address(host)
         if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
             return False, f"private/reserved IP: {host}"
+        return True, "safe"
     except ValueError:
-        # 不是 IP 而是域名，通过 DNS 解析后检查
-        try:
-            infos = socket.getaddrinfo(host, None)
-            for family, _, _, _, sockaddr in infos:
-                ip_str = sockaddr[0]
-                try:
-                    ip = ipaddress.ip_address(ip_str)
-                    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
-                        return False, f"resolves to private IP: {ip_str}"
-                except ValueError:
-                    continue
-        except socket.gaierror:
-            # DNS 解析失败，交给后续活性测试判定
-            pass
-
+        pass
+    try:
+        infos = cached_getaddrinfo(host, None)
+        for family, _, _, _, sockaddr in infos:
+            ip_str = sockaddr[0]
+            try:
+                ip = ipaddress.ip_address(ip_str)
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                    return False, f"resolves to private IP: {ip_str}"
+            except ValueError:
+                continue
+    except socket.gaierror:
+        pass
     return True, "safe"
 
-
-# ============================================================
-# HTTP / HTTPS tracker 测试（含测速）
-# ============================================================
 def test_http(tracker_url, timeout):
     info_hash, peer_id = make_identity()
     query = (
@@ -143,79 +130,58 @@ def test_http(tracker_url, timeout):
     )
     sep = '&' if '?' in tracker_url else '?'
     full = tracker_url + sep + query
-
-    req = urllib.request.Request(
-        full,
-        headers={'User-Agent': 'Mozilla/5.0 TrackerListBot/2.0'},
-    )
-
+    req = urllib.request.Request(full, headers={'User-Agent': 'Mozilla/5.0 TrackerListBot/3.0'})
     start = time.time()
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         data = resp.read()
-    elapsed = (time.time() - start) * 1000  # ms
-
+    elapsed = (time.time() - start) * 1000
     if not data:
         return False, elapsed, 'empty response'
     try:
         decoded = bdecode(data)
     except Exception:
         return False, elapsed, 'invalid bencoded response'
-
     if not isinstance(decoded, dict):
         return False, elapsed, 'response is not a bencoded dictionary'
-
-    if b'failure reason' in decoded or b'failure reason'.decode() in decoded:
+    if b'failure reason' in decoded:
         return True, elapsed, 'online (failure reason)'
-    return True, elapsed, 'valid announce response'
+    if b'interval' in decoded or b'complete' in decoded or b'incomplete' in decoded:
+        return True, elapsed, 'valid announce response'
+    if b'peers' in decoded:
+        return True, elapsed, 'valid announce response'
+    return True, elapsed, 'online (bencoded dict)'
 
-
-# ============================================================
-# UDP tracker 测试（含测速）
-# ============================================================
-def test_udp(host, port, timeout):
+def test_udp(host, port, timeout, max_retries=2):
     family = socket.AF_INET6 if ':' in host else socket.AF_INET
     sock = socket.socket(family, socket.SOCK_DGRAM)
     sock.settimeout(timeout)
     addr = (host, port)
-
     txn = random.randint(0, 0xFFFFFFFF)
     connect_packet = struct.pack('>QII', 0x41727101980, 0, txn)
-
-    deadline = time.time() + timeout
-    connection_id = None
-    sent = False
-    data = None
     start = time.time()
-    while time.time() < deadline:
-        if not sent:
-            sock.sendto(connect_packet, addr)
-            sent = True
-        remaining = deadline - time.time()
-        if remaining <= 0:
-            break
-        sock.settimeout(min(remaining, max(remaining / 2, 1)))
+    data = None
+    for attempt in range(max_retries):
         try:
+            sock.sendto(connect_packet, addr)
+            remaining = timeout - (time.time() - start)
+            if remaining <= 0:
+                break
+            sock.settimeout(min(remaining, timeout))
             data, _ = sock.recvfrom(2048)
             break
         except socket.timeout:
-            sent = False
             continue
-    else:
-        data = None
-
-    elapsed = (time.time() - start) * 1000  # ms
-
+        except Exception:
+            break
+    elapsed = (time.time() - start) * 1000
     if not data or len(data) < 16:
         sock.close()
         return False, elapsed, 'no connect response'
-
     action, r_txn = struct.unpack('>II', data[:8])
-    connection_id = struct.unpack('>Q', data[8:16])[0]
     if r_txn != txn or action != 0:
         sock.close()
         return False, elapsed, 'invalid connect response'
-
-    # connect 成功即证明在线；尝试 announce（失败不影响存活）
+    connection_id = struct.unpack('>Q', data[8:16])[0]
     try:
         info_hash, peer_id = make_identity()
         ap = struct.pack('>QII', connection_id, 1, txn)
@@ -224,9 +190,9 @@ def test_udp(host, port, timeout):
         ap += struct.pack('>III', 0, 0, random.randint(0, 0xFFFFFFFF))
         ap += struct.pack('>iH', -1, 6881)
         sock.sendto(ap, addr)
-        remaining = deadline - time.time()
+        remaining = timeout - (time.time() - start)
         if remaining > 0:
-            sock.settimeout(remaining)
+            sock.settimeout(min(remaining, 3))
             try:
                 adata, _ = sock.recvfrom(2048)
                 if adata and len(adata) >= 8:
@@ -236,76 +202,78 @@ def test_udp(host, port, timeout):
                 pass
     except Exception:
         pass
-
     sock.close()
     return True, elapsed, 'valid connect (announce not confirmed)'
 
-
-# ============================================================
-# WSS tracker 测试（含测速）
-# ============================================================
 def test_wss(host, port, timeout):
     context = ssl.create_default_context()
     start = time.time()
-    sock = socket.create_connection((host, port), timeout=timeout)
+    sock = None
+    ssock = None
     try:
+        sock = socket.create_connection((host, port), timeout=timeout)
         ssock = context.wrap_socket(sock, server_hostname=host)
-        ssock.close()
-    except Exception:
-        sock.close()
-        raise
-    elapsed = (time.time() - start) * 1000
-    return True, elapsed, 'TLS reachable'
+        elapsed = (time.time() - start) * 1000
+        return True, elapsed, 'TLS reachable'
+    finally:
+        if ssock:
+            try:
+                ssock.close()
+            except Exception:
+                pass
+        elif sock:
+            try:
+                sock.close()
+            except Exception:
+                pass
 
+def test_ws(host, port, timeout):
+    start = time.time()
+    sock = None
+    try:
+        sock = socket.create_connection((host, port), timeout=timeout)
+        elapsed = (time.time() - start) * 1000
+        return True, elapsed, 'TCP reachable'
+    finally:
+        if sock:
+            try:
+                sock.close()
+            except Exception:
+                pass
 
-# ============================================================
-# 单个 tracker 分发测试（含安全过滤+测速）
-# ============================================================
 def test_one(tracker, timeout):
-    """返回 (tracker, 状态, 详情, 响应时间ms)，状态: alive/dead/untestable/unsafe"""
-    # 第一步：安全过滤
     safe, reason = is_safe_tracker(tracker)
     if not safe:
         return tracker, 'unsafe', reason, 0.0
-
     try:
         parsed = urllib.parse.urlparse(tracker)
     except Exception:
         return tracker, 'dead', 'unparseable URL', 0.0
-
     scheme = parsed.scheme.lower()
     host = parsed.hostname
     port = parsed.port
-
     if host and host.endswith('.i2p'):
         return tracker, 'untestable', 'I2P network required', 0.0
-
     try:
         if scheme in ('http', 'https'):
             ok, elapsed, detail = test_http(tracker, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
-
         if scheme == 'udp':
             if port is None:
                 port = 6969
             ok, elapsed, detail = test_udp(host, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
-
-        if scheme in ('wss', 'ws'):
+        if scheme == 'wss':
             if port is None:
-                port = 443 if scheme == 'wss' else 80
-            if scheme == 'wss':
-                ok, elapsed, detail = test_wss(host, port, timeout)
-            else:
-                start = time.time()
-                sock = socket.create_connection((host, port), timeout=timeout)
-                sock.close()
-                elapsed = (time.time() - start) * 1000
-                ok, detail = True, 'TCP reachable'
+                port = 443
+            ok, elapsed, detail = test_wss(host, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
-
+        if scheme == 'ws':
+            if port is None:
+                port = 80
+            ok, elapsed, detail = test_ws(host, port, timeout)
+            return tracker, 'alive' if ok else 'dead', detail, elapsed
         return tracker, 'untestable', f'unsupported scheme: {scheme}', 0.0
-
     except socket.timeout:
         return tracker, 'dead', 'timeout', float(timeout * 1000)
     except ConnectionRefusedError:
@@ -315,10 +283,46 @@ def test_one(tracker, timeout):
     except Exception as e:
         return tracker, 'dead', f'{type(e).__name__}: {e}', 0.0
 
+def load_history():
+    path = os.path.join(ut.OUTPUT_DIR, 'test_state.json')
+    if os.path.exists(path):
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+    return {"alive_history": [], "consecutive_alive": {}}
 
-# ============================================================
-# 读取合并列表
-# ============================================================
+def save_history(alive_trackers):
+    old = load_history()
+    consecutive = old.get("consecutive_alive", {})
+    new_consecutive = {}
+    for t in alive_trackers:
+        new_consecutive[t] = consecutive.get(t, 0) + 1
+    state = {
+        "alive_history": alive_trackers,
+        "consecutive_alive": new_consecutive,
+        "last_update": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
+    path = os.path.join(ut.OUTPUT_DIR, 'test_state.json')
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(state, f, indent=2, ensure_ascii=False)
+    except IOError:
+        pass
+
+def compute_score(elapsed_ms, consecutive_days):
+    if elapsed_ms <= 0:
+        speed_score = 0
+    elif elapsed_ms <= 100:
+        speed_score = 100
+    elif elapsed_ms <= 1000:
+        speed_score = 100 - (elapsed_ms - 100) / 9
+    else:
+        speed_score = max(0, 50 - (elapsed_ms - 1000) / 50)
+    stability_score = min(consecutive_days, 7) / 7 * 100
+    return speed_score * 0.7 + stability_score * 0.3
+
 def read_merged():
     path = os.path.join(ut.OUTPUT_DIR, ut.MERGED_FILE)
     trackers = []
@@ -329,10 +333,6 @@ def read_merged():
                 trackers.append(line)
     return trackers
 
-
-# ============================================================
-# 写结果文件
-# ============================================================
 def write_result_file(filename, trackers, description):
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
     header = [
@@ -342,24 +342,21 @@ def write_result_file(filename, trackers, description):
         f'# Total: {len(trackers)}',
         '',
     ]
-    path = os.path.join(ut.OUTPUT_DIR, filename)
-    with open(path, 'w', encoding='utf-8', newline='\n') as f:
-        f.write('\n'.join(header) + '\n'.join(trackers) + ('\n' if trackers else ''))
+    body = '\n'.join(trackers)
+    if trackers:
+        body += '\n'
+    content = '\n'.join(header) + body
+    ut.atomic_write(os.path.join(ut.OUTPUT_DIR, filename), content)
 
-
-# ============================================================
-# 写测试报告（含速度排名）
-# ============================================================
-def write_report(results, alive_sorted, capped, elapsed):
+def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_stats):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
     unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
     untestable = [(t, d, e) for t, s, d, e in results if s == 'untestable']
     total = len(results)
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-
     lines = [
-        '# Tracker 活性测试 + 测速排序报告',
+        '# Tracker 活性测试 + 综合评分排序报告',
         '',
         f'- 测试时间: {now}',
         f'- 总 Tracker 数: {total}',
@@ -367,119 +364,129 @@ def write_report(results, alive_sorted, capped, elapsed):
         f'- 失效 (dead): **{len(dead)}**',
         f'- 不安全 (unsafe): **{len(unsafe)}**',
         f'- 无法测试 (untestable): {len(untestable)}',
-        f'- 速度排序后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
+        f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
         f'- 耗时: {elapsed:.1f} 秒',
         '',
-        '## 存活 Tracker（按响应速度升序，前 N 个进入订阅列表）',
+        '## 协议分布',
         '',
     ]
-    for rank, (t, d, e) in enumerate(alive_sorted, 1):
-        cap_mark = ' [CAP-OUT]' if rank > ut.MAX_TRACKERS else ''
-        lines.append(f'{rank}. `{t}` — {e:.0f}ms — {d}{cap_mark}')
-
+    for proto, count in sorted(protocol_stats.items(), key=lambda x: -x[1]):
+        lines.append(f'- {proto}: {count}')
+    lines += ['', f'## 最终订阅列表（前 {ut.MAX_TRACKERS} 个，按综合评分降序）', '']
+    for rank, (t, score, speed, days) in enumerate(alive_final, 1):
+        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 连续{days}天')
     if dead:
         lines += ['', '## 失效 Tracker', '']
         for t, d, e in sorted(dead):
             lines.append(f'- `{t}` — {d}')
-
     if unsafe:
         lines += ['', '## 不安全 Tracker（已过滤）', '']
         for t, d, e in sorted(unsafe):
             lines.append(f'- `{t}` — {d}')
-
     if untestable:
         lines += ['', '## 无法测试（特殊网络）', '']
         for t, d, e in sorted(untestable):
             lines.append(f'- `{t}` — {d}')
+    ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), '\n'.join(lines) + '\n')
 
-    path = os.path.join(ut.OUTPUT_DIR, 'test_report.md')
-    with open(path, 'w', encoding='utf-8', newline='\n') as f:
-        f.write('\n'.join(lines) + '\n')
-
-
-# ============================================================
-# 主流程
-# ============================================================
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--timeout', type=int, default=12)
-    parser.add_argument('--workers', type=int, default=25)
+    parser.add_argument('--timeout', type=int, default=10)
+    parser.add_argument('--workers', type=int, default=30)
+    parser.add_argument('--no-second-pass', action='store_true')
     args = parser.parse_args()
-
     trackers = read_merged()
-    print(f'[INFO] Testing {len(trackers)} trackers '
-          f'(timeout={args.timeout}s, workers={args.workers})')
-    print(f'[INFO] Max alive trackers after speed sort: {ut.MAX_TRACKERS}')
-
+    print(f'[INFO] Testing {len(trackers)} trackers (timeout={args.timeout}s, workers={args.workers})')
+    print(f'[INFO] Max alive trackers after scoring: {ut.MAX_TRACKERS}')
+    history = load_history()
+    consecutive = history.get("consecutive_alive", {})
     results = []
     start = time.time()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {pool.submit(test_one, t, args.timeout): t for t in trackers}
         done_count = 0
         for future in as_completed(futures):
-            tracker, status, detail, elapsed_ms = future.result()
+            try:
+                tracker, status, detail, elapsed_ms = future.result()
+            except Exception as e:
+                tracker = futures[future]
+                status, detail, elapsed_ms = 'dead', f'worker exception: {e}', 0.0
             results.append((tracker, status, detail, elapsed_ms))
             done_count += 1
-            marker = {'alive': '[ALIVE]', 'dead': '[DEAD] ', 'untestable': '[SKIP]  ',
-                      'unsafe': '[BLOCK]'}[status]
+            marker = {'alive': '[ALIVE]', 'dead': '[DEAD] ', 'untestable': '[SKIP]  ', 'unsafe': '[BLOCK]'}[status]
             speed = f' {elapsed_ms:.0f}ms' if status == 'alive' else ''
-            print(f'  {marker} ({done_count}/{len(trackers)}) {tracker}{speed} — {detail}')
-
-    elapsed = time.time() - start
-
-    # 存活 Tracker 按响应速度升序排序
+            if done_count % 25 == 0 or status == 'alive':
+                print(f'  {marker} ({done_count}/{len(trackers)}) {tracker}{speed} — {detail}')
+    first_pass_elapsed = time.time() - start
+    print(f'\n[INFO] First pass done in {first_pass_elapsed:.1f}s')
+    alive_first = [(t, d, e) for t, s, d, e in results if s == 'alive']
+    alive_first.sort(key=lambda x: x[2])
+    second_pass_targets = [t for t, _, _ in alive_first[:100]]
+    if not args.no_second_pass and second_pass_targets:
+        print(f'[INFO] Second pass: re-testing top {len(second_pass_targets)} alive trackers...')
+        second_results = {}
+        with ThreadPoolExecutor(max_workers=min(args.workers, 15)) as pool:
+            futures = {pool.submit(test_one, t, max(args.timeout - 2, 5)): t for t in second_pass_targets}
+            for future in as_completed(futures):
+                try:
+                    tracker, status, detail, elapsed_ms = future.result()
+                    if status == 'alive':
+                        second_results[tracker] = elapsed_ms
+                except Exception:
+                    pass
+        updated_results = []
+        for tracker, status, detail, elapsed_ms in results:
+            if tracker in second_results:
+                best_speed = min(elapsed_ms, second_results[tracker])
+                updated_results.append((tracker, status, detail, best_speed))
+            else:
+                updated_results.append((tracker, status, detail, elapsed_ms))
+        results = updated_results
+        print(f'[INFO] Second pass done, refined {len(second_results)} trackers')
+    total_elapsed = time.time() - start
+    protocol_stats = {}
+    for t, s, _, _ in results:
+        if s == 'alive':
+            scheme = t.split('://')[0].lower() if '://' in t else 'unknown'
+            protocol_stats[scheme] = protocol_stats.get(scheme, 0) + 1
     alive_with_speed = [(t, d, e) for t, s, d, e in results if s == 'alive']
-    alive_sorted = sorted(alive_with_speed, key=lambda x: x[2])  # 按耗时升序
-
-    # 取前 MAX_TRACKERS 个
-    alive_final = [t for t, d, e in alive_sorted[:ut.MAX_TRACKERS]]
-    capped = [(t, d, e) for t, d, e in alive_sorted[ut.MAX_TRACKERS:]]
-
-    # 失效 = dead + unsafe + 被速度淘汰的
+    scored = []
+    for t, d, e in alive_with_speed:
+        days = consecutive.get(t, 0)
+        score = compute_score(e, days)
+        scored.append((t, score, e, days, d))
+    scored.sort(key=lambda x: (-x[1], x[2]))
+    alive_final_list = [t for t, _, _, _, _ in scored[:ut.MAX_TRACKERS]]
+    alive_final_detail = [(t, score, speed, days) for t, score, speed, days, _ in scored[:ut.MAX_TRACKERS]]
+    capped = scored[ut.MAX_TRACKERS:]
     dead_final = sorted(
-        [t for t, s, d, e in results if s in ('dead', 'unsafe')]
-        + [t for t, d, e in capped]
+        [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
+        + [t for t, _, _, _, _ in capped]
     )
-
-    write_result_file(
-        ut.ALIVE_FILE, alive_final,
-        f'Trackers that PASSED liveness test, sorted by speed, top {ut.MAX_TRACKERS}'
-    )
-    write_result_file(
-        ut.DEAD_FILE, dead_final,
-        'Trackers that FAILED, were unsafe, or were capped by speed limit'
-    )
-    write_report(results, alive_sorted, capped, elapsed)
-
-    n_alive = len(alive_final)
+    write_result_file(ut.ALIVE_FILE, alive_final_list, f'Trackers that PASSED liveness test, top {ut.MAX_TRACKERS} by composite score')
+    write_result_file(ut.DEAD_FILE, dead_final, 'Trackers that FAILED, were unsafe, or were capped by score limit')
+    write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats)
+    save_history(alive_final_list)
+    n_alive = len(alive_final_list)
     n_dead = len(dead_final)
     n_capped = len(capped)
     n_unsafe = sum(1 for _, s, _, _ in results if s == 'unsafe')
-
     print(f'\n===== Test Summary =====')
     print(f'  Total tested:   {len(trackers)}')
     print(f'  Alive (raw):    {len(alive_with_speed)}')
-    print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by speed)')
-    print(f'  Speed-capped:   {n_capped}')
+    print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by composite score)')
+    print(f'  Score-capped:   {n_capped}')
     print(f'  Unsafe filtered:{n_unsafe}')
     print(f'  Dead final:     {n_dead}')
-    print(f'  Time:           {elapsed:.1f}s')
+    print(f'  Time:           {total_elapsed:.1f}s')
+    print(f'  Protocols:      {protocol_stats}')
     print('=========================')
-
-    # 重新生成主页
     repo = ut.get_repo()
-    page_stats = [
-        (ut.ALIVE_FILE, n_alive),
-        (ut.MERGED_FILE, len(trackers)),
-        (ut.DEAD_FILE, n_dead),
-    ]
+    page_stats = [(ut.ALIVE_FILE, n_alive), (ut.MERGED_FILE, len(trackers)), (ut.DEAD_FILE, n_dead)]
     ut.generate_pages(repo, page_stats)
     print('[OK] Pages regenerated with alive statistics.')
-
-    # 同步纯文本文件
     ut.sync_plain_text_files()
     print('[OK] Plain-text files synced to docs/.')
-
 
 if __name__ == '__main__':
     main()
