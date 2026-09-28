@@ -3,128 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tracker List - Auto Subscription Service</title>
+<title>Tracker List</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-         background: #0d1117; color: #c9d1d9; line-height: 1.6; }
-  .container { max-width: 820px; margin: 0 auto; padding: 2rem 1.5rem; }
-  header { text-align: center; padding: 3rem 0 2rem; }
-  h1 { font-size: 2rem; color: #f0f6fc; margin-bottom: 0.5rem; }
-  .subtitle { color: #8b949e; font-size: 1rem; }
-  .badges { margin-top: 0.8rem; }
-  .badge { display: inline-block; background: #238636; color: #fff; font-size: 0.75rem;
-            padding: 0.2rem 0.6rem; border-radius: 12px; margin: 0 0.2rem; }
-  .badge.blue { background: #1f6feb; }
-  section { background: #161b22; border: 1px solid #30363d; border-radius: 8px;
-             padding: 1.5rem; margin-bottom: 1.5rem; }
-  h2 { font-size: 1.15rem; color: #f0f6fc; margin-bottom: 1rem; padding-bottom: 0.5rem;
-        border-bottom: 1px solid #21262d; }
-  .link-card { padding: 0.8rem 0; border-bottom: 1px solid #21262d; }
-  .link-card:last-child { border-bottom: none; }
-  .link-short a { color: #58a6ff; text-decoration: none; font-weight: 600; word-break: break-all; }
-  .link-short a:hover { text-decoration: underline; }
-  .link-desc { color: #c9d1d9; font-size: 0.9rem; margin-top: 0.2rem; }
-  .link-target { color: #8b949e; font-size: 0.78rem; margin-top: 0.2rem; word-break: break-all; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #21262d; }
-  th { color: #8b949e; font-weight: 600; }
-  td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-  .usage { background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
-            padding: 1rem; font-family: monospace; font-size: 0.85rem;
-            overflow-x: auto; color: #7ee787; margin-top: 0.5rem; word-break: break-all; }
-  .footer { text-align: center; color: #484f58; font-size: 0.8rem; padding: 2rem 0; }
-  .footer a { color: #58a6ff; text-decoration: none; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased}
+  body{font-family:"SF Pro Display","Helvetica Neue",Arial,sans-serif;
+        background:#fafafa;color:#1a1a1a;line-height:1.7;font-size:15px}
+  .wrap{max-width:680px;margin:0 auto;padding:64px 32px 48px}
+  header{margin-bottom:56px}
+  .brand{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#999;margin-bottom:16px}
+  h1{font-size:32px;font-weight:600;letter-spacing:-0.5px;color:#111;margin-bottom:12px}
+  .tagline{font-size:14px;color:#666;max-width:480px}
+  .meta{display:flex;gap:24px;margin-top:24px;font-size:12px;color:#999;flex-wrap:wrap}
+  .meta span{display:flex;align-items:center;gap:6px}
+  .meta .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block}
+  .block{border-top:1px solid #e5e5e5;padding:28px 0}
+  .block-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:16px}
+  .row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid #f0f0f0}
+  .row:last-child{border-bottom:none}
+  .row-label{font-size:14px;color:#333;flex-shrink:0;margin-right:16px}
+  .row-link{font-size:13px;font-family:"SF Mono",Menlo,monospace;text-align:right}
+  .row-link a{color:#2563eb;text-decoration:none;word-break:break-all}
+  .row-link a:hover{text-decoration:underline}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 0;border-bottom:1px solid #f0f0f0}
+  th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#999;font-weight:500}
+  td.num{text-align:right;font-family:"SF Mono",Menlo,monospace;color:#333}
+  .subscribe{background:#111;color:#fff;padding:32px;border-radius:4px;margin:32px 0}
+  .subscribe-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:12px}
+  .subscribe-url{font-family:"SF Mono",Menlo,monospace;font-size:14px;color:#fff;word-break:break-all}
+  .subscribe-url a{color:#fff;text-decoration:none;border-bottom:1px solid #444}
+  .subscribe-url a:hover{border-bottom-color:#fff}
+  .subscribe-note{font-size:12px;color:#888;margin-top:12px}
+  footer{margin-top:56px;padding-top:24px;border-top:1px solid #e5e5e5;font-size:12px;color:#999}
+  footer a{color:#666;text-decoration:none}
+  footer a:hover{color:#111}
+  footer .sources{margin-top:8px}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
   <header>
+    <div class="brand">Pmwiu / Tracker-List</div>
     <h1>Tracker List</h1>
-    <p class="subtitle">Auto Subscription &middot; Deduplicated &middot; Short Links &middot; Multi-CDN</p>
-    <div class="badges">
-      <span class="badge">7x24H Auto Update</span>
-      <span class="badge blue">DNS Anti-Pollution</span>
-      <span class="badge blue">Multi-CDN Failover</span>
+    <p class="tagline">自动聚合、去重、活性测试与测速排序的 BitTorrent Tracker 订阅服务。每日更新，仅保留最快最稳定的 39 个。</p>
+    <div class="meta">
+      <span><span class="dot"></span> 7x24H Auto Update</span>
+      <span>Top 39 by Speed</span>
+      <span>Direct Links Only</span>
     </div>
   </header>
 
-  <section>
-    <h2>核心订阅</h2>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/alive">https://Pmwiu.github.io/Tracker-List/s/alive</a></div>
-          <div class="link-desc">存活 Tracker（经活性测试，最推荐）</div>
-          <div class="link-target">&#8594; https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_alive.txt</div>
-        </div>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/alive-cdn">https://Pmwiu.github.io/Tracker-List/s/alive-cdn</a></div>
-          <div class="link-desc">存活 Tracker（jsDelivr CDN）</div>
-          <div class="link-target">&#8594; https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_alive.txt</div>
-        </div>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/best">https://Pmwiu.github.io/Tracker-List/s/best</a></div>
-          <div class="link-desc">最佳 Tracker 列表（best，cf.trackerslist.com）</div>
-          <div class="link-target">&#8594; https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_best.txt</div>
-        </div>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/http">https://Pmwiu.github.io/Tracker-List/s/http</a></div>
-          <div class="link-desc">HTTP/HTTPS Tracker 列表（cf.trackerslist.com）</div>
-          <div class="link-target">&#8594; https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_http.txt</div>
-        </div>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/full">https://Pmwiu.github.io/Tracker-List/s/full</a></div>
-          <div class="link-desc">完整 Tracker 列表（ngosang trackers_all）</div>
-          <div class="link-target">&#8594; https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt</div>
-        </div>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/all">https://Pmwiu.github.io/Tracker-List/s/all</a></div>
-          <div class="link-desc">合并总表（Raw 直连）</div>
-          <div class="link-target">&#8594; https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt</div>
-        </div>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/all-cdn">https://Pmwiu.github.io/Tracker-List/s/all-cdn</a></div>
-          <div class="link-desc">合并总表（jsDelivr CDN）</div>
-          <div class="link-target">&#8594; https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_merged.txt</div>
-        </div>
-  </section>
-
-  <section>
-    <h2>其他</h2>
-        <div class="link-card">
-          <div class="link-short"><a href="https://Pmwiu.github.io/Tracker-List/s/repo">https://Pmwiu.github.io/Tracker-List/s/repo</a></div>
-          <div class="link-desc">GitHub 仓库主页</div>
-          <div class="link-target">&#8594; https://github.com/Pmwiu/Tracker-List</div>
-        </div>
-  </section>
-
-  <section>
-    <h2>Tracker Statistics</h2>
+    <div class="block">
+      <div class="block-title">核心订阅</div>
+      <div class="row">
+        <div class="row-label">存活 Tracker（活性测试+测速排序，推荐）</div>
+        <div class="row-link"><a href="https://Pmwiu.github.io/Tracker-List/s/alive">https://Pmwiu.github.io/Tracker-List/s/alive</a></div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="block-title">订阅源</div>
+      <div class="row">
+        <div class="row-label">cf.trackerslist.com best</div>
+        <div class="row-link"><a href="https://Pmwiu.github.io/Tracker-List/s/best">https://Pmwiu.github.io/Tracker-List/s/best</a></div>
+      </div>
+      <div class="row">
+        <div class="row-label">ngosang trackers_best</div>
+        <div class="row-link"><a href="https://Pmwiu.github.io/Tracker-List/s/ngosang">https://Pmwiu.github.io/Tracker-List/s/ngosang</a></div>
+      </div>
+      <div class="row">
+        <div class="row-label">adysec trackers_best</div>
+        <div class="row-link"><a href="https://Pmwiu.github.io/Tracker-List/s/adysec">https://Pmwiu.github.io/Tracker-List/s/adysec</a></div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="block-title">合并总表</div>
+      <div class="row">
+        <div class="row-label">合并去重总表</div>
+        <div class="row-link"><a href="https://Pmwiu.github.io/Tracker-List/s/all">https://Pmwiu.github.io/Tracker-List/s/all</a></div>
+      </div>
+    </div>
+  <div class="block">
+    <div class="block-title">Statistics</div>
     <table>
-      <thead><tr><th>List</th><th>Unique Count</th></tr></thead>
+      <thead><tr><th>List</th><th>Count</th></tr></thead>
       <tbody>
-        <tr><td>trackers_alive.txt</td><td>88</td></tr>
-        <tr><td>trackers_merged.txt</td><td>111</td></tr>
-        <tr><td>trackers_dead.txt</td><td>23</td></tr>
+      <tr><td>trackers_alive.txt</td><td class="num">39</td></tr>
+      <tr><td>trackers_merged.txt</td><td class="num">354</td></tr>
+      <tr><td>trackers_dead.txt</td><td class="num">315</td></tr>
       </tbody>
     </table>
-  </section>
-
-  <section>
-    <h2>Quick Start</h2>
-    <p>For BT clients (qBittorrent etc.), use the <strong>plain-text link</strong> (no HTML redirect, fast &amp; stable):</p>
-    <div class="usage">https://Pmwiu.github.io/Tracker-List/alive.txt</div>
-    <p style="margin-top:0.8rem; font-size:0.88rem; color:#8b949e;">
-      <code style="color:#7ee787;">/alive.txt</code> is pure text/plain, directly subscribable. Browser redirect: <code style="color:#7ee787;">/s/alive</code> &middot; CDN: <code style="color:#7ee787;">/s/alive-cdn</code>.
-    </p>
-  </section>
-
-  <div class="footer">
-    <p>Last updated: 2026-09-28 02:20:42 UTC</p>
-    <p>Sources: <a href="https://cf.trackerslist.com/best.txt">cf.trackerslist.com/best</a> &middot;
-       <a href="https://cf.trackerslist.com/http.txt">cf.trackerslist.com/http</a> &middot;
-       <a href="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt">ngosang/trackerslist</a> &middot;
-       Repo: <a href="https://github.com/Pmwiu/Tracker-List">Pmwiu/Tracker-List</a></p>
   </div>
+
+  <div class="subscribe">
+    <div class="subscribe-label">BT Client Subscription</div>
+    <div class="subscribe-url"><a href="https://Pmwiu.github.io/Tracker-List/alive.txt">https://Pmwiu.github.io/Tracker-List/alive.txt</a></div>
+    <p class="subscribe-note">纯文本直链，qBittorrent 等客户端可直接订阅。经活性测试 + 测速排序，最多 39 个。</p>
+  </div>
+
+  <footer>
+    <p>Last updated: 2026-09-28 02:58 UTC</p>
+    <p class="sources">Sources:
+      <a href="https://cf.trackerslist.com/best.txt">cf/best</a> &middot;
+      <a href="https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt">ngosang/best</a> &middot;
+      <a href="https://tracker.adysec.com/trackers_best.txt">adysec/best</a> &middot;
+      <a href="https://github.com/Pmwiu/Tracker-List">GitHub</a>
+    </p>
+  </footer>
 </div>
 </body>
 </html>
