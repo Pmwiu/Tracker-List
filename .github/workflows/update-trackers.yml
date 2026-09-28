@@ -2,10 +2,12 @@ name: Auto Update Trackers
 
 on:
   schedule:
-    # 每天 UTC 00:00 运行（北京时间 08:00），约每 24 小时一次
     - cron: "0 0 * * *"
-  # 支持手动触发
   workflow_dispatch:
+
+concurrency:
+  group: tracker-update
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -13,8 +15,8 @@ permissions:
 jobs:
   update-trackers:
     runs-on: ubuntu-latest
-    # 安全：限制最大运行时长，防止脚本失控或被挂起占用资源
     timeout-minutes: 15
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,38 +26,52 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.12"
+          cache: "pip"
 
-      # 步骤 1：下载源列表、合并去重、生成短链接页面
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          echo "No external dependencies required"
+
       - name: Download, merge and deduplicate trackers
-        run: python scripts/update_trackers.py
+        id: download
+        run: |
+          python scripts/update_trackers.py
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
-      # 步骤 2：协议级活性测试，剔除失效 tracker
-      - name: Test tracker liveness and remove dead trackers
-        run: python scripts/test_trackers.py --timeout 12 --workers 25
+      - name: Test tracker liveness and score ranking
+        id: test
+        run: |
+          python scripts/test_trackers.py --timeout 10 --workers 30
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
-      # 步骤 3：检测变更
+      - name: Local health check
+        run: python scripts/health_check.py --rounds 1 --skip-net
+
       - name: Check for changes
         id: git-check
         run: |
-          git diff --exit-code --quiet
-          if [ $? -eq 1 ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
+          if git diff --exit-code --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected."
           fi
 
-      # 步骤 4：提交推送
       - name: Commit and push changes
         if: steps.git-check.outputs.changed == 'true'
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add trackers/ docs/
-          git commit -m "chore: auto-update and liveness test $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "chore: auto-update trackers $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
 
-      # 步骤 5：健康检查
-      - name: Health check
-        run: python scripts/health_check.py --rounds 3
+      - name: Post-push health check
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          sleep 5
+          python scripts/health_check.py --rounds 3 --interval 5
         continue-on-error: true
