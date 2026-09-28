@@ -31,18 +31,6 @@ https://pmwiu.github.io/Tracker-List/s/alive
 | `/s/all-gcore` | 完整总表（Gcore） |
 | `/s/all-proxy` | 完整总表（ghproxy） |
 
-### 分类列表
-
-| 短链接 | 说明 |
-|--------|------|
-| `/s/trackers` | 全部 Tracker |
-| `/s/ip` | IP 类 Tracker |
-| `/s/ws` | WebSocket 类 Tracker |
-| `/s/i2p` | I2P 网络 Tracker |
-| `/s/ygg` | Yggdrasil 网络 Tracker |
-| `/s/ygg-ip` | Yggdrasil IP 类 Tracker |
-| `/s/repo` | GitHub 仓库主页 |
-
 ## 活性测试原理
 
 - **HTTP/HTTPS**：发送标准 BitTorrent announce 请求，验证 bencoded 响应
