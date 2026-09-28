@@ -1,258 +1,484 @@
 #!/usr/bin/env python3
-"""Tracker 活性测试 + 测速排序：安全过滤→协议探活+测速→按速度排序取前89"""
-import os, sys, ssl, time, random, socket, struct, argparse, ipaddress
-import urllib.parse, urllib.request, datetime
+"""
+Tracker 活性自动测试 + 测速排序脚本。
+
+对合并列表中的每个 Tracker 执行:
+  1. 安全过滤（排除内网/localhost/非标准地址）
+  2. 协议级探活 + 响应速度测量
+     - http/https : 发送标准 BitTorrent announce 请求，验证 bencoded 响应，记录耗时
+     - udp        : 完整 UDP tracker connect 握手，记录耗时
+     - wss        : TCP + TLS 连通性检查，记录耗时
+  3. 存活 Tracker 按响应速度升序排序
+  4. 取前 MAX_TRACKERS 个写入 alive.txt，超出部分标记为 speed-capped
+
+输出:
+  - trackers/trackers_alive.txt   通过测试且速度最快的前 N 个（推荐订阅）
+  - trackers/trackers_dead.txt    失效 / 被限速淘汰的 Tracker
+  - trackers/test_report.md       人类可读测试报告（含速度排名）
+
+用法:
+  python scripts/test_trackers.py
+  python scripts/test_trackers.py --timeout 12 --workers 25
+"""
+
+import os
+import sys
+import ssl
+import time
+import random
+import socket
+import struct
+import argparse
+import ipaddress
+import urllib.parse
+import urllib.request
+import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# 复用主脚本的路径、常量与页面生成函数
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 import update_trackers as ut
 
 
+# ============================================================
+# bencode 解码器（用于验证 HTTP tracker 响应）
+# ============================================================
 def bdecode(data):
-    def parse(i):
-        c = data[i:i+1]
+    def parse(index):
+        c = data[index:index + 1]
         if c == b'i':
-            e = data.index(b'e', i); return int(data[i+1:e]), e+1
+            end = data.index(b'e', index)
+            return int(data[index + 1:end]), end + 1
         if c == b'l':
-            r = []; i += 1
-            while data[i:i+1] != b'e':
-                item, i = parse(i); r.append(item)
-            return r, i+1
+            result = []
+            index += 1
+            while data[index:index + 1] != b'e':
+                item, index = parse(index)
+                result.append(item)
+            return result, index + 1
         if c == b'd':
-            r = {}; i += 1
-            while data[i:i+1] != b'e':
-                k, i = parse(i); v, i = parse(i); r[k] = v
-            return r, i+1
-        colon = data.index(b':', i); l = int(data[i:colon]); s = colon+1
-        return data[s:s+l], s+l
-    obj, _ = parse(0); return obj
+            result = {}
+            index += 1
+            while data[index:index + 1] != b'e':
+                key, index = parse(index)
+                value, index = parse(index)
+                result[key] = value
+            return result, index + 1
+        colon = data.index(b':', index)
+        length = int(data[index:colon])
+        start = colon + 1
+        return data[start:start + length], start + length
+
+    obj, _ = parse(0)
+    return obj
 
 
+# ============================================================
+# 构造测试用固定身份
+# ============================================================
 def make_identity():
-    return os.urandom(20), b'-TT0200-' + os.urandom(12)
+    info_hash = os.urandom(20)
+    peer_id = b'-TT0200-' + os.urandom(12)
+    return info_hash, peer_id
 
 
 def encode_bytes(b):
+    """按 BitTorrent 规范对二进制参数逐字节 URL 编码。"""
     return ''.join('%%%02X' % x for x in b)
 
 
-def is_safe_tracker(url):
+# ============================================================
+# 安全过滤：排除内网、localhost、保留地址等危险/无效 Tracker
+# ============================================================
+def is_safe_tracker(tracker_url):
+    """检查 tracker 地址是否安全（非内网、非保留地址、非 localhost）。"""
     try:
-        p = urllib.parse.urlparse(url)
+        parsed = urllib.parse.urlparse(tracker_url)
     except Exception:
-        return False, "unparseable"
-    host = p.hostname
+        return False, "unparseable URL"
+
+    host = parsed.hostname
     if not host:
-        return False, "no host"
-    h = host.lower()
-    if h in ('localhost',) or h.endswith('.local'):
-        return False, "localhost"
+        return False, "no hostname"
+
+    host_lower = host.lower()
+    # 排除 localhost 和本地域名
+    if host_lower in ('localhost', 'localhost.localdomain') or host_lower.endswith('.local'):
+        return False, "localhost address"
+
+    # 尝试解析为 IP，检查是否为内网/保留地址
     try:
         ip = ipaddress.ip_address(host)
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
-            return False, f"private IP: {host}"
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+            return False, f"private/reserved IP: {host}"
     except ValueError:
+        # 不是 IP 而是域名，通过 DNS 解析后检查
         try:
-            for _, _, _, _, sa in socket.getaddrinfo(host, None):
+            infos = socket.getaddrinfo(host, None)
+            for family, _, _, _, sockaddr in infos:
+                ip_str = sockaddr[0]
                 try:
-                    ip = ipaddress.ip_address(sa[0])
+                    ip = ipaddress.ip_address(ip_str)
                     if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
-                        return False, f"resolves private: {sa[0]}"
+                        return False, f"resolves to private IP: {ip_str}"
                 except ValueError:
                     continue
         except socket.gaierror:
+            # DNS 解析失败，交给后续活性测试判定
             pass
+
     return True, "safe"
 
 
-def test_http(url, timeout):
-    ih, pid = make_identity()
-    q = 'info_hash=' + encode_bytes(ih) + '&peer_id=' + encode_bytes(pid) + '&port=6881&uploaded=0&downloaded=0&left=1000000&compact=1&event=started'
-    full = url + ('&' if '?' in url else '?') + q
-    req = urllib.request.Request(full, headers={'User-Agent': 'TrackerBot/2.0'})
-    t0 = time.time()
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        data = r.read()
-    el = (time.time() - t0) * 1000
+# ============================================================
+# HTTP / HTTPS tracker 测试（含测速）
+# ============================================================
+def test_http(tracker_url, timeout):
+    info_hash, peer_id = make_identity()
+    query = (
+        'info_hash=' + encode_bytes(info_hash)
+        + '&peer_id=' + encode_bytes(peer_id)
+        + '&port=6881&uploaded=0&downloaded=0&left=1000000&compact=1&event=started'
+    )
+    sep = '&' if '?' in tracker_url else '?'
+    full = tracker_url + sep + query
+
+    req = urllib.request.Request(
+        full,
+        headers={'User-Agent': 'Mozilla/5.0 TrackerListBot/2.0'},
+    )
+
+    start = time.time()
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = resp.read()
+    elapsed = (time.time() - start) * 1000  # ms
+
     if not data:
-        return False, el, 'empty'
+        return False, elapsed, 'empty response'
     try:
-        d = bdecode(data)
+        decoded = bdecode(data)
     except Exception:
-        return False, el, 'bad bencode'
-    if not isinstance(d, dict):
-        return False, el, 'not dict'
-    if b'failure reason' in d or 'failure reason' in d:
-        return True, el, 'online (failure)'
-    return True, el, 'valid announce'
+        return False, elapsed, 'invalid bencoded response'
+
+    if not isinstance(decoded, dict):
+        return False, elapsed, 'response is not a bencoded dictionary'
+
+    if b'failure reason' in decoded or b'failure reason'.decode() in decoded:
+        return True, elapsed, 'online (failure reason)'
+    return True, elapsed, 'valid announce response'
 
 
+# ============================================================
+# UDP tracker 测试（含测速）
+# ============================================================
 def test_udp(host, port, timeout):
-    fam = socket.AF_INET6 if ':' in host else socket.AF_INET
-    sock = socket.socket(fam, socket.SOCK_DGRAM)
+    family = socket.AF_INET6 if ':' in host else socket.AF_INET
+    sock = socket.socket(family, socket.SOCK_DGRAM)
     sock.settimeout(timeout)
     addr = (host, port)
+
     txn = random.randint(0, 0xFFFFFFFF)
-    pkt = struct.pack('>QII', 0x41727101980, 0, txn)
+    connect_packet = struct.pack('>QII', 0x41727101980, 0, txn)
+
     deadline = time.time() + timeout
-    sent = False; data = None; t0 = time.time()
+    connection_id = None
+    sent = False
+    data = None
+    start = time.time()
     while time.time() < deadline:
         if not sent:
-            sock.sendto(pkt, addr); sent = True
-        rem = deadline - time.time()
-        if rem <= 0: break
-        sock.settimeout(min(rem, max(rem/2, 1)))
+            sock.sendto(connect_packet, addr)
+            sent = True
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            break
+        sock.settimeout(min(remaining, max(remaining / 2, 1)))
         try:
-            data, _ = sock.recvfrom(2048); break
+            data, _ = sock.recvfrom(2048)
+            break
         except socket.timeout:
-            sent = False; continue
+            sent = False
+            continue
     else:
         data = None
-    el = (time.time() - t0) * 1000
+
+    elapsed = (time.time() - start) * 1000  # ms
+
     if not data or len(data) < 16:
-        sock.close(); return False, el, 'no response'
-    act, rtx = struct.unpack('>II', data[:8])
-    cid = struct.unpack('>Q', data[8:16])[0]
-    if rtx != txn or act != 0:
-        sock.close(); return False, el, 'bad response'
+        sock.close()
+        return False, elapsed, 'no connect response'
+
+    action, r_txn = struct.unpack('>II', data[:8])
+    connection_id = struct.unpack('>Q', data[8:16])[0]
+    if r_txn != txn or action != 0:
+        sock.close()
+        return False, elapsed, 'invalid connect response'
+
+    # connect 成功即证明在线；尝试 announce（失败不影响存活）
     try:
-        ih, pid = make_identity()
-        ap = struct.pack('>QII', cid, 1, txn) + ih + pid
+        info_hash, peer_id = make_identity()
+        ap = struct.pack('>QII', connection_id, 1, txn)
+        ap += info_hash + peer_id
         ap += struct.pack('>QQQ', 0, 1000000, 0)
         ap += struct.pack('>III', 0, 0, random.randint(0, 0xFFFFFFFF))
         ap += struct.pack('>iH', -1, 6881)
         sock.sendto(ap, addr)
-        rem = deadline - time.time()
-        if rem > 0:
-            sock.settimeout(rem)
+        remaining = deadline - time.time()
+        if remaining > 0:
+            sock.settimeout(remaining)
             try:
-                ad, _ = sock.recvfrom(2048)
-                if ad and len(ad) >= 8:
-                    sock.close(); return True, el, 'connect+announce'
+                adata, _ = sock.recvfrom(2048)
+                if adata and len(adata) >= 8:
+                    sock.close()
+                    return True, elapsed, 'valid connect + announce'
             except socket.timeout:
                 pass
     except Exception:
         pass
+
     sock.close()
-    return True, el, 'connect ok'
+    return True, elapsed, 'valid connect (announce not confirmed)'
 
 
+# ============================================================
+# WSS tracker 测试（含测速）
+# ============================================================
 def test_wss(host, port, timeout):
-    ctx = ssl.create_default_context()
-    t0 = time.time()
-    s = socket.create_connection((host, port), timeout=timeout)
+    context = ssl.create_default_context()
+    start = time.time()
+    sock = socket.create_connection((host, port), timeout=timeout)
     try:
-        ss = ctx.wrap_socket(s, server_hostname=host); ss.close()
+        ssock = context.wrap_socket(sock, server_hostname=host)
+        ssock.close()
     except Exception:
-        s.close(); raise
-    return True, (time.time()-t0)*1000, 'TLS ok'
+        sock.close()
+        raise
+    elapsed = (time.time() - start) * 1000
+    return True, elapsed, 'TLS reachable'
 
 
+# ============================================================
+# 单个 tracker 分发测试（含安全过滤+测速）
+# ============================================================
 def test_one(tracker, timeout):
+    """返回 (tracker, 状态, 详情, 响应时间ms)，状态: alive/dead/untestable/unsafe"""
+    # 第一步：安全过滤
     safe, reason = is_safe_tracker(tracker)
     if not safe:
         return tracker, 'unsafe', reason, 0.0
+
     try:
-        p = urllib.parse.urlparse(tracker)
+        parsed = urllib.parse.urlparse(tracker)
     except Exception:
-        return tracker, 'dead', 'unparseable', 0.0
-    scheme = p.scheme.lower(); host = p.hostname; port = p.port
+        return tracker, 'dead', 'unparseable URL', 0.0
+
+    scheme = parsed.scheme.lower()
+    host = parsed.hostname
+    port = parsed.port
+
     if host and host.endswith('.i2p'):
-        return tracker, 'untestable', 'I2P', 0.0
+        return tracker, 'untestable', 'I2P network required', 0.0
+
     try:
         if scheme in ('http', 'https'):
-            ok, el, d = test_http(tracker, timeout)
-            return tracker, 'alive' if ok else 'dead', d, el
+            ok, elapsed, detail = test_http(tracker, timeout)
+            return tracker, 'alive' if ok else 'dead', detail, elapsed
+
         if scheme == 'udp':
-            if port is None: port = 6969
-            ok, el, d = test_udp(host, port, timeout)
-            return tracker, 'alive' if ok else 'dead', d, el
+            if port is None:
+                port = 6969
+            ok, elapsed, detail = test_udp(host, port, timeout)
+            return tracker, 'alive' if ok else 'dead', detail, elapsed
+
         if scheme in ('wss', 'ws'):
-            if port is None: port = 443 if scheme == 'wss' else 80
+            if port is None:
+                port = 443 if scheme == 'wss' else 80
             if scheme == 'wss':
-                ok, el, d = test_wss(host, port, timeout)
+                ok, elapsed, detail = test_wss(host, port, timeout)
             else:
-                t0 = time.time(); s = socket.create_connection((host, port), timeout=timeout); s.close()
-                ok, el, d = True, (time.time()-t0)*1000, 'TCP ok'
-            return tracker, 'alive' if ok else 'dead', d, el
-        return tracker, 'untestable', f'unknown: {scheme}', 0.0
+                start = time.time()
+                sock = socket.create_connection((host, port), timeout=timeout)
+                sock.close()
+                elapsed = (time.time() - start) * 1000
+                ok, detail = True, 'TCP reachable'
+            return tracker, 'alive' if ok else 'dead', detail, elapsed
+
+        return tracker, 'untestable', f'unsupported scheme: {scheme}', 0.0
+
     except socket.timeout:
-        return tracker, 'dead', 'timeout', float(timeout*1000)
+        return tracker, 'dead', 'timeout', float(timeout * 1000)
     except ConnectionRefusedError:
-        return tracker, 'dead', 'refused', 0.0
+        return tracker, 'dead', 'connection refused', 0.0
     except socket.gaierror:
-        return tracker, 'dead', 'DNS fail', 0.0
+        return tracker, 'dead', 'DNS resolution failed', 0.0
     except Exception as e:
         return tracker, 'dead', f'{type(e).__name__}: {e}', 0.0
 
 
+# ============================================================
+# 读取合并列表
+# ============================================================
 def read_merged():
     path = os.path.join(ut.OUTPUT_DIR, ut.MERGED_FILE)
+    trackers = []
     with open(path, 'r', encoding='utf-8') as f:
-        return [l.strip() for l in f if l.strip() and not l.strip().startswith('#')]
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                trackers.append(line)
+    return trackers
 
 
-def write_result_file(filename, trackers, desc):
+# ============================================================
+# 写结果文件
+# ============================================================
+def write_result_file(filename, trackers, description):
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-    h = ['# Auto-generated by test_trackers.py', f'# Last tested: {now} UTC', f'# {desc}', f'# Total: {len(trackers)}', '']
-    with open(os.path.join(ut.OUTPUT_DIR, filename), 'w', encoding='utf-8', newline='\n') as f:
-        f.write('\n'.join(h) + '\n'.join(trackers) + ('\n' if trackers else ''))
+    header = [
+        '# Auto-generated by test_trackers.py',
+        f'# Last tested: {now} UTC',
+        f'# {description}',
+        f'# Total: {len(trackers)}',
+        '',
+    ]
+    path = os.path.join(ut.OUTPUT_DIR, filename)
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write('\n'.join(header) + '\n'.join(trackers) + ('\n' if trackers else ''))
 
 
+# ============================================================
+# 写测试报告（含速度排名）
+# ============================================================
 def write_report(results, alive_sorted, capped, elapsed):
-    alive = [(t,d,e) for t,s,d,e in results if s=='alive']
-    dead = [(t,d,e) for t,s,d,e in results if s=='dead']
-    unsafe = [(t,d,e) for t,s,d,e in results if s=='unsafe']
+    alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
+    dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
+    unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
+    untestable = [(t, d, e) for t, s, d, e in results if s == 'untestable']
     total = len(results)
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-    lines = ['# Tracker 活性+测速报告', '', f'- 时间: {now}', f'- 总数: {total}',
-             f'- 存活: {len(alive)}', f'- 失效: {len(dead)}', f'- 不安全: {len(unsafe)}',
-             f'- 速度排序保留前{ut.MAX_TRACKERS}, 淘汰{len(capped)}', f'- 耗时: {elapsed:.1f}s', '',
-             '## 存活（按速度升序）', '']
-    for rank, (t,d,e) in enumerate(alive_sorted, 1):
-        mark = ' [OUT]' if rank > ut.MAX_TRACKERS else ''
-        lines.append(f'{rank}. `{t}` — {e:.0f}ms — {d}{mark}')
-    if dead: lines += ['', '## 失效', ''] + [f'- `{t}` — {d}' for t,d,e in sorted(dead)]
-    if unsafe: lines += ['', '## 不安全（已过滤）', ''] + [f'- `{t}` — {d}' for t,d,e in sorted(unsafe)]
-    with open(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), 'w', encoding='utf-8', newline='\n') as f:
+
+    lines = [
+        '# Tracker 活性测试 + 测速排序报告',
+        '',
+        f'- 测试时间: {now}',
+        f'- 总 Tracker 数: {total}',
+        f'- 存活 (alive): **{len(alive)}** ({len(alive) * 100 // total if total else 0}%)',
+        f'- 失效 (dead): **{len(dead)}**',
+        f'- 不安全 (unsafe): **{len(unsafe)}**',
+        f'- 无法测试 (untestable): {len(untestable)}',
+        f'- 速度排序后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
+        f'- 耗时: {elapsed:.1f} 秒',
+        '',
+        '## 存活 Tracker（按响应速度升序，前 N 个进入订阅列表）',
+        '',
+    ]
+    for rank, (t, d, e) in enumerate(alive_sorted, 1):
+        cap_mark = ' [CAP-OUT]' if rank > ut.MAX_TRACKERS else ''
+        lines.append(f'{rank}. `{t}` — {e:.0f}ms — {d}{cap_mark}')
+
+    if dead:
+        lines += ['', '## 失效 Tracker', '']
+        for t, d, e in sorted(dead):
+            lines.append(f'- `{t}` — {d}')
+
+    if unsafe:
+        lines += ['', '## 不安全 Tracker（已过滤）', '']
+        for t, d, e in sorted(unsafe):
+            lines.append(f'- `{t}` — {d}')
+
+    if untestable:
+        lines += ['', '## 无法测试（特殊网络）', '']
+        for t, d, e in sorted(untestable):
+            lines.append(f'- `{t}` — {d}')
+
+    path = os.path.join(ut.OUTPUT_DIR, 'test_report.md')
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(lines) + '\n')
 
 
+# ============================================================
+# 主流程
+# ============================================================
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--timeout', type=int, default=12)
-    ap.add_argument('--workers', type=int, default=25)
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--timeout', type=int, default=12)
+    parser.add_argument('--workers', type=int, default=25)
+    args = parser.parse_args()
+
     trackers = read_merged()
-    print(f'[INFO] Testing {len(trackers)} (timeout={args.timeout}s, workers={args.workers}), max={ut.MAX_TRACKERS}')
-    results = []; t0 = time.time()
+    print(f'[INFO] Testing {len(trackers)} trackers '
+          f'(timeout={args.timeout}s, workers={args.workers})')
+    print(f'[INFO] Max alive trackers after speed sort: {ut.MAX_TRACKERS}')
+
+    results = []
+    start = time.time()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        futs = {pool.submit(test_one, t, args.timeout): t for t in trackers}
-        done = 0
-        for f in as_completed(futs):
-            t, s, d, e = f.result(); results.append((t,s,d,e)); done += 1
-            mk = {'alive':'[ALIVE]','dead':'[DEAD] ','untestable':'[SKIP]  ','unsafe':'[BLOCK]'}[s]
-            sp = f' {e:.0f}ms' if s=='alive' else ''
-            print(f'  {mk} ({done}/{len(trackers)}) {t}{sp} — {d}')
-    elapsed = time.time() - t0
-    alive_ws = [(t,d,e) for t,s,d,e in results if s=='alive']
-    alive_sorted = sorted(alive_ws, key=lambda x: x[2])
-    alive_final = [t for t,d,e in alive_sorted[:ut.MAX_TRACKERS]]
-    capped = [(t,d,e) for t,d,e in alive_sorted[ut.MAX_TRACKERS:]]
-    dead_final = sorted([t for t,s,d,e in results if s in ('dead','unsafe')] + [t for t,d,e in capped])
-    write_result_file(ut.ALIVE_FILE, alive_final, f'PASSED liveness, speed-sorted, top {ut.MAX_TRACKERS}')
-    write_result_file(ut.DEAD_FILE, dead_final, 'FAILED/unsafe/speed-capped')
+        futures = {pool.submit(test_one, t, args.timeout): t for t in trackers}
+        done_count = 0
+        for future in as_completed(futures):
+            tracker, status, detail, elapsed_ms = future.result()
+            results.append((tracker, status, detail, elapsed_ms))
+            done_count += 1
+            marker = {'alive': '[ALIVE]', 'dead': '[DEAD] ', 'untestable': '[SKIP]  ',
+                      'unsafe': '[BLOCK]'}[status]
+            speed = f' {elapsed_ms:.0f}ms' if status == 'alive' else ''
+            print(f'  {marker} ({done_count}/{len(trackers)}) {tracker}{speed} — {detail}')
+
+    elapsed = time.time() - start
+
+    # 存活 Tracker 按响应速度升序排序
+    alive_with_speed = [(t, d, e) for t, s, d, e in results if s == 'alive']
+    alive_sorted = sorted(alive_with_speed, key=lambda x: x[2])  # 按耗时升序
+
+    # 取前 MAX_TRACKERS 个
+    alive_final = [t for t, d, e in alive_sorted[:ut.MAX_TRACKERS]]
+    capped = [(t, d, e) for t, d, e in alive_sorted[ut.MAX_TRACKERS:]]
+
+    # 失效 = dead + unsafe + 被速度淘汰的
+    dead_final = sorted(
+        [t for t, s, d, e in results if s in ('dead', 'unsafe')]
+        + [t for t, d, e in capped]
+    )
+
+    write_result_file(
+        ut.ALIVE_FILE, alive_final,
+        f'Trackers that PASSED liveness test, sorted by speed, top {ut.MAX_TRACKERS}'
+    )
+    write_result_file(
+        ut.DEAD_FILE, dead_final,
+        'Trackers that FAILED, were unsafe, or were capped by speed limit'
+    )
     write_report(results, alive_sorted, capped, elapsed)
-    na = len(alive_final); nd = len(dead_final); nc = len(capped); nu = sum(1 for _,s,_,_ in results if s=='unsafe')
-    print(f'\n===== Summary =====')
-    print(f'  Total: {len(trackers)}  Alive(raw): {len(alive_ws)}  Alive(final): {na}  Capped: {nc}  Unsafe: {nu}  Dead: {nd}')
-    print(f'  Time: {elapsed:.1f}s')
-    print('===================')
+
+    n_alive = len(alive_final)
+    n_dead = len(dead_final)
+    n_capped = len(capped)
+    n_unsafe = sum(1 for _, s, _, _ in results if s == 'unsafe')
+
+    print(f'\n===== Test Summary =====')
+    print(f'  Total tested:   {len(trackers)}')
+    print(f'  Alive (raw):    {len(alive_with_speed)}')
+    print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by speed)')
+    print(f'  Speed-capped:   {n_capped}')
+    print(f'  Unsafe filtered:{n_unsafe}')
+    print(f'  Dead final:     {n_dead}')
+    print(f'  Time:           {elapsed:.1f}s')
+    print('=========================')
+
+    # 重新生成主页
     repo = ut.get_repo()
-    ut.generate_pages(repo, [(ut.ALIVE_FILE, na), (ut.MERGED_FILE, len(trackers)), (ut.DEAD_FILE, nd)])
+    page_stats = [
+        (ut.ALIVE_FILE, n_alive),
+        (ut.MERGED_FILE, len(trackers)),
+        (ut.DEAD_FILE, n_dead),
+    ]
+    ut.generate_pages(repo, page_stats)
+    print('[OK] Pages regenerated with alive statistics.')
+
+    # 同步纯文本文件
     ut.sync_plain_text_files()
-    print('[OK] Done.')
+    print('[OK] Plain-text files synced to docs/.')
 
 
 if __name__ == '__main__':
