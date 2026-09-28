@@ -31,11 +31,15 @@ import urllib.request
 import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# 复用主脚本的路径、常量与页面生成函数
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 import update_trackers as ut
 
 
+# ============================================================
+# bencode 解码器（用于验证 HTTP tracker 响应）
+# ============================================================
 def bdecode(data):
     def parse(index):
         c = data[index:index + 1]
@@ -66,6 +70,9 @@ def bdecode(data):
     return obj
 
 
+# ============================================================
+# 构造测试用固定身份
+# ============================================================
 def make_identity():
     info_hash = os.urandom(20)
     peer_id = b'-TT0100-' + os.urandom(12)
@@ -73,9 +80,13 @@ def make_identity():
 
 
 def encode_bytes(b):
+    """按 BitTorrent 规范对二进制参数逐字节 URL 编码。"""
     return ''.join('%%%02X' % x for x in b)
 
 
+# ============================================================
+# HTTP / HTTPS tracker 测试
+# ============================================================
 def test_http(tracker_url, timeout):
     info_hash, peer_id = make_identity()
     query = (
@@ -103,11 +114,15 @@ def test_http(tracker_url, timeout):
     if not isinstance(decoded, dict):
         return False, 'response is not a bencoded dictionary'
 
-    if b'failure reason' in decoded:
+    # 正常响应或 failure reason 都说明 tracker 在线处理请求
+    if b'failure reason' in decoded or b'failure reason'.decode() in decoded:
         return True, 'online (returned failure reason)'
     return True, 'valid announce response'
 
 
+# ============================================================
+# UDP tracker 测试（connect + announce）
+# ============================================================
 def test_udp(host, port, timeout):
     family = socket.AF_INET6 if ':' in host else socket.AF_INET
     sock = socket.socket(family, socket.SOCK_DGRAM)
@@ -117,6 +132,7 @@ def test_udp(host, port, timeout):
     txn = random.randint(0, 0xFFFFFFFF)
     connect_packet = struct.pack('>QII', 0x41727101980, 0, txn)
 
+    # connect（允许一次丢包重传，总时长不超过 timeout）
     deadline = time.time() + timeout
     connection_id = None
     sent = False
@@ -133,8 +149,10 @@ def test_udp(host, port, timeout):
             data, _ = sock.recvfrom(2048)
             break
         except socket.timeout:
-            sent = False
+            sent = False  # 重传
             continue
+    else:
+        data = None
 
     if not data or len(data) < 16:
         return False, 'no connect response'
@@ -144,13 +162,14 @@ def test_udp(host, port, timeout):
     if r_txn != txn or action != 0:
         return False, 'invalid connect response'
 
+    # connect 成功即证明 tracker 在线；再尝试 announce（失败不影响存活判定）
     try:
         info_hash, peer_id = make_identity()
         ap = struct.pack('>QII', connection_id, 1, txn)
         ap += info_hash + peer_id
-        ap += struct.pack('>QQQ', 0, 1000000, 0)
-        ap += struct.pack('>III', 0, 0, random.randint(0, 0xFFFFFFFF))
-        ap += struct.pack('>iH', -1, 6881)
+        ap += struct.pack('>QQQ', 0, 1000000, 0)          # downloaded, left, uploaded
+        ap += struct.pack('>III', 0, 0, random.randint(0, 0xFFFFFFFF))  # event, ip, key
+        ap += struct.pack('>iH', -1, 6881)                 # num_want, port
         sock.sendto(ap, addr)
         remaining = deadline - time.time()
         if remaining > 0:
@@ -167,6 +186,9 @@ def test_udp(host, port, timeout):
     return True, 'valid connect (announce not confirmed)'
 
 
+# ============================================================
+# WSS tracker 测试（TCP + TLS 连通性）
+# ============================================================
 def test_wss(host, port, timeout):
     context = ssl.create_default_context()
     sock = socket.create_connection((host, port), timeout=timeout)
@@ -179,7 +201,11 @@ def test_wss(host, port, timeout):
     return True, 'TLS reachable (WebSocket handshake not performed)'
 
 
+# ============================================================
+# 单个 tracker 分发测试
+# ============================================================
 def test_one(tracker, timeout):
+    """返回 (tracker, 状态, 详情)，状态: alive/dead/untestable"""
     try:
         parsed = urllib.parse.urlparse(tracker)
     except Exception:
@@ -189,6 +215,7 @@ def test_one(tracker, timeout):
     host = parsed.hostname
     port = parsed.port
 
+    # I2P 域名需要 I2P 网络，当前环境无法测试
     if host and host.endswith('.i2p'):
         return tracker, 'untestable', 'I2P network required'
 
@@ -226,6 +253,9 @@ def test_one(tracker, timeout):
         return tracker, 'dead', f'{type(e).__name__}: {e}'
 
 
+# ============================================================
+# 读取合并列表
+# ============================================================
 def read_merged():
     path = os.path.join(ut.OUTPUT_DIR, ut.MERGED_FILE)
     trackers = []
@@ -237,6 +267,9 @@ def read_merged():
     return trackers
 
 
+# ============================================================
+# 写结果文件（保持与其他 tracker 文件一致的头部风格）
+# ============================================================
 def write_result_file(filename, trackers, description):
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
     header = [
@@ -251,6 +284,9 @@ def write_result_file(filename, trackers, description):
         f.write('\n'.join(header) + '\n'.join(trackers) + ('\n' if trackers else ''))
 
 
+# ============================================================
+# 写测试报告
+# ============================================================
 def write_report(results, elapsed):
     alive = [(t, d) for t, s, d in results if s == 'alive']
     dead = [(t, d) for t, s, d in results if s == 'dead']
@@ -288,6 +324,9 @@ def write_report(results, elapsed):
         f.write('\n'.join(lines) + '\n')
 
 
+# ============================================================
+# 主流程
+# ============================================================
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', type=int, default=12)
@@ -316,9 +355,9 @@ def main():
     dead_sorted = sorted(t for t, s, _ in results if s == 'dead')
 
     write_result_file(ut.ALIVE_FILE, alive_sorted,
-                      'Trackers that PASSED the liveness test')
+                      f'Trackers that PASSED the liveness test')
     write_result_file(ut.DEAD_FILE, dead_sorted,
-                      'Trackers that FAILED the liveness test')
+                      f'Trackers that FAILED the liveness test')
     write_report(results, elapsed)
 
     n_alive = len(alive_sorted)
@@ -333,6 +372,7 @@ def main():
     print(f'  Time:  {elapsed:.1f}s')
     print('=========================')
 
+    # 重新生成主页，使其反映最新存活统计
     repo = ut.get_repo()
     page_stats = [
         (ut.ALIVE_FILE, n_alive),
@@ -341,6 +381,10 @@ def main():
     ]
     ut.generate_pages(repo, page_stats)
     print('[OK] Pages regenerated with alive statistics.')
+
+    # 同步纯文本文件到 docs/，供 BT 客户端直接订阅（修复 /s/alive 订阅问题）
+    ut.sync_plain_text_files()
+    print('[OK] Plain-text files synced to docs/ for BT client subscription.')
 
 
 if __name__ == '__main__':
