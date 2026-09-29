@@ -1,6 +1,6 @@
 # Tracker 订阅地址清单
-# Generated: 2026-09-29 02:45:35 UTC
-# 仅保留 GitHub Raw 直连，无 CDN/代理加速链接
+# Generated: 2026-09-29 03:21:27 UTC
+# 短链接与直链均使用 github.io，规避 DNS 污染
 
-# [GitHub Raw]
-https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt
+# [GitHub Pages]
+https://pmwiu.github.io/Pmwiu/Tracker-List/merged.txt
