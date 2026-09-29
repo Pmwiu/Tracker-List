@@ -660,7 +660,7 @@ def main():
     dead_final = sorted(
         [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
         + [t for t, _, _, _, _ in capped]
-        + low_speed_trackers
+        + sorted(low_speed_trackers)
     )
 
     write_result_file(
