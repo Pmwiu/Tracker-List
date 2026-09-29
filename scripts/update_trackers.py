@@ -10,7 +10,7 @@
   - https://newtrackon.com/api/live
 
 特性:
-  - 多源合并去重（URL 规范化后去重）
+  - 多源合并去重（URL 规范化后去重，补全默认端口）
   - 下载内容校验（拒绝非 tracker 内容）
   - 原子写入（临时文件 + rename，防止中途崩溃损坏文件）
   - 文件锁防止并发运行
@@ -25,6 +25,7 @@ import time
 import html
 import urllib.request
 import urllib.error
+import urllib.parse
 import datetime
 
 try:
@@ -173,16 +174,39 @@ def release_lock(lock_handle):
 
 
 def normalize_tracker(url):
-    """规范化 tracker URL：去除末尾斜杠、统一协议小写。"""
+    """规范化 tracker URL：统一协议小写、补全默认端口、去除末尾斜杠。
+
+    补全 http=80 / https=443 默认端口，使
+    http://example.com/announce 与 http://example.com:80/announce 正确合并。
+    """
     url = url.strip()
     if not url:
         return None
-    if "://" in url:
-        scheme, rest = url.split("://", 1)
-        scheme = scheme.lower()
-        rest = rest.rstrip("/")
-        return f"{scheme}://{rest}"
-    return url
+    try:
+        parsed = urllib.parse.urlparse(url)
+    except Exception:
+        return url
+
+    scheme = (parsed.scheme or "").lower()
+    hostname = parsed.hostname
+    if not hostname:
+        return url
+
+    port = parsed.port
+    if port is None:
+        if scheme == "http":
+            port = 80
+        elif scheme == "https":
+            port = 443
+
+    # IPv6 主机加括号
+    host = f"[{hostname}]" if ":" in hostname else hostname
+    netloc = f"{host}:{port}" if port else host
+    path = parsed.path.rstrip("/")
+
+    return urllib.parse.urlunparse(
+        (scheme, netloc, path, parsed.params, parsed.query, "")
+    )
 
 
 def is_valid_tracker(url):
