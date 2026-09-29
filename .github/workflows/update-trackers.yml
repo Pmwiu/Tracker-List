@@ -11,7 +11,7 @@ on:
       - '.github/workflows/update-trackers.yml'
       - 'scripts/**'
 
-# 防止并发运行：同一时间只允许一个实例，新的取消旧的
+# 防止并发运行：同一时间只允许一个实例，新的排队
 concurrency:
   group: tracker-update
   cancel-in-progress: false
@@ -72,7 +72,7 @@ jobs:
             echo "Changes detected."
           fi
 
-      # 步骤 5：提交推送
+      # 步骤 5：提交推送（带 rebase 重试，处理并发更新）
       - name: Commit and push changes
         if: steps.git-check.outputs.changed == 'true'
         run: |
@@ -80,7 +80,20 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add trackers/ docs/
           git commit -m "chore: auto-update trackers $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push
+          # 远程可能在测试期间有新提交，rebase 后重试推送
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "${GITHUB_REF_NAME}"; then
+              pushed=1
+              break
+            fi
+            echo "::warning::Push attempt $i failed, retrying after rebase..."
+            sleep 5
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "::error::Failed to push after 3 attempts"
+            exit 1
+          fi
 
       # 步骤 6：推送后网络健康检查（3轮）
       - name: Post-push health check
