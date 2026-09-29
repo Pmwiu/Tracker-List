@@ -24,6 +24,7 @@ import sys
 import tempfile
 import time
 import html
+import json
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -65,6 +66,8 @@ SHORT_LINKS = [
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "trackers")
+REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
+RUN_SUMMARY_FILE = os.path.join(REPORTS_DIR, "run_summary.json")
 PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
 SHORT_LINKS_DIR = os.path.join(PAGES_DIR, "s")
 MERGED_FILE = "trackers_merged.txt"
@@ -134,6 +137,21 @@ def load_blacklist():
             if entry and not entry.startswith("#"):
                 blacklist.add(entry)
     return blacklist
+
+
+def write_run_summary(status, duration_sec, source_stats, merged_lines, failed_sources):
+    """生成 reports/run_summary.json 运行摘要。"""
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    summary = {
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "status": status,
+        "duration_sec": duration_sec,
+        "sources": source_stats,
+        "merged_lines": merged_lines,
+        "alive_lines": None,
+        "failed_sources": failed_sources,
+    }
+    atomic_write(RUN_SUMMARY_FILE, json.dumps(summary, ensure_ascii=False, indent=2) + NL)
 
 
 def acquire_lock():
@@ -586,6 +604,10 @@ def count_trackers_in_text(text):
 
 def main():
     lock_fd = acquire_lock()
+    start_time = time.time()
+    source_stats = {}
+    failed_names = []
+    merged_lines = 0
     try:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         repo = get_repo()
@@ -609,11 +631,14 @@ def main():
 
         for filename, url, short_name in SOURCES:
             print(f"{NL}[INFO] {filename} ({short_name})")
+            source_stats[short_name] = {"http_code": 0, "lines": 0, "ok": False}
             try:
                 trackers = download_trackers(url, blacklist=blacklist)
+                source_stats[short_name] = {"http_code": 200, "lines": len(trackers), "ok": True}
             except Exception as e:
                 print(f"[ERROR] {e}", file=sys.stderr)
                 failures.append((filename, short_name, str(e)))
+                failed_names.append(short_name)
                 continue
             write_trackers(os.path.join(OUTPUT_DIR, filename), trackers, source_url=url)
             all_merged.update(trackers)
@@ -635,6 +660,7 @@ def main():
                 source_url=", ".join(u for _, u, _ in SOURCES),
             )
             results.append((MERGED_FILE, len(merged)))
+            merged_lines = len(merged)
             print(f"{NL}[OK]   merged: {len(merged)}")
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
@@ -652,6 +678,9 @@ def main():
             print(f"  FAILED SOURCES: {len(failures)}")
         print("===================")
     finally:
+        status = "success" if (not failed_names and merged_lines > 0) else "failure"
+        write_run_summary(status, round(time.time() - start_time, 1),
+                          source_stats, merged_lines, failed_names)
         release_lock(lock_fd)
 
 

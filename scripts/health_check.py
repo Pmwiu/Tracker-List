@@ -22,6 +22,7 @@ import os
 import re
 import sys
 import time
+import json
 import urllib.request
 import urllib.error
 import datetime
@@ -67,6 +68,8 @@ CONSISTENCY_MAP = {
 }
 
 MAX_ALIVE = 25
+REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
+HEALTH_FILE = os.path.join(REPORTS_DIR, "health.json")
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
 
 
@@ -289,6 +292,25 @@ def run_single_check(round_num, skip_net=False):
     return passes, warns, fails, results
 
 
+def write_health_json(rounds, total_passes, total_warns, total_fails):
+    """生成 reports/health.json 健康检查结果。"""
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    data = {
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "rounds": rounds,
+        "pass": total_passes,
+        "warn": total_warns,
+        "fail": total_fails,
+        "status": "healthy" if total_fails == 0 else "issues",
+    }
+    try:
+        with open(HEALTH_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+    except OSError as e:
+        print(f"[WARN]  Failed to write {HEALTH_FILE}: {e}")
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
@@ -322,6 +344,8 @@ def main():
     else:
         print(f"   STATUS: ALL ROUNDS HEALTHY (warnings may be network-related)")
     print(f"{'#'*60}")
+
+    write_health_json(args.rounds, total_passes, total_warns, total_fails)
 
     sys.exit(1 if all_had_fail else 0)
 

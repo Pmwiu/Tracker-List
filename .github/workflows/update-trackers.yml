@@ -2,8 +2,8 @@ name: Auto Update Trackers
 
 on:
   schedule:
-    # 每天 UTC 00:00 运行（北京时间 08:00）
-    - cron: "0 0 * * *"
+    # 每天 UTC 00:23 运行（北京时间 08:23，避开整点调度拥堵）
+    - cron: "23 0 * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -11,10 +11,10 @@ on:
       - '.github/workflows/update-trackers.yml'
       - 'scripts/**'
 
-# 防止并发运行：同一时间只允许一个实例，新的排队等待旧的完成（不取消进行中的运行）
+# 防止并发运行：同一时间只允许一个实例，新运行取消旧的进行中运行
 concurrency:
   group: tracker-update
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -59,6 +59,13 @@ jobs:
               curl -sS -o /dev/null -w "  HTTP %{http_code}, total %{time_total}s\n" --connect-timeout 8 --max-time 20 "$u" || echo "  curl exit: $?"
             done
           } 2>&1 | tee diag.log
+
+      # 心跳：每次运行更新 .github/last_run.txt（成功/失败都会由 persist 步骤提交）
+      - name: Write heartbeat
+        run: |
+          mkdir -p .github
+          date -u +'%Y-%m-%d %H:%M:%S UTC' > .github/last_run.txt
+          cat .github/last_run.txt
 
       # 步骤 1：下载源列表、合并去重
       - name: Download, merge and deduplicate trackers
@@ -145,10 +152,68 @@ jobs:
           cp diag.log docs/ci-diag.md
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/ci-diag.md
-          git commit -m "ci: persist diagnostics report" || true
+          git add docs/ci-diag.md .github/last_run.txt
+          git add reports/ 2>/dev/null || true
+          git commit -m "ci: persist diagnostics and heartbeat" || true
           for i in 1 2 3; do
             git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "${GITHUB_REF_NAME}" && break
             echo "retry push $i..."
             sleep 3
           done
+
+      # 失败告警：自动创建 Issue
+      - name: Create failure issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let summary = '';
+            try { summary = fs.readFileSync('reports/run_summary.json', 'utf8'); } catch (e) {}
+            let logTail = '';
+            try {
+              const log = fs.readFileSync('diag.log', 'utf8');
+              logTail = log.split('\n').slice(-40).join('\n');
+            } catch (e) {}
+            const title = `[自动告警] Tracker 更新失败 - ${new Date().toISOString().slice(0, 10)}`;
+            const body = [
+              `运行链接: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+              '',
+              '## run_summary.json',
+              '```json',
+              summary || '(无)',
+              '```',
+              '',
+              '## 日志尾部',
+              '```',
+              logTail || '(无)',
+              '```',
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['automated-alert'],
+            });
+
+      # 成功后关闭历史告警 Issue
+      - name: Close stale alert issues
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'automated-alert',
+            });
+            for (const issue of issues) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+              });
+            }
