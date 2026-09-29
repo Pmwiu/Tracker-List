@@ -13,7 +13,7 @@
   - 下载内容校验（拒绝非 tracker 内容）
   - 原子写入（临时文件 + rename，防止中途崩溃损坏文件）
   - 文件锁防止并发运行
-  - 仅保留直链与 Pages 短链接，无 CDN/代理加速链接
+  - 短链接与直链均使用 github.io，规避 DNS 污染
   - 纯文本 .txt 直链供 BT 客户端直接订阅
 """
 
@@ -259,7 +259,6 @@ def download_trackers(url):
     if raw is None:
         raise RuntimeError("Empty response")
 
-    # 内容校验：拒绝明显的 HTML 错误页
     if raw.lstrip().startswith("<!DOCTYPE") or raw.lstrip().startswith("<html"):
         raise RuntimeError("Response is HTML, not tracker list")
 
@@ -314,6 +313,7 @@ def write_trackers(filepath, trackers, source_url=None, extra_header=None):
 
 
 def write_mirrors_file(repo):
+    repo_name = repo.split("/")[-1]
     lines = [
         "# Tracker 订阅地址清单",
         f"# Generated: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC",
@@ -321,7 +321,7 @@ def write_mirrors_file(repo):
         "",
     ]
     for name, template in MIRRORS:
-        url = template.format(repo=repo, file=MERGED_FILE)
+        url = template.format(repo=repo_name, file=MERGED_FILE)
         lines += [f"# [{name}]", url, ""]
     atomic_write(os.path.join(OUTPUT_DIR, "MIRRORS.txt"), "\n".join(lines))
     print("[OK]   MIRRORS.txt")
@@ -359,7 +359,6 @@ def generate_redirect_page(target_url, description=""):
 
 
 def generate_source_links():
-    """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
         "cf-all": "trackerslist/all",
         "adysec-all": "adysec/all",
@@ -375,7 +374,7 @@ def generate_source_links():
 
 def generate_index_page(repo, short_links_with_urls, tracker_counts):
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    owner = repo.split("/")[0] if "/" in repo else repo
+    owner = (repo.split("/")[0] if "/" in repo else repo).lower()
     repo_name = repo.split("/")[-1] if "/" in repo else "Tracker-List"
     pages_base = f"https://{owner}.github.io/{repo_name}"
 
@@ -493,10 +492,11 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
 
 
 def generate_pages(repo, results):
+    repo_name = repo.split("/")[-1]
     os.makedirs(SHORT_LINKS_DIR, exist_ok=True)
     sl = []
     for short, group, desc, template in SHORT_LINKS:
-        target = template.format(repo=repo)
+        target = template.format(repo=repo_name)
         sl.append((short, group, desc, target))
         page_content = generate_redirect_page(target, desc)
         atomic_write(os.path.join(SHORT_LINKS_DIR, f"{short}.html"), page_content)

@@ -45,16 +45,30 @@ jobs:
       - name: Download, merge and deduplicate trackers
         id: download
         run: |
+          set +e
           python scripts/update_trackers.py
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          code=$?
+          set -e
+          echo "exit_code=$code" >> $GITHUB_OUTPUT
+          if [ "$code" -ne 0 ]; then
+            echo "::error::update_trackers.py failed with exit code $code"
+            exit $code
+          fi
 
       # 步骤 2：协议级活性测试 + 综合评分排序
       # 精选源优先，最多测试 500 个候选，避免对数千 tracker 全量测试而超时
       - name: Test tracker liveness and score ranking
         id: test
         run: |
+          set +e
           python scripts/test_trackers.py --timeout 10 --workers 30 --max-candidates 500
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          code=$?
+          set -e
+          echo "exit_code=$code" >> $GITHUB_OUTPUT
+          if [ "$code" -ne 0 ]; then
+            echo "::error::test_trackers.py failed with exit code $code"
+            exit $code
+          fi
 
       # 步骤 3：本地健康检查（跳过网络，因为后面单独做）
       - name: Local health check
