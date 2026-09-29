@@ -439,7 +439,7 @@ def read_merged():
 def read_candidates(max_count=500):
     """按来源优先级读取候选 tracker。
 
-    精选源（XIU2 / newtrackon / ngosang，人工维护、质量高）优先测试，
+    精选源（trackerslist / ngosang，人工维护、质量高）优先测试，
     再从合并大列表（含 adysec 数千条）中补足到 max_count，
     避免在 GitHub Actions 中对数千个 tracker 全量测试而超时。
     """
@@ -458,8 +458,7 @@ def read_candidates(max_count=500):
                     ordered.append(line)
 
     # 1. 精选源优先（这些列表本身已做过筛选，存活率高）
-    for priority_file in ("trackers_xiu2.txt", "trackers_newtrackon.txt",
-                          "trackers_ngosang.txt"):
+    for priority_file in ("trackers_cf.txt", "trackers_ngosang.txt"):
         _ingest(priority_file)
 
     # 2. 从合并大列表补足（adysec 等海量来源）
