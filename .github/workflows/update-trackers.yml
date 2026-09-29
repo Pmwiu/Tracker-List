@@ -11,7 +11,7 @@ on:
       - '.github/workflows/update-trackers.yml'
       - 'scripts/**'
 
-# 防止并发运行：同一时间只允许一个实例，新的取消旧的
+# 防止并发运行：同一时间只允许一个实例，新的排队等待旧的完成（不取消进行中的运行）
 concurrency:
   group: tracker-update
   cancel-in-progress: false
