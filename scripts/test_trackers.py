@@ -611,7 +611,7 @@ def main():
         for tracker, status, detail, elapsed_ms in results:
             if tracker in second_results:
                 best_speed = min(elapsed_ms, second_results[tracker])
-                updated_results.append((tracker, status, detail, best_speed)
+                updated_results.append((tracker, status, detail, best_speed))
             else:
                 updated_results.append((tracker, status, detail, elapsed_ms))
         results = updated_results
