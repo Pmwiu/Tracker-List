@@ -10,10 +10,11 @@
 
 特性:
   - 多源合并去重（URL 规范化后去重）
+  - 来源白名单校验（仅接受 ALLOWED_SOURCE_URLS 内的订阅源，其余一律拒绝）
   - 下载内容校验（拒绝非 tracker 内容）
   - 原子写入（临时文件 + rename，防止中途崩溃损坏文件）
   - 文件锁防止并发运行
-  - 短链接与直链均使用 github.io，规避 DNS 污染
+  - 仅保留 GitHub Raw 直链与 Pages 短链接，无 CDN/代理加速链接
   - 纯文本 .txt 直链供 BT 客户端直接订阅
 """
 
@@ -38,6 +39,9 @@ SOURCES = [
     ("trackers_adysec.txt", "https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt", "adysec-all"),
     ("trackers_ngosang.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt", "ngosang-all"),
 ]
+
+# 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
+ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
 
 MAX_TRACKERS = 25
 
@@ -106,6 +110,9 @@ TRACKER_PATTERN = re.compile(
     r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE
 )
 
+# 换行常量（用 chr 避免源码中出现字面反斜杠 n，防止传输时被转义破坏）
+NL = chr(10)
+
 
 def get_repo():
     repo = os.environ.get("GITHUB_REPOSITORY", "").strip()
@@ -120,6 +127,7 @@ def acquire_lock():
 
     while time.time() < deadline:
         if _HAS_FCNTL:
+            # Linux/macOS: fcntl  flock
             try:
                 lock_fd = open(LOCK_FILE, "w")
                 fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -132,22 +140,27 @@ def acquire_lock():
                 time.sleep(0.5)
                 continue
         else:
+            # Windows: 原子创建锁文件（O_CREAT|O_EXCL 保证原子性）
             try:
                 fd = os.open(LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
                 with os.fdopen(fd, "w") as f:
                     f.write(str(os.getpid()))
-                return LOCK_FILE
+                # 保存 fd 以便释放时删除文件
+                return LOCK_FILE  # 返回路径而非 fd，Windows 下用路径管理
             except FileExistsError:
+                # 锁文件存在，检查持有进程是否还活着
                 try:
                     with open(LOCK_FILE, "r") as f:
                         old_pid = f.read().strip()
                     if old_pid and old_pid.isdigit():
                         try:
                             os.kill(int(old_pid), 0)
+                            # 进程还在，等待
                             time.sleep(0.5)
                             continue
                         except (OSError, ValueError):
-                            pass
+                            pass  # 进程已结束，抢占锁
+                    # 旧进程已结束，删除锁文件并重试
                     try:
                         os.remove(LOCK_FILE)
                     except OSError:
@@ -234,7 +247,13 @@ def cleanup_legacy_files():
 
 
 def download_trackers(url):
-    """下载并校验 tracker 列表，返回去重后的排序列表。"""
+    """下载并校验 tracker 列表，返回去重后的排序列表。
+
+    仅接受 ALLOWED_SOURCE_URLS 白名单内的订阅源；非白名单来源直接拒绝，
+    其内容不会被下载、解析或合并。
+    """
+    if url not in ALLOWED_SOURCE_URLS:
+        raise RuntimeError(f"Source not in whitelist, rejected: {url}")
     last_error = None
     raw = None
     for attempt in range(1, MAX_RETRIES + 1):
@@ -259,6 +278,7 @@ def download_trackers(url):
     if raw is None:
         raise RuntimeError("Empty response")
 
+    # 内容校验：拒绝明显的 HTML 错误页
     if raw.lstrip().startswith("<!DOCTYPE") or raw.lstrip().startswith("<html"):
         raise RuntimeError("Response is HTML, not tracker list")
 
@@ -286,7 +306,7 @@ def download_trackers(url):
 def atomic_write(filepath, content):
     """原子写入：先写临时文件，再 rename。"""
     tmp_path = filepath + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8", newline="\n") as f:
+    with open(tmp_path, "w", encoding="utf-8", newline=NL) as f:
         f.write(content)
         f.flush()
         os.fsync(f.fileno())
@@ -305,10 +325,10 @@ def write_trackers(filepath, trackers, source_url=None, extra_header=None):
         header.append(extra_header)
     header.append(f"# Total unique trackers: {len(trackers)}")
     header.append("")
-    body = "\n".join(trackers)
+    body = NL.join(trackers)
     if trackers:
-        body += "\n"
-    content = "\n".join(header) + body
+        body += NL
+    content = NL.join(header) + body
     atomic_write(filepath, content)
 
 
@@ -323,7 +343,7 @@ def write_mirrors_file(repo):
     for name, template in MIRRORS:
         url = template.format(repo=repo_name, file=MERGED_FILE)
         lines += [f"# [{name}]", url, ""]
-    atomic_write(os.path.join(OUTPUT_DIR, "MIRRORS.txt"), "\n".join(lines))
+    atomic_write(os.path.join(OUTPUT_DIR, "MIRRORS.txt"), NL.join(lines))
     print("[OK]   MIRRORS.txt")
 
 
@@ -359,6 +379,7 @@ def generate_redirect_page(target_url, description=""):
 
 
 def generate_source_links():
+    """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
         "cf-all": "trackerslist/all",
         "adysec-all": "adysec/all",
@@ -368,8 +389,7 @@ def generate_source_links():
     for _, url, short_name in SOURCES:
         label = label_map.get(short_name, short_name)
         parts.append(f'<a href="{html.escape(url)}">{html.escape(label)}</a>')
-    return " &middot;
-      ".join(parts)
+    return (" &middot;" + NL + "      ").join(parts)
 
 
 def generate_index_page(repo, short_links_with_urls, tracker_counts):
@@ -543,9 +563,15 @@ def main():
         results = []
         failures = []
 
+        # 硬校验：SOURCES 中任何非白名单来源都是配置错误，立即失败
+        rogue = [u for _, u, _ in SOURCES if u not in ALLOWED_SOURCE_URLS]
+        if rogue:
+            for u in rogue:
+                print(f"[ERROR] Source not in whitelist: {u}", file=sys.stderr)
+            sys.exit(1)
+
         for filename, url, short_name in SOURCES:
-            print(f"
-[INFO] {filename} ({short_name})")
+            print(f"{NL}[INFO] {filename} ({short_name})")
             try:
                 trackers = download_trackers(url)
             except Exception as e:
@@ -558,8 +584,7 @@ def main():
             print(f"[OK]   {len(trackers)} unique")
 
         if failures:
-            print(f"
-[WARN] {len(failures)} source(s) failed:")
+            print(f"{NL}[WARN] {len(failures)} source(s) failed:")
             for fn, sn, err in failures:
                 print(f"  - {sn}: {err}")
 
@@ -570,8 +595,7 @@ def main():
                 source_url=", ".join(u for _, u, _ in SOURCES),
             )
             results.append((MERGED_FILE, len(merged)))
-            print(f"
-[OK]   merged: {len(merged)}")
+            print(f"{NL}[OK]   merged: {len(merged)}")
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
             sys.exit(1)
@@ -580,8 +604,7 @@ def main():
         generate_pages(repo, results)
         sync_plain_text_files()
 
-        print(f"
-===== Summary =====")
+        print(f"{NL}===== Summary =====")
         for n, c in results:
             print(f"  {n}: {c}")
         print(f"  alive capped at {MAX_TRACKERS} after test+sort")

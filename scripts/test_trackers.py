@@ -484,10 +484,10 @@ def write_result_file(filename, trackers, description):
         f'# Total: {len(trackers)}',
         '',
     ]
-    body = '\n'.join(trackers)
+    body = ut.NL.join(trackers)
     if trackers:
-        body += '\n'
-    content = '\n'.join(header) + body
+        body += ut.NL
+    content = ut.NL.join(header) + body
     ut.atomic_write(os.path.join(ut.OUTPUT_DIR, filename), content)
 
 
@@ -539,7 +539,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         for t, d, e in sorted(untestable):
             lines.append(f'- `{t}` — {d}')
 
-    ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), '\n'.join(lines) + '\n')
+    ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), ut.NL.join(lines) + ut.NL)
 
 
 # ============================================================
@@ -585,7 +585,7 @@ def main():
                 print(f'  {marker} ({done_count}/{len(trackers)}) {tracker}{speed} — {detail}')
 
     first_pass_elapsed = time.time() - start
-    print(f'\n[INFO] First pass done in {first_pass_elapsed:.1f}s')
+    print(f'{ut.NL}[INFO] First pass done in {first_pass_elapsed:.1f}s')
 
     # ---- 第二轮：对存活的前 100 个精测 ----
     alive_first = [(t, d, e) for t, s, d, e in results if s == 'alive']
@@ -662,7 +662,7 @@ def main():
     n_capped = len(capped)
     n_unsafe = sum(1 for _, s, _, _ in results if s == 'unsafe')
 
-    print(f'\n===== Test Summary =====')
+    print(f'{ut.NL}===== Test Summary =====')
     print(f'  Total tested:   {len(trackers)}')
     print(f'  Alive (raw):    {len(alive_with_speed)}')
     print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by composite score)')

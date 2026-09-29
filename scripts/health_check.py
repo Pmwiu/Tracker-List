@@ -198,7 +198,7 @@ def check_consistency(results):
             continue
         with open(src_path, "r", encoding="utf-8") as f:
             src_trackers = set(extract_trackers(f.read()))
-        with open(dst, "r", encoding="utf-8") as f:
+        with open(dst_path, "r", encoding="utf-8") as f:
             dst_trackers = set(extract_trackers(f.read()))
         if src_trackers == dst_trackers:
             results.append(("PASS", f"Consistency: {src} vs {dst}", "identical"))
@@ -276,7 +276,7 @@ def run_single_check(round_num, skip_net=False):
     warns = sum(1 for s, _, _ in results if s == "WARN")
     fails = sum(1 for s, _, _ in results if s == "FAIL")
 
-    print(f"\n{'='*60}")
+    print(f"{chr(10)}{'='*60}")
     print(f" Round {round_num} - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}")
     for status, item, detail in results:
@@ -312,7 +312,7 @@ def main():
         if r < args.rounds:
             time.sleep(args.interval)
 
-    print(f"\n{'#'*60}")
+    print(f"{chr(10)}{'#'*60}")
     print(f" FINAL REPORT: {args.rounds} rounds completed")
     print(f"   Total PASS: {total_passes}")
     print(f"   Total WARN: {total_warns}")
