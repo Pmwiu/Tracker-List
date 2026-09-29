@@ -1,117 +1,451 @@
-# Tracker 活性测试 + 测速排序报告
+# Tracker 活性测试 + 综合评分排序报告
 
-- 测试时间: 2026-09-28 05:59:22 UTC
-- 总 Tracker 数: 355
-- 存活 (alive): **296** (83%)
-- 失效 (dead): **58**
-- 不安全 (unsafe): **1**
+- 测试时间: 2026-09-29 02:47:35 UTC
+- 总 Tracker 数: 500
+- 存活 (alive): **97** (19%)
+- 失效 (dead): **403**
+- 不安全 (unsafe): **0**
 - 无法测试 (untestable): 0
-- 速度排序后保留前 39 个，淘汰 257 个
-- 耗时: 66.8 秒
+- 综合评分后保留前 25 个，淘汰 72 个
+- 耗时: 119.5 秒
 
-## 存活 Tracker（按响应速度升序，前 N 个进入订阅列表）
+## 协议分布
 
-1. `udp://120.78.150.131:6969/announce` — 31ms — valid connect + announce
-2. `udp://60.172.236.18:6969/announce` — 31ms — valid connect + announce
-3. `udp://v2.iperson.xyz:6969/announce` — 34ms — valid connect + announce
-4. `udp://118.196.100.63:6969/announce` — 36ms — valid connect + announce
-5. `udp://47.76.201.250:6969/announce` — 38ms — valid connect + announce
-6. `udp://43.154.112.29:17272/announce` — 41ms — valid connect + announce
-7. `udp://tracker.cn.nyaa.net:6969/announce` — 50ms — valid connect + announce
-8. `udp://admin.52ywp.com:6969/announce` — 53ms — valid connect (announce not confirmed)
-9. `http://tracker.ali213.net:8000/announce` — 59ms — online (failure reason)
-10. `udp://211.75.205.188:6969/announce` — 60ms — valid connect + announce
-11. `udp://211.75.205.187:80/announce` — 61ms — valid connect + announce
-12. `udp://211.75.210.221:80/announce` — 62ms — valid connect + announce
-13. `udp://60.249.37.20:6969/announce` — 64ms — valid connect + announce
-14. `udp://211.75.205.189:6969/announce` — 64ms — valid connect + announce
-15. `udp://211.75.205.189:80/announce` — 65ms — valid connect + announce
-16. `udp://211.75.205.188:80/announce` — 65ms — valid connect + announce
-17. `udp://211.75.210.221:6969/announce` — 66ms — valid connect + announce
-18. `udp://211.75.205.187:6969/announce` — 67ms — valid connect + announce
-19. `udp://tracker2.dler.com:80/announce` — 69ms — valid connect + announce
-20. `udp://tracker.leechers-paradise.org:6969/announce` — 69ms — valid connect + announce
-21. `udp://60.249.37.20:80/announce` — 70ms — valid connect + announce
-22. `udp://tracker2.dler.org:80/announce` — 73ms — valid connect + announce
-23. `udp://tracker.dler.org:6969/announce` — 75ms — valid connect + announce
-24. `udp://tracker.dler.com:6969/announce` — 77ms — valid connect + announce
-25. `http://tracker.ali213.net:8080/announce` — 81ms — online (failure reason)
-26. `udp://221.153.216.56:8081/announce` — 91ms — valid connect + announce
-27. `udp://132.226.6.145:6969/announce` — 93ms — valid connect + announce
-28. `udp://anime-tracker.aruku.kro.kr:8081/announce` — 97ms — valid connect + announce
-29. `http://tracker.dm258.cn:7070/announce` — 98ms — online (failure reason)
-30. `http://tracker2.dler.com/announce` — 128ms — valid announce response
-31. `http://211.75.205.189/announce` — 131ms — valid announce response
-32. `http://211.75.210.221/announce` — 131ms — valid announce response
-33. `http://211.75.205.188:6969/announce` — 132ms — valid announce response
-34. `udp://yuptracker-sa.gaijinent.com:27022/announce` — 137ms — valid connect + announce
-35. `http://211.75.205.187/announce` — 138ms — valid announce response
-36. `http://tracker2.dler.org/announce` — 138ms — valid announce response
-37. `http://tracker2.dler.org:80/announce` — 138ms — valid announce response
-38. `http://211.75.205.188/announce` — 140ms — valid announce response
-39. `http://tracker.dler.org:6969/announce` — 145ms — valid announce response
+- udp: 51
+- http: 33
+- https: 12
+- wss: 1
+
+## 最终订阅列表（前 25 个，按综合评分降序）
+
+1. `udp://anime-tracker.aruku.kro.kr:8081/announce` — score=72.1, 128ms, 连续1天
+2. `udp://tracker2.dler.org:80/announce` — score=71.9, 131ms, 连续1天
+3. `udp://tracker.dler.org:6969/announce` — score=71.8, 131ms, 连续1天
+4. `udp://tracker.dler.com:6969/announce` — score=71.6, 135ms, 连续1天
+5. `udp://tracker.cn.nyaa.net:6969/announce` — score=71.0, 143ms, 连续1天
+6. `udp://seedpeer.net:6969/announce` — score=70.0, 11ms, 连续0天
+7. `wss://tracker.openwebtorrent.com:443/announce` — score=70.0, 24ms, 连续0天
+8. `udp://exodus.desync.com:6969/announce` — score=70.0, 26ms, 连续0天
+9. `udp://open.ftorrent.com:443/announce` — score=70.0, 28ms, 连续0天
+10. `udp://explodie.org:6969/announce` — score=70.0, 31ms, 连续0天
+11. `https://t.213891.xyz:443/announce` — score=70.0, 38ms, 连续0天
+12. `https://1.tracker.eu.org:443/announce` — score=70.0, 38ms, 连续0天
+13. `udp://tracker.gmi.gd:6969/announce` — score=70.0, 40ms, 连续0天
+14. `udp://tracker.wildkat.net:6969/announce` — score=70.0, 48ms, 连续0天
+15. `http://207.241.226.111:6969/announce` — score=70.0, 49ms, 连续0天
+16. `udp://tracker.004430.xyz:1337/announce` — score=70.0, 50ms, 连续0天
+17. `udp://tracker.corpscorp.online:80/announce` — score=70.0, 50ms, 连续0天
+18. `http://207.241.231.226:6969/announce` — score=70.0, 53ms, 连续0天
+19. `udp://tracker.bittor.pw:1337/announce` — score=70.0, 54ms, 连续0天
+20. `http://bt2.archive.org:6969/announce` — score=70.0, 62ms, 连续0天
+21. `udp://tr4ck3r.duckdns.org:6969/announce` — score=70.0, 68ms, 连续0天
+22. `udp://ns575949.ip-51-222-82.net:6969/announce` — score=70.0, 70ms, 连续0天
+23. `udp://evan.im:6969/announce` — score=70.0, 71ms, 连续0天
+24. `http://004430.xyz:80/announce` — score=70.0, 78ms, 连续0天
+25. `http://004430.xyz/announce` — score=70.0, 79ms, 连续0天
 
 ## 失效 Tracker
 
+- `http://00.alarmasqueretaro.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://00.mercax.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://00.xxtor.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://0123456789nonexistent.com/announce` — timeout
-- `http://216.144.239.90:6969/announce` — URLError: <urlopen error timed out>
-- `http://34.66.57.33:2701/announce` — timeout
-- `http://79.111.12.213:6969/announce` — URLError: <urlopen error timed out>
-- `http://bt.poletracker.org:2710/announce` — timeout
-- `http://bt1.archive.org:6969/announce` — URLError: <urlopen error timed out>
-- `http://bt2.archive.org:6969/announce` — URLError: <urlopen error timed out>
-- `http://btracker.top:11451/announce` — timeout
-- `http://buny.uk:6969/announce` — timeout
-- `http://ch3oh.ru:6969/announce` — URLError: <urlopen error timed out>
-- `http://jvavav.com/announce` — timeout
-- `http://opentracker.acgnx.se/announce` — URLError: <urlopen error timed out>
-- `http://seeders-paradise.org/announce` — timeout
-- `http://t-backup.213891.xyz/announce` — ConnectionResetError: [WinError 10054] 远程主机强迫关闭了一个现有的连接。
+- `http://0205.uptm.ch:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `http://0d.kebhana.mx:443/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `http://0x7c.space:7070/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://10.rarbg.com/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://104.143.10.186:8000/announce` — URLError: <urlopen error timed out>
+- `http://104.238.198.186:8000/announce` — URLError: <urlopen error timed out>
+- `http://104.244.77.14:1337/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://104.28.1.30:8080/announce` — URLError: <urlopen error timed out>
+- `http://104.28.16.69/announce` — URLError: <urlopen error timed out>
+- `http://106.14.254.164:6969/announce` — URLError: <urlopen error timed out>
+- `http://106.55.172.54:6969/announce` — URLError: <urlopen error timed out>
+- `http://107.150.14.110:6969/announce` — URLError: <urlopen error timed out>
+- `http://107.152.127.9:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://107.152.45.140/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://107.189.10.20.sslip.io:7777/announce` — URLError: <urlopen error timed out>
+- `http://107.189.31.134:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://107.189.7.143:6969/announce` — URLError: <urlopen error timed out>
+- `http://109.121.134.121:1337/announce` — URLError: <urlopen error timed out>
+- `http://109.71.253.37:1096/announce` — URLError: <urlopen error timed out>
+- `http://11.rarbg.com/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://110.187.214.10:6969/announce` — URLError: <urlopen error timed out>
+- `http://110.187.214.137:6969/announce` — URLError: <urlopen error timed out>
+- `http://110.187.214.29:6969/announce` — URLError: <urlopen error timed out>
+- `http://110.187.214.6:6969/announce` — URLError: <urlopen error timed out>
+- `http://110.187.215.166:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.13.6.197:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.13.6.40:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.13.7.124:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.13.7.149:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.13.7.186:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.13.7.215:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.13.7.90:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.152.171:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.152.94:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.153.116:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.153.192:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.153.249:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.153.28:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.153.98:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.154.16:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.154.70:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.155.111:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.155.112:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.155.116:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.155.135:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.155.146:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.155.21:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.155.226:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.16.155.243:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.152.163:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.152.249:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.152.30:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.153.206:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.153.227:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.153.232:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.153.71:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.17.66.164:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.66.235:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.66.72:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.67.141:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.67.93:6969/announce` — URLError: <urlopen error timed out>
+- `http://114.55.113.60:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.16.41.96:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.16.42.86:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.16.45.177:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.16.46.54:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.16.47.170:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://116.16.47.172:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.252.176.125:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.5.128.165:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.5.144.213:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.5.145.13:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.5.146.84:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.5.170.2:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.5.171.105:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.121:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.165:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.213:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.235:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.240:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.241:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.54:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.57:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.79:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.90.91:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.91.159:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.91.220:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.91.249:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.91.54:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.91.6:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.8.91.71:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.9.207.121:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.9.207.164:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.9.207.198:6969/announce` — URLError: <urlopen error timed out>
+- `http://116.9.207.226:6969/announce` — URLError: <urlopen error timed out>
+- `http://117.72.34.150:6969/announce` — URLError: <urlopen error timed out>
+- `http://117.84.129.196:6969/announce` — URLError: <urlopen error timed out>
+- `http://117.84.134.178:6969/announce` — URLError: <urlopen error timed out>
+- `http://117.84.154.98:6969/announce` — URLError: <urlopen error timed out>
+- `http://118.163.198.106/announce` — URLError: <urlopen error timed out>
+- `http://118.163.198.106:6969/announce` — URLError: <urlopen error timed out>
+- `http://118.25.157.230:6969/announce` — URLError: <urlopen error timed out>
+- `http://119.28.71.45:8080/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.100:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.104:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.105:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.106:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.107:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.108:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.112:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.16:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.21:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.37:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.39:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.3:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.41:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.47:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.50:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.53:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.58:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.67:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.68:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.69:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.72:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.74:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.75:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.7:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.80:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.83:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.84:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.88:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.90:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.95:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.98:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.99:6969/announce` — URLError: <urlopen error timed out>
+- `http://125.227.35.196:6969/announce` — URLError: <urlopen error timed out>
+- `http://125.227.79.123/announce` — URLError: <urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010)>
+- `http://125.227.79.123:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://128.199.70.66:5944/announce` — URLError: <urlopen error timed out>
+- `http://129.146.193.240:6699/announce` — URLError: <urlopen error timed out>
+- `http://13.115.115.32:6969/announce` — URLError: <urlopen error timed out>
+- `http://132.243.161.144:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://1337.abcvg.info:443/announce` — HTTPError: HTTP Error 400: Bad Request
+- `http://138.124.183.78:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://138.199.241.244/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://139.202.228.28:6969/announce` — URLError: <urlopen error timed out>
+- `http://139.202.228.61:6969/announce` — URLError: <urlopen error timed out>
+- `http://139.202.229.106:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://139.202.230.226:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://139.202.230.63:6969/announce` — URLError: <urlopen error timed out>
+- `http://139.202.231.164:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://139.202.231.170:6969/announce` — URLError: <urlopen error timed out>
+- `http://139.202.231.176:6969/announce` — URLError: <urlopen error timed out>
+- `http://139.202.231.249:6969/announce` — URLError: <urlopen error timed out>
+- `http://139.202.231.55:6969/announce` — URLError: <urlopen error timed out>
+- `http://140.235.237.23:6969/announce` — URLError: <urlopen error timed out>
+- `http://140.82.21.192:8080/announce` — URLError: <urlopen error timed out>
+- `http://141.11.240.19/announce` — URLError: <urlopen error timed out>
+- `http://141.144.224.250:2710/announce` — URLError: <urlopen error timed out>
+- `http://141.144.224.250:6969/announce` — URLError: <urlopen error timed out>
+- `http://142.171.85.76:6969/announce` — URLError: <urlopen error timed out>
+- `http://144.202.33.210:6961/announce` — URLError: <urlopen error timed out>
+- `http://144.76.118.107:6969/announce` — URLError: <urlopen error timed out>
+- `http://145.223.96.109:8000/announce` — URLError: <urlopen error timed out>
+- `http://147job.com:6969/announce` — URLError: <urlopen error timed out>
+- `http://148.252.75.241:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://15.204.239.175:6969/announce` — URLError: <urlopen error timed out>
+- `http://15.204.57.168:6969/announce` — URLError: <urlopen error timed out>
+- `http://151.115.49.115:1337/announce` — URLError: <urlopen error timed out>
+- `http://152.231.114.120:1337/announce` — URLError: <urlopen error timed out>
+- `http://152.231.114.51:1337/announce` — URLError: <urlopen error timed out>
+- `http://152.231.114.55:1337/announce` — URLError: <urlopen error timed out>
+- `http://152.243.213.163:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.243.213.247:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.249.214.198:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.249.214.23:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.249.214.53:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://152.249.214.68:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://152.249.214.74:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.249.75.131:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.249.97.159:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.249.97.82:6969/announce` — URLError: <urlopen error timed out>
+- `http://152.53.194.103:2710/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://152.67.8.255:6969/announce` — URLError: <urlopen error timed out>
+- `http://154.29.145.56:17715/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://155.248.200.105/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://156.234.201.18/announce` — URLError: <urlopen error timed out>
+- `http://157.131.124.190:6969/announce` — URLError: <urlopen error timed out>
+- `http://157.7.202.64:8080/announce` — URLError: <urlopen error timed out>
+- `http://157.90.169.123/announce` — HTTPError: HTTP Error 404: Not Found
+- `http://158.101.137.177:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://158.69.146.212:7777/announce` — URLError: <urlopen error timed out>
+- `http://159.148.57.222:6969/announce` — HTTPError: HTTP Error 503: Service Unavailable
+- `http://159.195.43.181/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://159.195.43.181:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://159.69.65.157:6969/announce` — URLError: <urlopen error timed out>
+- `http://160.251.231.187:6969/announce` — URLError: <urlopen error timed out>
+- `http://160.251.78.190:6969/announce` — URLError: <urlopen error timed out>
+- `http://163.172.209.40/announce` — URLError: <urlopen error timed out>
+- `http://163.172.29.130/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://167.235.245.209/announce` — HTTPError: HTTP Error 404: Not Found
+- `http://167.253.78.20:8080/announce` — URLError: <urlopen error timed out>
+- `http://171.104.110.193:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.110.21:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.110.88:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.110.95:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.111.14:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.201:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.111.20:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.250:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.111.30:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.83:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.89:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.15:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.221:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.25:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.31:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.87:6969/announce` — URLError: <urlopen error timed out>
+- `http://172.245.168.134/announce` — invalid bencoded response
+- `http://173.254.204.71:1096/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://176.32.38.223:6961/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.112.215.129:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.112.215.131:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.112.215.160:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.112.215.4:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.112.215.99:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.139.44.145:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.139.44.203:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.139.44.78:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.139.46.160:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.139.47.105:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.139.47.18:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.139.47.236:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.139.47.40:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.139.47.92:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.144.178.170:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.144.178.39:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.16.198.58:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.61.236:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.61.249:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.61.26:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.61.33:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.62.154:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.62.168:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.62.179:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.62.185:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.62.240:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.63.135:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.65.102:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.65.168:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.66.120:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.66.210:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.66.223:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.66.2:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.67.13:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.67.233:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.67.247:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.172.67.94:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.173.31.33:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.188.141.137:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.188.141.175:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.188.141.28:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.188.141.32:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.215.65.114:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.215.65.176:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.215.65.40:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.215.66.183:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.215.67.115:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.215.67.165:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.215.67.185:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.215.67.242:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.27.223.184:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.27.223.186:6969/announce` — URLError: <urlopen error timed out>
+- `http://177.68.44.127:6969/announce` — URLError: <urlopen error timed out>
+- `http://178.175.143.27/announce` — URLError: <urlopen error timed out>
+- `http://178.33.73.26:2710/announce` — URLError: <urlopen error timed out>
+- `http://179.100.24.134:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.118.129.138:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.118.129.194:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.118.132.77:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.118.133.224:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.146.54.147:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.146.54.238:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.175.247.60:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://179.175.247.70:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.175.247.98:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://179.98.254.109:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.98.254.138:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://179.98.254.201:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.98.254.95:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.98.51.208:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.98.51.248:6969/announce` — URLError: <urlopen error timed out>
+- `http://179.98.51.66:6969/announce` — URLError: <urlopen error timed out>
+- `http://180.112.57.159:6969/announce` — URLError: <urlopen error timed out>
+- `http://180.113.224.97:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://180.113.227.211:6969/announce` — URLError: <urlopen error timed out>
+- `http://180.113.232.20:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://180.114.103.80:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://180.139.151.58:6969/announce` — URLError: <urlopen error timed out>
+- `http://180.97.219.76:8070/announce` — URLError: <urlopen error timed out>
+- `http://181.214.58.63:6969/announce` — URLError: <urlopen error timed out>
+- `http://182.176.139.129:6969/announce` — URLError: <urlopen error timed out>
+- `http://184.61.17.58:9000/announce` — URLError: <urlopen error timed out>
+- `http://185.121.24.141:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://185.130.47.2:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://185.148.3.231/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://185.171.202.111:6969/announce` — URLError: <urlopen error timed out>
+- `http://185.185.40.51:6969/announce` — URLError: <urlopen error timed out>
+- `http://185.185.40.95:6969/announce` — URLError: <urlopen error timed out>
+- `http://185.197.195.20:1919/announce` — URLError: <urlopen error timed out>
+- `http://185.216.178.49:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://185.230.4.150:1337/announce` — URLError: <urlopen error timed out>
+- `http://185.232.169.109/announce` — URLError: <urlopen error timed out>
+- `http://185.5.97.139:8089/announce` — URLError: <urlopen error timed out>
+- `http://185.70.187.79:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://185.83.215.123:6969/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.119:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.186:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.23:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.30:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.56:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.58:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.71:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.170.97:1337/announce` — URLError: <urlopen error timed out>
+- `http://186.10.172.248:1337/announce` — URLError: <urlopen error timed out>
+- `http://187.10.24.160:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.72.168:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.72.188:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://187.11.72.236:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.73.135:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.73.178:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.73.20:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.73.213:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.74.138:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://187.11.75.160:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://187.11.75.17:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.75.196:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.11.75.60:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.34.25.113:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.56.163.140:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.56.163.229:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.56.163.25:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.56.163.73:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.56.205.168:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.56.205.90:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.56.205.91:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.130.109:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.130.147:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.131.202:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.131.55:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.131.78:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.132.20:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.132.246:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.132.65:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.14.62:6969/announce` — URLError: <urlopen error timed out>
+- `http://187.57.229.141:6969/announce` — URLError: <urlopen error timed out>
+- `http://188.165.253.109:1337/announce` — URLError: <urlopen error timed out>
+- `http://189.0.196.51:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.0.78.245:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.0.78.33:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.110.233.96:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.18.126.32:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.18.126.49:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.18.127.125:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.18.127.21:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.18.127.57:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.18.162.102:6969/announce` — URLError: <urlopen error timed out>
+- `http://189.18.162.106:6969/announce` — URLError: <urlopen error timed out>
+- `http://echostar.ddnsfree.com:8080/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://torrentsmd.com:8080/announce` — HTTPError: HTTP Error 403: Forbidden
-- `http://tracker-udp.anirena.com/announce` — URLError: <urlopen error timed out>
-- `http://tracker.004430.xyz:1337/announce` — timeout
-- `http://tracker.acgnx.se/announce` — URLError: <urlopen error timed out>
-- `http://tracker.bt-hash.com/announce` — timeout
-- `http://tracker.k.vu:6969/announce` — URLError: <urlopen error timed out>
-- `http://tracker.lintk.me:2710/announce` — URLError: <urlopen error timed out>
-- `http://tracker.nucozer-tracker.ml:2710/announce` — timeout
-- `http://tracker.waaa.moe:6969/announce` — timeout
-- `http://tracker1.itzmx.com:8080/announce` — timeout
+- `http://tracker.23794.top:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `http://tracker.beeimg.com:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `http://tracker.ipv6tracker.ru:80/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `http://wegkxfcivgx.ydns.eu:80/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://www.wareztorrent.com:80/announce` — RemoteDisconnected: Remote end closed connection without response
-- `https://004430.xyz/announce` — timeout
-- `https://1.tracker.eu.org/announce` — timeout
-- `https://3.tracker.eu.org/announce` — timeout
-- `https://bt.beatrice-raws.org/announce` — timeout
-- `https://open.ftorrent.com/announce` — timeout
-- `https://retracker.x2k.ru/announce` — timeout
-- `https://tr.abiir.top:443/announce` — URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)>
-- `https://tr.abir.ga:443/announce` — URLError: <urlopen error _ssl.c:1064: The handshake operation timed out>
-- `https://tr.burnabyhighstar.com:443/announce` — URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'tr.burnabyhighstar.com'. (_ssl.c:1082)>
-- `https://tr2.trkb.ru/announce` — timeout
-- `https://tracker-zhuqiy.dgj055.icu/announce` — timeout
-- `https://tracker.foreverpirates.co/announce` — timeout
-- `https://tracker.kuroy.me:443/announce` — HTTPError: HTTP Error 503: Service Unavailable
-- `https://tracker.nekomi.cn:443/announce` — timeout
-- `https://tracker.pmman.tech/announce` — HTTPError: HTTP Error 404: Not Found
+- `https://pybittrack.retiolus.net:443/announce` — URLError: <urlopen error _ssl.c:993: The handshake operation timed out>
+- `https://tr.abiir.top:443/announce` — URLError: <urlopen error [Errno 104] Connection reset by peer>
+- `https://tr.burnabyhighstar.com:443/announce` — URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'tr.burnabyhighstar.com'. (_ssl.c:1010)>
+- `https://tracker.kuroy.me:443/announce` — timeout
 - `https://tracker.pmman.tech:443/announce` — HTTPError: HTTP Error 404: Not Found
 - `https://tracker1.520.jp:443/announce` — HTTPError: HTTP Error 521: <none>
-- `https://wolf.parrot.run/announce` — timeout
-- `udp://160.30.240.158:1337/announce` — ConnectionResetError: [WinError 10054] 远程主机强迫关闭了一个现有的连接。
-- `udp://45.38.170.167:6969/announce` — no connect response
-- `udp://archive.torrentonline.cc:42069/announce` — no connect response
-- `udp://ipv6.govt.hu:6969/announce` — DNS resolution failed
-- `udp://kolankoalastree.newtrackon.co.nz:1337/announce` — ConnectionResetError: [WinError 10054] 远程主机强迫关闭了一个现有的连接。
-- `udp://open.stealth.si/announce` — ConnectionResetError: [WinError 10054] 远程主机强迫关闭了一个现有的连接。
+- `udp://[2a03:7220:8083:cd00::1]:451/announce` — no connect response
+- `udp://[2a04:ac00:1:3dd8::1:2710]:2710/announce` — no connect response
+- `udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce` — no connect response
+- `udp://ipv6.govt.hu:6969/announce` — no connect response
 - `udp://open.tracker.ink:6969/announce` — no connect response
 - `udp://opentor.org:2710/announce` — no connect response
 - `udp://p4p.arenabg.com:1337/announce` — no connect response
-- `udp://retracker.hotplug.ru:2710/announce` — DNS resolution failed
-- `udp://tracker-udp.anirena.com:80/announce` — no connect response
-- `udp://tracker.k.vu:6969/announce` — no connect response
+- `udp://retracker.hotplug.ru:2710/announce` — no connect response
+- `udp://tr3.ysagin.top:2715/announce` — no connect response
+- `udp://tracker.filemail.com:6969/announce` — no connect response
+- `udp://tracker.flatuslifir.is:6969/announce` — no connect response
 - `udp://tracker.skyts.net:6969/announce` — no connect response
-- `wss://qot.abiir.top/announce` — SSLEOFError: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)
-- `wss://spacetradersapi-chatbox.herokuapp.com/announce` — timeout
-
-## 不安全 Tracker（已过滤）
-
-- `http://tracker.pussytorrents.org:3000/announce` — resolves to private IP: 2001::1f0d:4621
+- `udp://tracker.yume-hatsuyuki.moe:6969/announce` — no connect response
+- `udp://tracker1.itzmx.com:8080/announce` — no connect response
+- `udp://tracker2.itzmx.com:6961/announce` — no connect response
+- `udp://tracker3.itzmx.com:6961/announce` — no connect response
+- `udp://tracker4.itzmx.com:2710/announce` — no connect response
+- `udp://v6.vito-tracker.space:6969/announce` — no connect response
