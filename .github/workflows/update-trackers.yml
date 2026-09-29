@@ -18,6 +18,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   update-trackers:
@@ -41,13 +42,31 @@ jobs:
           # 当前无外部依赖，预留位置
           echo "No external dependencies required"
 
+      # 诊断：环境、锁、各源连通性，结果写入 diag.log
+      - name: Diagnose environment and source connectivity
+        continue-on-error: true
+        run: |
+          : > diag.log
+          {
+            echo "=== Diagnostics $(date -u) ==="
+            echo "Python: $(python --version 2>&1)"
+            echo "PWD: $(pwd)"
+            echo "--- Test file lock (fcntl) ---"
+            python -c "import fcntl; f=open('.update.lock','w'); fcntl.flock(f, fcntl.LOCK_EX|fcntl.LOCK_NB); print('lock OK')"
+            echo "--- Test source connectivity ---"
+            for u in "https://cf.trackerslist.com/all.txt" "https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt"; do
+              echo ">>> $u"
+              curl -sS -o /dev/null -w "  HTTP %{http_code}, total %{time_total}s\n" --connect-timeout 8 --max-time 20 "$u" || echo "  curl exit: $?"
+            done
+          } 2>&1 | tee diag.log
+
       # 步骤 1：下载源列表、合并去重
       - name: Download, merge and deduplicate trackers
         id: download
         run: |
           set +e
-          python scripts/update_trackers.py
-          code=$?
+          python scripts/update_trackers.py 2>&1 | tee -a diag.log
+          code=${PIPESTATUS[0]}
           set -e
           echo "exit_code=$code" >> $GITHUB_OUTPUT
           if [ "$code" -ne 0 ]; then
@@ -61,8 +80,8 @@ jobs:
         id: test
         run: |
           set +e
-          python scripts/test_trackers.py --timeout 10 --workers 30 --max-candidates 500
-          code=$?
+          python scripts/test_trackers.py --timeout 10 --workers 30 --max-candidates 500 2>&1 | tee -a diag.log
+          code=${PIPESTATUS[0]}
           set -e
           echo "exit_code=$code" >> $GITHUB_OUTPUT
           if [ "$code" -ne 0 ]; then
@@ -70,9 +89,9 @@ jobs:
             exit $code
           fi
 
-      # 步骤 3：本地健康检查（跳过网络，因为后面单独做）
+      # 步骤 3：本地健康检查（跳过网络）
       - name: Local health check
-        run: python scripts/health_check.py --rounds 1 --skip-net
+        run: python scripts/health_check.py --rounds 1 --skip-net 2>&1 | tee -a diag.log
 
       # 步骤 4：检测变更
       - name: Check for changes
@@ -113,6 +132,20 @@ jobs:
       - name: Post-push health check
         if: steps.git-check.outputs.changed == 'true'
         run: |
-          sleep 5  # 等待 Pages 部署
-          python scripts/health_check.py --rounds 3 --interval 5
+          sleep 5
+          python scripts/health_check.py --rounds 3 --interval 5 2>&1 | tee -a diag.log
         continue-on-error: true
+
+      # 总是运行：把诊断日志回传到 GitHub Issue（无法下载日志时用于排查）
+      - name: Report diagnostics to issue
+        if: always()
+        run: |
+          DIAG_BODY=$(cat diag.log)
+          ISSUE_NUM=$(gh issue list --search "CI Diagnostics in:title" --state open --limit 1 --json number --jq '.[0].number' || true)
+          if [ -n "$ISSUE_NUM" ]; then
+            gh issue edit "$ISSUE_NUM" --body "$DIAG_BODY"
+            echo "Updated issue #$ISSUE_NUM"
+          else
+            gh issue create --title "CI Diagnostics" --body "$DIAG_BODY"
+            echo "Created diagnostics issue"
+          fi
