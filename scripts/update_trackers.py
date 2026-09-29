@@ -4,17 +4,16 @@
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
 订阅源:
-  - https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt
+  - https://cf.trackerslist.com/all.txt
   - https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt
   - https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt
-  - https://newtrackon.com/api/live
 
 特性:
-  - 多源合并去重（URL 规范化后去重，补全默认端口）
+  - 多源合并去重（URL 规范化后去重）
   - 下载内容校验（拒绝非 tracker 内容）
   - 原子写入（临时文件 + rename，防止中途崩溃损坏文件）
   - 文件锁防止并发运行
-  - 短链接与直链均使用 github.io，规避 DNS 污染
+  - 仅保留直链与 Pages 短链接，无 CDN/代理加速链接
   - 纯文本 .txt 直链供 BT 客户端直接订阅
 """
 
@@ -35,10 +34,9 @@ except ImportError:
     _HAS_FCNTL = False
 
 SOURCES = [
-    ("trackers_xiu2.txt", "https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt", "xiu2-all"),
+    ("trackers_cf.txt", "https://cf.trackerslist.com/all.txt", "cf-all"),
     ("trackers_adysec.txt", "https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt", "adysec-all"),
     ("trackers_ngosang.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt", "ngosang-all"),
-    ("trackers_newtrackon.txt", "https://newtrackon.com/api/live", "newtrackon-live"),
 ]
 
 MAX_TRACKERS = 25
@@ -50,14 +48,12 @@ MIRRORS = [
 SHORT_LINKS = [
     ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",
      "https://pmwiu.github.io/{repo}/alive.txt"),
-    ("xiu2", "订阅源", "XIU2 TrackersListCollection all",
-     "https://pmwiu.github.io/{repo}/xiu2.txt"),
+    ("cf", "订阅源", "trackerslist all (Cloudflare)",
+     "https://pmwiu.github.io/{repo}/cf.txt"),
     ("adysec", "订阅源", "adysec trackers_all",
      "https://pmwiu.github.io/{repo}/adysec.txt"),
     ("ngosang", "订阅源", "ngosang trackers_all",
      "https://pmwiu.github.io/{repo}/ngosang.txt"),
-    ("newtrackon", "订阅源", "newtrackon live",
-     "https://pmwiu.github.io/{repo}/newtrackon.txt"),
     ("all", "合并总表", "合并去重总表",
      "https://pmwiu.github.io/{repo}/merged.txt"),
 ]
@@ -92,6 +88,13 @@ LEGACY_FILES = [
     os.path.join(SHORT_LINKS_DIR, "all-fastly.html"),
     os.path.join(SHORT_LINKS_DIR, "all-gcore.html"),
     os.path.join(SHORT_LINKS_DIR, "all-proxy.html"),
+    # 已移除的旧订阅源（XIU2 / newtrackon）
+    os.path.join(OUTPUT_DIR, "trackers_xiu2.txt"),
+    os.path.join(OUTPUT_DIR, "trackers_newtrackon.txt"),
+    os.path.join(PAGES_DIR, "xiu2.txt"),
+    os.path.join(PAGES_DIR, "newtrackon.txt"),
+    os.path.join(SHORT_LINKS_DIR, "xiu2.html"),
+    os.path.join(SHORT_LINKS_DIR, "newtrackon.html"),
 ]
 
 TIMEOUT = 30
@@ -256,6 +259,7 @@ def download_trackers(url):
     if raw is None:
         raise RuntimeError("Empty response")
 
+    # 内容校验：拒绝明显的 HTML 错误页
     if raw.lstrip().startswith("<!DOCTYPE") or raw.lstrip().startswith("<html"):
         raise RuntimeError("Response is HTML, not tracker list")
 
@@ -357,16 +361,16 @@ def generate_redirect_page(target_url, description=""):
 def generate_source_links():
     """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
-        "xiu2-all": "XIU2/all",
+        "cf-all": "trackerslist/all",
         "adysec-all": "adysec/all",
         "ngosang-all": "ngosang/all",
-        "newtrackon-live": "newtrackon/live",
     }
     parts = []
     for _, url, short_name in SOURCES:
         label = label_map.get(short_name, short_name)
         parts.append(f'<a href="{html.escape(url)}">{html.escape(label)}</a>')
-    return " &middot;\n      ".join(parts)
+    return " &middot;
+      ".join(parts)
 
 
 def generate_index_page(repo, short_links_with_urls, tracker_counts):
@@ -509,10 +513,9 @@ def sync_plain_text_files():
     mapping = {
         "trackers_alive.txt": "alive.txt",
         "trackers_merged.txt": "merged.txt",
-        "trackers_xiu2.txt": "xiu2.txt",
+        "trackers_cf.txt": "cf.txt",
         "trackers_ngosang.txt": "ngosang.txt",
         "trackers_adysec.txt": "adysec.txt",
-        "trackers_newtrackon.txt": "newtrackon.txt",
     }
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():
@@ -541,7 +544,8 @@ def main():
         failures = []
 
         for filename, url, short_name in SOURCES:
-            print(f"\n[INFO] {filename} ({short_name})")
+            print(f"
+[INFO] {filename} ({short_name})")
             try:
                 trackers = download_trackers(url)
             except Exception as e:
@@ -554,7 +558,8 @@ def main():
             print(f"[OK]   {len(trackers)} unique")
 
         if failures:
-            print(f"\n[WARN] {len(failures)} source(s) failed:")
+            print(f"
+[WARN] {len(failures)} source(s) failed:")
             for fn, sn, err in failures:
                 print(f"  - {sn}: {err}")
 
@@ -565,7 +570,8 @@ def main():
                 source_url=", ".join(u for _, u, _ in SOURCES),
             )
             results.append((MERGED_FILE, len(merged)))
-            print(f"\n[OK]   merged: {len(merged)}")
+            print(f"
+[OK]   merged: {len(merged)}")
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
             sys.exit(1)
@@ -574,7 +580,8 @@ def main():
         generate_pages(repo, results)
         sync_plain_text_files()
 
-        print(f"\n===== Summary =====")
+        print(f"
+===== Summary =====")
         for n, c in results:
             print(f"  {n}: {c}")
         print(f"  alive capped at {MAX_TRACKERS} after test+sort")
