@@ -139,13 +139,14 @@ jobs:
       # 总是运行：把诊断日志回传到 GitHub Issue（无法下载日志时用于排查）
       - name: Report diagnostics to issue
         if: always()
+        continue-on-error: true
         run: |
-          DIAG_BODY=$(cat diag.log)
-          ISSUE_NUM=$(gh issue list --search "CI Diagnostics in:title" --state open --limit 1 --json number --jq '.[0].number' || true)
+          echo "=== End of diagnostics ($(date -u)) ===" >> diag.log
+          set -x
+          ISSUE_NUM=$(gh issue list --search "CI Diagnostics in:title" --state open --limit 1 --json number --jq '.[0].number' 2>/dev/null || true)
+          echo "Found issue number: '$ISSUE_NUM'"
           if [ -n "$ISSUE_NUM" ]; then
-            gh issue edit "$ISSUE_NUM" --body "$DIAG_BODY"
-            echo "Updated issue #$ISSUE_NUM"
+            gh issue edit "$ISSUE_NUM" --body-file diag.log
           else
-            gh issue create --title "CI Diagnostics" --body "$DIAG_BODY"
-            echo "Created diagnostics issue"
+            gh issue create --title "CI Diagnostics" --body-file diag.log
           fi
