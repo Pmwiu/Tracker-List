@@ -21,6 +21,7 @@
 import os
 import re
 import sys
+import tempfile
 import time
 import html
 import urllib.request
@@ -304,13 +305,21 @@ def download_trackers(url):
 
 
 def atomic_write(filepath, content):
-    """原子写入：先写临时文件，再 rename。"""
-    tmp_path = filepath + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8", newline=NL) as f:
-        f.write(content)
-        f.flush()
-        os.fsync(f.fileno())
-    os.replace(tmp_path, filepath)
+    """原子写入：写入同目录临时文件（tempfile），fsync 后 os.replace 原子替换。"""
+    dirpath = os.path.dirname(filepath) or "."
+    fd, tmp_path = tempfile.mkstemp(dir=dirpath, prefix="tmp_", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline=NL) as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, filepath)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 def write_trackers(filepath, trackers, source_url=None, extra_header=None):
@@ -590,6 +599,9 @@ def main():
 
         if all_merged:
             merged = sorted(all_merged)
+            # 去重白名单校验：仅保留标准 tracker 协议的行（防御性过滤，跨协议不做折叠）
+            merged = [line for line in merged
+                      if line.startswith(("http://", "https://", "udp://", "wss://", "ws://"))]
             write_trackers(
                 os.path.join(OUTPUT_DIR, MERGED_FILE), merged,
                 source_url=", ".join(u for _, u, _ in SOURCES),

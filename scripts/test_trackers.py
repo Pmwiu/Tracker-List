@@ -494,7 +494,7 @@ def write_result_file(filename, trackers, description):
 # ============================================================
 # 写测试报告
 # ============================================================
-def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_stats):
+def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_stats, low_speed=None):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
     unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
@@ -511,6 +511,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 失效 (dead): **{len(dead)}**',
         f'- 不安全 (unsafe): **{len(unsafe)}**',
         f'- 无法测试 (untestable): {len(untestable)}',
+        f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
         f'- 耗时: {elapsed:.1f} 秒',
         '',
@@ -538,6 +539,11 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         lines += ['', '## 无法测试（特殊网络）', '']
         for t, d, e in sorted(untestable):
             lines.append(f'- `{t}` — {d}')
+
+    if low_speed:
+        lines += ['', '## 低速 Tracker（>5s，已排除）', '']
+        for t, e in sorted(low_speed, key=lambda x: x[1]):
+            lines.append(f'- `{t}` — {e:.0f}ms')
 
     ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), ut.NL.join(lines) + ut.NL)
 
@@ -625,8 +631,18 @@ def main():
             scheme = t.split('://')[0].lower() if '://' in t else 'unknown'
             protocol_stats[scheme] = protocol_stats.get(scheme, 0) + 1
 
+    # ---- 低速淘汰：响应 > 5 秒直接标记为低速并排除（参考 adysec/tracker Rust 清洗工具）----
+    LOW_SPEED_THRESHOLD_MS = 5000.0  # 5.0 秒
+    low_speed = sorted(
+        (t, e) for t, s, d, e in results if s == 'alive' and e > LOW_SPEED_THRESHOLD_MS
+    )
+    low_speed_trackers = {t for t, _ in low_speed}
+    if low_speed:
+        print(f'[INFO] Low-speed filtered (>5s): {len(low_speed)} trackers')
+
     # ---- 综合评分排序 ----
-    alive_with_speed = [(t, d, e) for t, s, d, e in results if s == 'alive']
+    alive_with_speed = [(t, d, e) for t, s, d, e in results
+                        if s == 'alive' and t not in low_speed_trackers]
     scored = []
     for t, d, e in alive_with_speed:
         days = consecutive.get(t, 0)
@@ -640,10 +656,11 @@ def main():
     alive_final_detail = [(t, score, speed, days) for t, score, speed, days, _ in scored[:ut.MAX_TRACKERS]]
     capped = scored[ut.MAX_TRACKERS:]
 
-    # 失效 = dead + unsafe + 被淘汰的
+    # 失效 = dead + unsafe + 低速 + 被淘汰的
     dead_final = sorted(
         [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
         + [t for t, _, _, _, _ in capped]
+        + low_speed_trackers
     )
 
     write_result_file(
@@ -652,9 +669,9 @@ def main():
     )
     write_result_file(
         ut.DEAD_FILE, dead_final,
-        'Trackers that FAILED, were unsafe, or were capped by score limit'
+        'Trackers that FAILED, were unsafe, were low-speed, or were capped by score limit'
     )
-    write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats)
+    write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats, low_speed)
     save_history(alive_final_list)
 
     n_alive = len(alive_final_list)
@@ -668,6 +685,7 @@ def main():
     print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by composite score)')
     print(f'  Score-capped:   {n_capped}')
     print(f'  Unsafe filtered:{n_unsafe}')
+    print(f'  Low-speed:      {len(low_speed)} (>5s excluded)')
     print(f'  Dead final:     {n_dead}')
     print(f'  Time:           {total_elapsed:.1f}s')
     print(f'  Protocols:      {protocol_stats}')
