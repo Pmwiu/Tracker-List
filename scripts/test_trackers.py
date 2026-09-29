@@ -422,6 +422,31 @@ def compute_score(elapsed_ms, consecutive_days):
     return speed_score * 0.7 + stability_score * 0.3
 
 
+def dedup_same_ip(entries):
+    """同 IP 去重：解析到同一 IP 的多个 tracker 只保留响应最快的。
+
+    entries: [(tracker, detail, elapsed_ms)]，返回需移除的 tracker 集合（同 IP 中较慢者）。
+    """
+    groups = {}
+    for t, _, e in entries:
+        try:
+            host = urllib.parse.urlparse(t).hostname
+            if not host:
+                continue
+            infos = cached_getaddrinfo(host, None)
+            ip = infos[0][4][0]
+        except Exception:
+            continue
+        groups.setdefault(ip, []).append((t, e))
+
+    removed = set()
+    for lst in groups.values():
+        if len(lst) > 1:
+            lst.sort(key=lambda x: x[1])  # 按耗时升序，最快在前
+            removed.update(t for t, _ in lst[1:])
+    return removed
+
+
 # ============================================================
 # 读取合并列表
 # ============================================================
@@ -494,7 +519,7 @@ def write_result_file(filename, trackers, description):
 # ============================================================
 # 写测试报告
 # ============================================================
-def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_stats, low_speed=None):
+def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_stats, low_speed=None, same_ip_removed=None):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
     unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
@@ -512,6 +537,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 不安全 (unsafe): **{len(unsafe)}**',
         f'- 无法测试 (untestable): {len(untestable)}',
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
+        f'- 同 IP 去重 (kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
         f'- 耗时: {elapsed:.1f} 秒',
         '',
@@ -544,6 +570,11 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         lines += ['', '## 低速 Tracker（>5s，已排除）', '']
         for t, e in sorted(low_speed, key=lambda x: x[1]):
             lines.append(f'- `{t}` — {e:.0f}ms')
+
+    if same_ip_removed:
+        lines += ['', '## 同 IP 去重（保留响应最快）', '']
+        for t in sorted(same_ip_removed):
+            lines.append(f'- `{t}`')
 
     ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), ut.NL.join(lines) + ut.NL)
 
@@ -643,6 +674,13 @@ def main():
     # ---- 综合评分排序 ----
     alive_with_speed = [(t, d, e) for t, s, d, e in results
                         if s == 'alive' and t not in low_speed_trackers]
+
+    # ---- 同 IP 去重：解析到同一 IP 只保留响应最快的 ----
+    same_ip_removed = dedup_same_ip(alive_with_speed)
+    if same_ip_removed:
+        print(f'[INFO] Same-IP dedup removed {len(same_ip_removed)} slower tracker(s)')
+    alive_with_speed = [(t, d, e) for t, d, e in alive_with_speed if t not in same_ip_removed]
+
     scored = []
     for t, d, e in alive_with_speed:
         days = consecutive.get(t, 0)
@@ -656,11 +694,12 @@ def main():
     alive_final_detail = [(t, score, speed, days) for t, score, speed, days, _ in scored[:ut.MAX_TRACKERS]]
     capped = scored[ut.MAX_TRACKERS:]
 
-    # 失效 = dead + unsafe + 低速 + 被淘汰的
+    # 失效 = dead + unsafe + 低速 + 同IP重复 + 被淘汰的
     dead_final = sorted(
         [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
         + [t for t, _, _, _, _ in capped]
         + sorted(low_speed_trackers)
+        + sorted(same_ip_removed)
     )
 
     write_result_file(
@@ -669,9 +708,9 @@ def main():
     )
     write_result_file(
         ut.DEAD_FILE, dead_final,
-        'Trackers that FAILED, were unsafe, were low-speed, or were capped by score limit'
+        'Trackers that FAILED, were unsafe, were low-speed, were same-IP duplicates, or were capped by score limit'
     )
-    write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats, low_speed)
+    write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats, low_speed, same_ip_removed)
     save_history(alive_final_list)
 
     n_alive = len(alive_final_list)
@@ -686,6 +725,7 @@ def main():
     print(f'  Score-capped:   {n_capped}')
     print(f'  Unsafe filtered:{n_unsafe}')
     print(f'  Low-speed:      {len(low_speed)} (>5s excluded)')
+    print(f'  Same-IP dedup:  {len(same_ip_removed)} (kept faster)')
     print(f'  Dead final:     {n_dead}')
     print(f'  Time:           {total_elapsed:.1f}s')
     print(f'  Protocols:      {protocol_stats}')

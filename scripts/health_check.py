@@ -5,7 +5,7 @@
 检查项:
   1. 本地 Tracker 文件完整性（3个订阅源 + 合并/存活/失效列表）
   2. 本地 GitHub Pages 文件完整性（主页 + 短链接页面 + 纯文本文件）
-  3. alive.txt 数量校验（<= MAX_TRACKERS）
+  3. alive.txt 数量校验（0 <= count <= MAX_ALIVE）
   4. merged.txt 去重校验（无重复）
   5. 内容一致性校验（trackers/ vs docs/ 纯文本文件一致）
   6. GitHub Raw 直链 URL 的 HTTP 可达性
@@ -159,17 +159,17 @@ def check_local_files(results):
 
 
 def check_alive_count(results):
-    """校验 alive.txt 数量不超过 MAX_ALIVE。"""
+    """校验 alive.txt 数量在 [0, MAX_ALIVE] 区间内。"""
     path = os.path.join(TRACKERS_DIR, "trackers_alive.txt")
     if not os.path.exists(path):
         results.append(("FAIL", "Alive count check", "file missing"))
         return
     with open(path, "r", encoding="utf-8") as f:
         count = count_trackers_in_text(f.read())
-    if count <= MAX_ALIVE:
-        results.append(("PASS", "Alive count check", f"{count} <= {MAX_ALIVE}"))
+    if 0 <= count <= MAX_ALIVE:
+        results.append(("PASS", "Alive count check", f"{count} in [0, {MAX_ALIVE}]"))
     else:
-        results.append(("FAIL", "Alive count check", f"{count} > {MAX_ALIVE}"))
+        results.append(("FAIL", "Alive count check", f"{count} out of [0, {MAX_ALIVE}]"))
 
 
 def check_merged_dedup(results):

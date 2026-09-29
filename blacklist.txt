@@ -1,0 +1,6 @@
+# Tracker 域名黑名单
+# 每行一个域名（主机名），忽略大小写、精确匹配；以 # 开头的行是注释。
+# update_trackers.py 会在下载合并时排除这些域名的 tracker。
+#
+# 示例（取消注释即可生效）：
+# dead-tracker.example.com

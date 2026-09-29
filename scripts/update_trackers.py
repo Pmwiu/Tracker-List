@@ -120,6 +120,22 @@ def get_repo():
     return repo if repo else "Pmwiu/Tracker-List"
 
 
+BLACKLIST_FILE = os.path.join(PROJECT_ROOT, "blacklist.txt")
+
+
+def load_blacklist():
+    """读取 blacklist.txt，返回需排除的域名集合（小写，精确匹配主机名）。"""
+    blacklist = set()
+    if not os.path.exists(BLACKLIST_FILE):
+        return blacklist
+    with open(BLACKLIST_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            entry = line.strip().lower()
+            if entry and not entry.startswith("#"):
+                blacklist.add(entry)
+    return blacklist
+
+
 def acquire_lock():
     """获取文件锁，防止并发运行。超时10秒。跨平台兼容。"""
     os.makedirs(os.path.dirname(LOCK_FILE), exist_ok=True)
@@ -247,14 +263,15 @@ def cleanup_legacy_files():
         print(f"[OK]   Cleaned {removed} legacy files.")
 
 
-def download_trackers(url):
+def download_trackers(url, blacklist=None):
     """下载并校验 tracker 列表，返回去重后的排序列表。
 
     仅接受 ALLOWED_SOURCE_URLS 白名单内的订阅源；非白名单来源直接拒绝，
-    其内容不会被下载、解析或合并。
+    其内容不会被下载、解析或合并。blacklist 为需排除的域名集合（小写）。
     """
     if url not in ALLOWED_SOURCE_URLS:
         raise RuntimeError(f"Source not in whitelist, rejected: {url}")
+    blacklist = blacklist or set()
     last_error = None
     raw = None
     for attempt in range(1, MAX_RETRIES + 1):
@@ -285,18 +302,25 @@ def download_trackers(url):
 
     trackers = set()
     invalid = 0
+    blacklisted = 0
     for line in raw.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
         normalized = normalize_tracker(line)
         if normalized and is_valid_tracker(normalized):
+            host = (urllib.parse.urlparse(normalized).hostname or "").lower()
+            if host and host in blacklist:
+                blacklisted += 1
+                continue
             trackers.add(normalized)
         else:
             invalid += 1
 
     if invalid > 0:
         print(f"  [INFO] Skipped {invalid} invalid lines")
+    if blacklisted > 0:
+        print(f"  [INFO] Skipped {blacklisted} blacklisted lines")
 
     if not trackers:
         raise RuntimeError("No valid trackers found in response")
@@ -568,6 +592,10 @@ def main():
         print(f"[INFO] Repo: {repo}, Max: {MAX_TRACKERS}")
         cleanup_legacy_files()
 
+        blacklist = load_blacklist()
+        if blacklist:
+            print(f"[INFO] Blacklist: {len(blacklist)} domains")
+
         all_merged = set()
         results = []
         failures = []
@@ -582,7 +610,7 @@ def main():
         for filename, url, short_name in SOURCES:
             print(f"{NL}[INFO] {filename} ({short_name})")
             try:
-                trackers = download_trackers(url)
+                trackers = download_trackers(url, blacklist=blacklist)
             except Exception as e:
                 print(f"[ERROR] {e}", file=sys.stderr)
                 failures.append((filename, short_name, str(e)))
