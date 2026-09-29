@@ -406,7 +406,7 @@ def compute_score(elapsed_ms, consecutive_days):
     稳定性分：连续存活天数（越多分越高）
     返回分数，越高越好。
     """
-    # 速度分：1000ms 以内线性衰减，超过 1000ms 给基础分
+    # 速度分：100ms 满分，1000ms 归零，超过 1000ms 为 0（连续单调递减）
     if elapsed_ms <= 0:
         speed_score = 0
     elif elapsed_ms <= 100:
@@ -414,7 +414,7 @@ def compute_score(elapsed_ms, consecutive_days):
     elif elapsed_ms <= 1000:
         speed_score = 100 - (elapsed_ms - 100) / 9  # 100ms=100, 1000ms=0
     else:
-        speed_score = max(0, 50 - (elapsed_ms - 1000) / 50)
+        speed_score = 0
 
     # 稳定性分：连续存活天数，最多 7 天满分
     stability_score = min(consecutive_days, 7) / 7 * 100
@@ -611,7 +611,7 @@ def main():
         for tracker, status, detail, elapsed_ms in results:
             if tracker in second_results:
                 best_speed = min(elapsed_ms, second_results[tracker])
-                updated_results.append((tracker, status, detail, best_speed))
+                updated_results.append((tracker, status, detail, best_speed)
             else:
                 updated_results.append((tracker, status, detail, elapsed_ms))
         results = updated_results
