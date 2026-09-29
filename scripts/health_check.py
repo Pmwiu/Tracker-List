@@ -11,6 +11,11 @@
   6. GitHub Raw 直链 URL 的 HTTP 可达性
   7. GitHub Pages 短链接页面可达性
   8. Tracker URL 格式校验
+
+用法:
+  python scripts/health_check.py              单次检查
+  python scripts/health_check.py --rounds 5   连续检查5轮
+  python scripts/health_check.py --skip-net   跳过网络检查（仅本地）
 """
 
 import os
@@ -34,10 +39,10 @@ SHORT_DIR = os.path.join(PAGES_DIR, "s")
 TIMEOUT = 15
 
 TRACKER_FILES = [
-    "trackers_best.txt",
-    "trackers_ngosang.txt",
-    "trackers_ngosang_ip.txt",
+    "trackers_xiu2.txt",
     "trackers_adysec.txt",
+    "trackers_ngosang.txt",
+    "trackers_newtrackon.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
     "trackers_dead.txt",
@@ -45,20 +50,25 @@ TRACKER_FILES = [
 
 EXTRA_FILES = ["MIRRORS.txt", "test_report.md", "test_state.json"]
 
-SHORT_PAGES = ["alive", "best", "ngosang", "ngosang-ip", "adysec", "all"]
+SHORT_PAGES = [
+    "alive", "xiu2", "adysec", "ngosang", "newtrackon", "all",
+]
 
-PLAIN_TEXT_FILES = ["alive.txt", "merged.txt", "best.txt", "ngosang.txt", "ngosang_ip.txt", "adysec.txt"]
+PLAIN_TEXT_FILES = [
+    "alive.txt", "merged.txt", "xiu2.txt", "ngosang.txt", "adysec.txt", "newtrackon.txt",
+]
 
+# trackers/ 到 docs/ 的映射
 CONSISTENCY_MAP = {
     "trackers_alive.txt": "alive.txt",
     "trackers_merged.txt": "merged.txt",
-    "trackers_best.txt": "best.txt",
+    "trackers_xiu2.txt": "xiu2.txt",
     "trackers_ngosang.txt": "ngosang.txt",
-    "trackers_ngosang_ip.txt": "ngosang_ip.txt",
     "trackers_adysec.txt": "adysec.txt",
+    "trackers_newtrackon.txt": "newtrackon.txt",
 }
 
-MAX_ALIVE = 39
+MAX_ALIVE = 25
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
 
 
@@ -72,6 +82,7 @@ def count_trackers_in_text(text):
 
 
 def extract_trackers(text):
+    """提取文本中的 tracker 行（去注释、去空行）。"""
     return [line.strip() for line in text.splitlines()
             if line.strip() and not line.strip().startswith("#")]
 
@@ -88,6 +99,7 @@ def fetch_url(url):
 
 
 def check_local_files(results):
+    """检查本地文件完整性。"""
     for f in TRACKER_FILES:
         path = os.path.join(TRACKERS_DIR, f)
         if not os.path.exists(path):
@@ -98,13 +110,15 @@ def check_local_files(results):
             continue
         if os.path.getsize(path) > 0:
             with open(path, "r", encoding="utf-8") as fh:
-                count = count_trackers_in_text(fh.read())
+                content = fh.read()
+            count = count_trackers_in_text(content)
             if count == 0:
                 results.append(("FAIL", f"Local tracker: {f}", "no valid trackers"))
             else:
                 results.append(("PASS", f"Local tracker: {f}", f"{count} trackers"))
         else:
             results.append(("FAIL", f"Local tracker: {f}", "empty"))
+
     for ef in EXTRA_FILES:
         path = os.path.join(TRACKERS_DIR, ef)
         if os.path.exists(path) and os.path.getsize(path) > 0:
@@ -114,11 +128,13 @@ def check_local_files(results):
                 results.append(("WARN", f"Local {ef}", "missing (first run?)"))
             else:
                 results.append(("FAIL", f"Local {ef}", "missing"))
+
     index_path = os.path.join(PAGES_DIR, "index.html")
     if os.path.exists(index_path) and os.path.getsize(index_path) > 0:
         results.append(("PASS", "Local Pages index.html", "exists"))
     else:
         results.append(("FAIL", "Local Pages index.html", "missing"))
+
     for sp in SHORT_PAGES:
         path = os.path.join(SHORT_DIR, f"{sp}.html")
         if os.path.exists(path) and os.path.getsize(path) > 0:
@@ -130,6 +146,7 @@ def check_local_files(results):
                 results.append(("FAIL", f"Local short page: /s/{sp}", "invalid content"))
         else:
             results.append(("FAIL", f"Local short page: /s/{sp}", "missing"))
+
     for ptf in PLAIN_TEXT_FILES:
         path = os.path.join(PAGES_DIR, ptf)
         if os.path.exists(path) and os.path.getsize(path) > 0:
@@ -141,6 +158,7 @@ def check_local_files(results):
 
 
 def check_alive_count(results):
+    """校验 alive.txt 数量不超过 MAX_ALIVE。"""
     path = os.path.join(TRACKERS_DIR, "trackers_alive.txt")
     if not os.path.exists(path):
         results.append(("FAIL", "Alive count check", "file missing"))
@@ -154,6 +172,7 @@ def check_alive_count(results):
 
 
 def check_merged_dedup(results):
+    """校验 merged.txt 无重复。"""
     path = os.path.join(TRACKERS_DIR, "trackers_merged.txt")
     if not os.path.exists(path):
         results.append(("FAIL", "Merged dedup check", "file missing"))
@@ -169,6 +188,7 @@ def check_merged_dedup(results):
 
 
 def check_consistency(results):
+    """校验 trackers/ 与 docs/ 纯文本文件内容一致。"""
     for src, dst in CONSISTENCY_MAP.items():
         src_path = os.path.join(TRACKERS_DIR, src)
         dst_path = os.path.join(PAGES_DIR, dst)
@@ -187,6 +207,7 @@ def check_consistency(results):
 
 
 def check_url_format(results):
+    """校验 merged.txt 中所有 tracker URL 格式合法。"""
     path = os.path.join(TRACKERS_DIR, "trackers_merged.txt")
     if not os.path.exists(path):
         results.append(("FAIL", "URL format check", "file missing"))
@@ -201,6 +222,7 @@ def check_url_format(results):
 
 
 def check_raw_mirrors(results):
+    """检查 GitHub Raw 直链可达性。"""
     urls = [
         ("alive (Raw)", f"{RAW_BASE}/trackers/trackers_alive.txt"),
         ("merged (Raw)", f"{RAW_BASE}/trackers/trackers_merged.txt"),
@@ -215,6 +237,7 @@ def check_raw_mirrors(results):
 
 
 def check_pages_links(results):
+    """检查 GitHub Pages 短链接和纯文本可达性。"""
     for ptf in ["alive.txt", "merged.txt"]:
         url = f"{PAGES_BASE}/{ptf}"
         ok, content, status = fetch_url(url)
@@ -223,7 +246,8 @@ def check_pages_links(results):
             results.append(("PASS", f"Pages: /{ptf}", f"HTTP {status}, {count} trackers"))
         else:
             results.append(("WARN", f"Pages: /{ptf}", f"unreachable: {content[:80]}"))
-    for sp in ["alive", "best"]:
+
+    for sp in ["alive", "xiu2"]:
         url = f"{PAGES_BASE}/s/{sp}"
         ok, content, status = fetch_url(url)
         if ok and ('refresh' in content or 'location.replace' in content):
@@ -244,9 +268,11 @@ def run_single_check(round_num, skip_net=False):
     if not skip_net:
         check_raw_mirrors(results)
         check_pages_links(results)
+
     passes = sum(1 for s, _, _ in results if s == "PASS")
     warns = sum(1 for s, _, _ in results if s == "WARN")
     fails = sum(1 for s, _, _ in results if s == "FAIL")
+
     print(f"\n{'='*60}")
     print(f" Round {round_num} - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*60}")
@@ -256,6 +282,7 @@ def run_single_check(round_num, skip_net=False):
     print(f"{'-'*60}")
     print(f"  Result: {passes} passed, {warns} warnings, {fails} failed")
     print(f"{'='*60}")
+
     return passes, warns, fails, results
 
 
@@ -264,12 +291,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--rounds', type=int, default=1)
     parser.add_argument('--skip-net', action='store_true')
-    parser.add_argument('--interval', type=int, default=3)
+    parser.add_argument('--interval', type=int, default=3, help='seconds between rounds')
     args = parser.parse_args()
+
     total_passes = 0
     total_warns = 0
     total_fails = 0
     all_had_fail = False
+
     for r in range(1, args.rounds + 1):
         p, w, f, _ = run_single_check(r, skip_net=args.skip_net)
         total_passes += p
@@ -279,6 +308,7 @@ def main():
             all_had_fail = True
         if r < args.rounds:
             time.sleep(args.interval)
+
     print(f"\n{'#'*60}")
     print(f" FINAL REPORT: {args.rounds} rounds completed")
     print(f"   Total PASS: {total_passes}")
@@ -289,6 +319,7 @@ def main():
     else:
         print(f"   STATUS: ALL ROUNDS HEALTHY (warnings may be network-related)")
     print(f"{'#'*60}")
+
     sys.exit(1 if all_had_fail else 0)
 
 

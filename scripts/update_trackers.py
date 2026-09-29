@@ -3,11 +3,11 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源（均为 best 精选列表）:
-  - https://cf.trackerslist.com/best.txt
-  - https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
-  - https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt
-  - https://tracker.adysec.com/trackers_best.txt
+订阅源:
+  - https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt
+  - https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt
+  - https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt
+  - https://newtrackon.com/api/live
 
 特性:
   - 多源合并去重（URL 规范化后去重）
@@ -34,29 +34,29 @@ except ImportError:
     _HAS_FCNTL = False
 
 SOURCES = [
-    ("trackers_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
-    ("trackers_ngosang.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt", "ngosang-best"),
-    ("trackers_ngosang_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt", "ngosang-best-ip"),
-    ("trackers_adysec.txt", "https://tracker.adysec.com/trackers_best.txt", "adysec-best"),
+    ("trackers_xiu2.txt", "https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt", "xiu2-all"),
+    ("trackers_adysec.txt", "https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt", "adysec-all"),
+    ("trackers_ngosang.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt", "ngosang-all"),
+    ("trackers_newtrackon.txt", "https://newtrackon.com/api/live", "newtrackon-live"),
 ]
 
-MAX_TRACKERS = 39
+MAX_TRACKERS = 25
 
 MIRRORS = [
     ("GitHub Raw", "https://raw.githubusercontent.com/{repo}/main/trackers/{file}"),
 ]
 
 SHORT_LINKS = [
-    ("alive", "核心订阅", "存活 Tracker（活性测试+测速排序，推荐）",
+    ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_alive.txt"),
-    ("best", "订阅源", "cf.trackerslist.com best",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_best.txt"),
-    ("ngosang", "订阅源", "ngosang trackers_best",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_ngosang.txt"),
-    ("ngosang-ip", "订阅源", "ngosang trackers_best_ip",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_ngosang_ip.txt"),
-    ("adysec", "订阅源", "adysec trackers_best",
+    ("xiu2", "订阅源", "XIU2 TrackersListCollection all",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_xiu2.txt"),
+    ("adysec", "订阅源", "adysec trackers_all",
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_adysec.txt"),
+    ("ngosang", "订阅源", "ngosang trackers_all",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_ngosang.txt"),
+    ("newtrackon", "订阅源", "newtrackon live",
+     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_newtrackon.txt"),
     ("all", "合并总表", "合并去重总表",
      "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_merged.txt"),
 ]
@@ -74,12 +74,18 @@ LEGACY_FILES = [
     os.path.join(OUTPUT_DIR, "trackers_http.txt"),
     os.path.join(OUTPUT_DIR, "trackers_all.txt"),
     os.path.join(OUTPUT_DIR, "trackers_run.txt"),
+    os.path.join(OUTPUT_DIR, "trackers_best.txt"),
+    os.path.join(OUTPUT_DIR, "trackers_ngosang_ip.txt"),
     os.path.join(PAGES_DIR, "http.txt"),
     os.path.join(PAGES_DIR, "full.txt"),
+    os.path.join(PAGES_DIR, "best.txt"),
+    os.path.join(PAGES_DIR, "ngosang_ip.txt"),
     os.path.join(SHORT_LINKS_DIR, "http.html"),
     os.path.join(SHORT_LINKS_DIR, "full.html"),
     os.path.join(SHORT_LINKS_DIR, "run.html"),
     os.path.join(SHORT_LINKS_DIR, "repo.html"),
+    os.path.join(SHORT_LINKS_DIR, "best.html"),
+    os.path.join(SHORT_LINKS_DIR, "ngosang-ip.html"),
     os.path.join(SHORT_LINKS_DIR, "alive-cdn.html"),
     os.path.join(SHORT_LINKS_DIR, "all-cdn.html"),
     os.path.join(SHORT_LINKS_DIR, "all-fastly.html"),
@@ -91,6 +97,7 @@ TIMEOUT = 30
 MAX_RETRIES = 3
 RETRY_DELAY = 5
 
+# 合法 tracker URL 模式
 TRACKER_PATTERN = re.compile(
     r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE
 )
@@ -102,9 +109,11 @@ def get_repo():
 
 
 def acquire_lock():
+    """获取文件锁，防止并发运行。超时10秒。跨平台兼容。"""
     os.makedirs(os.path.dirname(LOCK_FILE), exist_ok=True)
     deadline = time.time() + 10
     lock_fd = None
+
     while time.time() < deadline:
         if _HAS_FCNTL:
             try:
@@ -143,11 +152,13 @@ def acquire_lock():
                 except (IOError, OSError):
                     time.sleep(0.5)
                     continue
+
     print("[ERROR] Could not acquire lock (another instance running?)", file=sys.stderr)
     sys.exit(1)
 
 
 def release_lock(lock_handle):
+    """释放文件锁。"""
     try:
         if _HAS_FCNTL and hasattr(lock_handle, 'fileno'):
             fcntl.flock(lock_handle, fcntl.LOCK_UN)
@@ -162,6 +173,7 @@ def release_lock(lock_handle):
 
 
 def normalize_tracker(url):
+    """规范化 tracker URL：去除末尾斜杠、统一协议小写。"""
     url = url.strip()
     if not url:
         return None
@@ -174,6 +186,7 @@ def normalize_tracker(url):
 
 
 def is_valid_tracker(url):
+    """校验是否为合法的 tracker URL。"""
     if not url or len(url) > 500:
         return False
     return bool(TRACKER_PATTERN.match(url))
@@ -194,6 +207,7 @@ def cleanup_legacy_files():
 
 
 def download_trackers(url):
+    """下载并校验 tracker 列表，返回去重后的排序列表。"""
     last_error = None
     raw = None
     for attempt in range(1, MAX_RETRIES + 1):
@@ -214,10 +228,13 @@ def download_trackers(url):
                 time.sleep(RETRY_DELAY)
             else:
                 raise last_error
+
     if raw is None:
         raise RuntimeError("Empty response")
+
     if raw.lstrip().startswith("<!DOCTYPE") or raw.lstrip().startswith("<html"):
         raise RuntimeError("Response is HTML, not tracker list")
+
     trackers = set()
     invalid = 0
     for line in raw.splitlines():
@@ -229,14 +246,18 @@ def download_trackers(url):
             trackers.add(normalized)
         else:
             invalid += 1
+
     if invalid > 0:
         print(f"  [INFO] Skipped {invalid} invalid lines")
+
     if not trackers:
         raise RuntimeError("No valid trackers found in response")
+
     return sorted(trackers)
 
 
 def atomic_write(filepath, content):
+    """原子写入：先写临时文件，再 rename。"""
     tmp_path = filepath + ".tmp"
     with open(tmp_path, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)
@@ -310,11 +331,12 @@ def generate_redirect_page(target_url, description=""):
 
 
 def generate_source_links():
+    """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
-        "cf-best": "cf/best",
-        "ngosang-best": "ngosang/best",
-        "ngosang-best-ip": "ngosang/best-ip",
-        "adysec-best": "adysec/best",
+        "xiu2-all": "XIU2/all",
+        "adysec-all": "adysec/all",
+        "ngosang-all": "ngosang/all",
+        "newtrackon-live": "newtrackon/live",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -328,9 +350,11 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
     owner = repo.split("/")[0] if "/" in repo else repo
     repo_name = repo.split("/")[-1] if "/" in repo else "Tracker-List"
     pages_base = f"https://{owner}.github.io/{repo_name}"
+
     groups = {}
     for short, group, desc, target in short_links_with_urls:
         groups.setdefault(group, []).append((short, desc, target))
+
     sections_html = ""
     for group_name in ["核心订阅", "订阅源", "合并总表"]:
         items = groups.get(group_name, [])
@@ -348,11 +372,14 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
       <div class="block-title">{html.escape(group_name)}</div>
 {rows}    </div>
 """
+
     counts_rows = ""
     for name, count in tracker_counts:
         counts_rows += f"""      <tr><td>{html.escape(name)}</td><td class="num">{count}</td></tr>
 """
+
     source_links = generate_source_links()
+
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -458,10 +485,10 @@ def sync_plain_text_files():
     mapping = {
         "trackers_alive.txt": "alive.txt",
         "trackers_merged.txt": "merged.txt",
-        "trackers_best.txt": "best.txt",
+        "trackers_xiu2.txt": "xiu2.txt",
         "trackers_ngosang.txt": "ngosang.txt",
-        "trackers_ngosang_ip.txt": "ngosang_ip.txt",
         "trackers_adysec.txt": "adysec.txt",
+        "trackers_newtrackon.txt": "newtrackon.txt",
     }
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():
@@ -484,9 +511,11 @@ def main():
         repo = get_repo()
         print(f"[INFO] Repo: {repo}, Max: {MAX_TRACKERS}")
         cleanup_legacy_files()
+
         all_merged = set()
         results = []
         failures = []
+
         for filename, url, short_name in SOURCES:
             print(f"\n[INFO] {filename} ({short_name})")
             try:
@@ -499,10 +528,12 @@ def main():
             all_merged.update(trackers)
             results.append((filename, len(trackers)))
             print(f"[OK]   {len(trackers)} unique")
+
         if failures:
             print(f"\n[WARN] {len(failures)} source(s) failed:")
             for fn, sn, err in failures:
                 print(f"  - {sn}: {err}")
+
         if all_merged:
             merged = sorted(all_merged)
             write_trackers(
@@ -514,9 +545,11 @@ def main():
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
             sys.exit(1)
+
         write_mirrors_file(repo)
         generate_pages(repo, results)
         sync_plain_text_files()
+
         print(f"\n===== Summary =====")
         for n, c in results:
             print(f"  {n}: {c}")
