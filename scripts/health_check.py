@@ -3,7 +3,7 @@
 健康检查脚本 v3.0：验证本地文件、云端仓库与短链接的可用性。
 
 检查项:
-  1. 本地 Tracker 文件完整性（4个订阅源 + 合并/存活/失效列表）
+  1. 本地 Tracker 文件完整性（3个订阅源 + 合并/存活/失效列表）
   2. 本地 GitHub Pages 文件完整性（主页 + 短链接页面 + 纯文本文件）
   3. alive.txt 数量校验（<= MAX_TRACKERS）
   4. merged.txt 去重校验（无重复）
@@ -39,10 +39,9 @@ SHORT_DIR = os.path.join(PAGES_DIR, "s")
 TIMEOUT = 15
 
 TRACKER_FILES = [
-    "trackers_xiu2.txt",
+    "trackers_cf.txt",
     "trackers_adysec.txt",
     "trackers_ngosang.txt",
-    "trackers_newtrackon.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
     "trackers_dead.txt",
@@ -51,21 +50,20 @@ TRACKER_FILES = [
 EXTRA_FILES = ["MIRRORS.txt", "test_report.md", "test_state.json"]
 
 SHORT_PAGES = [
-    "alive", "xiu2", "adysec", "ngosang", "newtrackon", "all",
+    "alive", "cf", "adysec", "ngosang", "all",
 ]
 
 PLAIN_TEXT_FILES = [
-    "alive.txt", "merged.txt", "xiu2.txt", "ngosang.txt", "adysec.txt", "newtrackon.txt",
+    "alive.txt", "merged.txt", "cf.txt", "ngosang.txt", "adysec.txt",
 ]
 
 # trackers/ 到 docs/ 的映射
 CONSISTENCY_MAP = {
     "trackers_alive.txt": "alive.txt",
     "trackers_merged.txt": "merged.txt",
-    "trackers_xiu2.txt": "xiu2.txt",
+    "trackers_cf.txt": "cf.txt",
     "trackers_ngosang.txt": "ngosang.txt",
     "trackers_adysec.txt": "adysec.txt",
-    "trackers_newtrackon.txt": "newtrackon.txt",
 }
 
 MAX_ALIVE = 25
@@ -129,12 +127,14 @@ def check_local_files(results):
             else:
                 results.append(("FAIL", f"Local {ef}", "missing"))
 
+    # index.html
     index_path = os.path.join(PAGES_DIR, "index.html")
     if os.path.exists(index_path) and os.path.getsize(index_path) > 0:
         results.append(("PASS", "Local Pages index.html", "exists"))
     else:
         results.append(("FAIL", "Local Pages index.html", "missing"))
 
+    # 短链接页面
     for sp in SHORT_PAGES:
         path = os.path.join(SHORT_DIR, f"{sp}.html")
         if os.path.exists(path) and os.path.getsize(path) > 0:
@@ -147,6 +147,7 @@ def check_local_files(results):
         else:
             results.append(("FAIL", f"Local short page: /s/{sp}", "missing"))
 
+    # 纯文本文件
     for ptf in PLAIN_TEXT_FILES:
         path = os.path.join(PAGES_DIR, ptf)
         if os.path.exists(path) and os.path.getsize(path) > 0:
@@ -197,7 +198,7 @@ def check_consistency(results):
             continue
         with open(src_path, "r", encoding="utf-8") as f:
             src_trackers = set(extract_trackers(f.read()))
-        with open(dst_path, "r", encoding="utf-8") as f:
+        with open(dst, "r", encoding="utf-8") as f:
             dst_trackers = set(extract_trackers(f.read()))
         if src_trackers == dst_trackers:
             results.append(("PASS", f"Consistency: {src} vs {dst}", "identical"))
@@ -238,6 +239,7 @@ def check_raw_mirrors(results):
 
 def check_pages_links(results):
     """检查 GitHub Pages 短链接和纯文本可达性。"""
+    # 纯文本直链
     for ptf in ["alive.txt", "merged.txt"]:
         url = f"{PAGES_BASE}/{ptf}"
         ok, content, status = fetch_url(url)
@@ -247,7 +249,8 @@ def check_pages_links(results):
         else:
             results.append(("WARN", f"Pages: /{ptf}", f"unreachable: {content[:80]}"))
 
-    for sp in ["alive", "xiu2"]:
+    # 短链接页面（检查是否返回 200 且包含重定向）
+    for sp in ["alive", "cf"]:
         url = f"{PAGES_BASE}/s/{sp}"
         ok, content, status = fetch_url(url)
         if ok and ('refresh' in content or 'location.replace' in content):
