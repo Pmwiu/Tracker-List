@@ -68,6 +68,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "trackers")
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 RUN_SUMMARY_FILE = os.path.join(REPORTS_DIR, "run_summary.json")
+BACKUP_DIR = os.path.join(OUTPUT_DIR, "backup")
+INVALID_LINES_LOG = os.path.join(PROJECT_ROOT, "invalid_lines.log")
 PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
 SHORT_LINKS_DIR = os.path.join(PAGES_DIR, "s")
 MERGED_FILE = "trackers_merged.txt"
@@ -152,6 +154,40 @@ def write_run_summary(status, duration_sec, source_stats, merged_lines, failed_s
         "failed_sources": failed_sources,
     }
     atomic_write(RUN_SUMMARY_FILE, json.dumps(summary, ensure_ascii=False, indent=2) + NL)
+
+
+def _backup_file(filename):
+    """把成功生成的源文件复制到 trackers/backup/ 作为降级备份。"""
+    src = os.path.join(OUTPUT_DIR, filename)
+    if not os.path.exists(src):
+        return
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+    with open(src, "r", encoding="utf-8") as f:
+        content = f.read()
+    atomic_write(os.path.join(BACKUP_DIR, filename), content)
+
+
+def _load_backup(filename):
+    """从备份文件读取 tracker 列表；无备份返回 None。"""
+    dst = os.path.join(BACKUP_DIR, filename)
+    if not os.path.exists(dst):
+        return None
+    trackers = set()
+    with open(dst, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                trackers.add(line)
+    return sorted(trackers) if trackers else None
+
+
+def _log_invalid_line(line):
+    """把无效行追加写入 invalid_lines.log（补丁 E）。"""
+    try:
+        with open(INVALID_LINES_LOG, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except OSError:
+        pass
 
 
 def acquire_lock():
@@ -334,6 +370,7 @@ def download_trackers(url, blacklist=None):
             trackers.add(normalized)
         else:
             invalid += 1
+            _log_invalid_line(line)
 
     if invalid > 0:
         print(f"  [INFO] Skipped {invalid} invalid lines")
@@ -632,15 +669,26 @@ def main():
         for filename, url, short_name in SOURCES:
             print(f"{NL}[INFO] {filename} ({short_name})")
             source_stats[short_name] = {"http_code": 0, "lines": 0, "ok": False}
+            trackers = None
             try:
                 trackers = download_trackers(url, blacklist=blacklist)
                 source_stats[short_name] = {"http_code": 200, "lines": len(trackers), "ok": True}
+                if len(trackers) < 10:
+                    raise RuntimeError(f"too few valid lines ({len(trackers)} < 10)")
             except Exception as e:
-                print(f"[ERROR] {e}", file=sys.stderr)
-                failures.append((filename, short_name, str(e)))
-                failed_names.append(short_name)
-                continue
+                # 补丁 D：下载失败或异常源 → 降级到上次成功备份
+                backup = _load_backup(filename)
+                if backup is not None:
+                    print(f"[WARN] {filename} failed ({e}); using backup ({len(backup)} trackers)")
+                    trackers = backup
+                    source_stats[short_name] = {"http_code": 0, "lines": len(trackers), "ok": True}
+                else:
+                    print(f"[ERROR] {e}", file=sys.stderr)
+                    failures.append((filename, short_name, str(e)))
+                    failed_names.append(short_name)
+                    continue
             write_trackers(os.path.join(OUTPUT_DIR, filename), trackers, source_url=url)
+            _backup_file(filename)
             all_merged.update(trackers)
             results.append((filename, len(trackers)))
             print(f"[OK]   {len(trackers)} unique")

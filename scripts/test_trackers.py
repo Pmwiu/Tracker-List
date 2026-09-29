@@ -601,9 +601,12 @@ def main():
     history = load_history()
     consecutive = history.get("consecutive_alive", {})
 
-    # ---- 第一轮：全量探活 ----
+    # ---- 第一轮：全量探活（带熔断）----
     results = []
     start = time.time()
+    consecutive_timeouts = 0
+    breaker_trips = 0
+    aborted = False
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {pool.submit(test_one, t, args.timeout): t for t in trackers}
         done_count = 0
@@ -621,8 +624,29 @@ def main():
             if done_count % 25 == 0 or status == 'alive':
                 print(f'  {marker} ({done_count}/{len(trackers)}) {tracker}{speed} — {detail}')
 
+            # 熔断：连续10个超时 → 暂停60秒；累计3次 → 终止，保留上次 alive.txt
+            if status == 'dead' and detail == 'timeout':
+                consecutive_timeouts += 1
+            else:
+                consecutive_timeouts = 0
+            if consecutive_timeouts >= 10:
+                breaker_trips += 1
+                consecutive_timeouts = 0
+                print(f'[WARN] circuit_breaker: 10 consecutive timeouts, pausing 60s (trip {breaker_trips}/3)')
+                time.sleep(60)
+                if breaker_trips >= 3:
+                    print('[ERROR] circuit_breaker_triggered: aborting, keeping previous trackers_alive.txt')
+                    aborted = True
+                    for f in futures:
+                        f.cancel()
+                    break
+
     first_pass_elapsed = time.time() - start
     print(f'{ut.NL}[INFO] First pass done in {first_pass_elapsed:.1f}s')
+
+    if aborted:
+        print('[WARN] Circuit breaker triggered; keeping previous trackers_alive.txt, exiting.')
+        return
 
     # ---- 第二轮：对存活的前 100 个精测 ----
     alive_first = [(t, d, e) for t, s, d, e in results if s == 'alive']
