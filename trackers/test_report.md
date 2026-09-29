@@ -1,102 +1,102 @@
 # Tracker 活性测试 + 综合评分排序报告
 
-- 测试时间: 2026-09-29 04:21:38 UTC
+- 测试时间: 2026-09-29 06:30:40 UTC
 - 总 Tracker 数: 500
 - 存活 (alive): **97** (19%)
 - 失效 (dead): **403**
 - 不安全 (unsafe): **0**
 - 无法测试 (untestable): 0
 - 综合评分后保留前 25 个，淘汰 72 个
-- 耗时: 139.7 秒
+- 耗时: 127.0 秒
 
 ## 协议分布
 
-- udp: 55
-- http: 29
-- https: 12
+- udp: 51
+- http: 32
+- https: 13
 - wss: 1
 
 ## 最终订阅列表（前 25 个，按综合评分降序）
 
-1. `udp://v2.iperson.xyz:6969/announce` — score=70.0, 30ms, 连续0天
-2. `udp://tracker.cn.nyaa.net:6969/announce` — score=70.0, 39ms, 连续0天
-3. `udp://tracker2.dler.org:80/announce` — score=70.0, 56ms, 连续0天
-4. `udp://tracker.dler.org:6969/announce` — score=70.0, 59ms, 连续0天
-5. `udp://tracker.dler.com:6969/announce` — score=70.0, 71ms, 连续0天
-6. `udp://anime-tracker.aruku.kro.kr:8081/announce` — score=69.8, 103ms, 连续0天
-7. `http://tracker2.dler.org:80/announce` — score=67.2, 136ms, 连续0天
-8. `http://tracker.dler.com:6969/announce` — score=66.6, 144ms, 连续0天
-9. `http://tracker.dler.org:6969/announce` — score=65.6, 157ms, 连续0天
-10. `udp://martin-gebhardt.eu:25/announce` — score=62.8, 192ms, 连续0天
-11. `udp://tracker.gmi.gd:6969/announce` — score=62.6, 195ms, 连续0天
-12. `udp://tracker.ducks.party:1984/announce` — score=62.4, 197ms, 连续0天
-13. `udp://52.58.128.163:6969/announce` — score=61.8, 205ms, 连续0天
-14. `udp://rekcart.duckdns.org:15480/announce` — score=61.2, 213ms, 连续0天
-15. `udp://open.ftorrent.com:443/announce` — score=61.2, 213ms, 连续0天
-16. `udp://tracker.corpscorp.online:80/announce` — score=60.3, 225ms, 连续0天
-17. `udp://tracker.torrents.observer:80/announce` — score=60.3, 225ms, 连续0天
-18. `udp://tracker.skynetcloud.site:6969/announce` — score=60.2, 226ms, 连续0天
-19. `udp://tracker.bittor.pw:1337/announce` — score=59.9, 230ms, 连续0天
-20. `udp://open.stealth.si:80/announce` — score=59.8, 231ms, 连续0天
-21. `udp://tracker.wildkat.net:6969/announce` — score=59.7, 233ms, 连续0天
-22. `udp://tracker.nyaa.vc:6969/announce` — score=59.6, 233ms, 连续0天
-23. `udp://tracker.aruku.ovh:8081/announce` — score=59.6, 233ms, 连续0天
-24. `udp://tracker.qu.ax:6969/announce` — score=59.5, 235ms, 连续0天
-25. `udp://tracker.teambelgium.net:6969/announce` — score=59.4, 237ms, 连续0天
+1. `udp://tracker.wildkat.net:6969/announce` — score=74.3, 18ms, 连续1天
+2. `udp://tracker.corpscorp.online:80/announce` — score=74.3, 26ms, 连续1天
+3. `udp://tracker.bittor.pw:1337/announce` — score=74.3, 27ms, 连续1天
+4. `udp://open.ftorrent.com:443/announce` — score=74.3, 46ms, 连续1天
+5. `udp://tracker.gmi.gd:6969/announce` — score=74.3, 62ms, 连续1天
+6. `udp://tracker.qu.ax:6969/announce` — score=74.3, 84ms, 连续1天
+7. `udp://tracker.nyaa.vc:6969/announce` — score=74.3, 84ms, 连续1天
+8. `udp://tracker.torrents.observer:80/announce` — score=74.3, 85ms, 连续1天
+9. `udp://tracker.skynetcloud.site:6969/announce` — score=74.3, 86ms, 连续1天
+10. `udp://tracker.teambelgium.net:6969/announce` — score=74.3, 87ms, 连续1天
+11. `udp://tracker.ducks.party:1984/announce` — score=74.3, 91ms, 连续1天
+12. `udp://martin-gebhardt.eu:25/announce` — score=74.3, 92ms, 连续1天
+13. `udp://rekcart.duckdns.org:15480/announce` — score=74.3, 94ms, 连续1天
+14. `udp://open.stealth.si:80/announce` — score=74.2, 101ms, 连续1天
+15. `udp://evan.im:6969/announce` — score=70.0, 2ms, 连续0天
+16. `wss://tracker.openwebtorrent.com:443/announce` — score=70.0, 9ms, 连续0天
+17. `udp://ns575949.ip-51-222-82.net:6969/announce` — score=70.0, 15ms, 连续0天
+18. `udp://tr4ck3r.duckdns.org:6969/announce` — score=70.0, 15ms, 连续0天
+19. `https://t.213891.xyz:443/announce` — score=70.0, 15ms, 连续0天
+20. `http://tracker.renfei.net:8080/announce` — score=70.0, 16ms, 连续0天
+21. `udp://tracker.004430.xyz:1337/announce` — score=70.0, 21ms, 连续0天
+22. `https://1.tracker.eu.org:443/announce` — score=70.0, 33ms, 连续0天
+23. `http://004430.xyz:80/announce` — score=70.0, 45ms, 连续0天
+24. `http://140.235.237.23:6969/announce` — score=70.0, 53ms, 连续0天
+25. `https://tracker.nekomi.cn:443/announce` — score=70.0, 54ms, 连续0天
 
 ## 失效 Tracker
 
-- `http://00.alarmasqueretaro.com:443/announce` — URLError: <urlopen error [Errno 11001] getaddrinfo failed>
-- `http://00.mercax.com:443/announce` — URLError: <urlopen error [Errno 11001] getaddrinfo failed>
-- `http://00.xxtor.com:443/announce` — URLError: <urlopen error [Errno 11001] getaddrinfo failed>
-- `http://0123456789nonexistent.com:80/announce` — timeout
-- `http://0205.uptm.ch:6969/announce` — URLError: <urlopen error timed out>
+- `http://00.alarmasqueretaro.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://00.mercax.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://00.xxtor.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://0123456789nonexistent.com:80/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `http://0205.uptm.ch:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://0d.kebhana.mx:443/announce` — timeout
-- `http://0x7c.space:7070/announce` — URLError: <urlopen error [Errno 11001] getaddrinfo failed>
-- `http://10.rarbg.com:80/announce` — URLError: <urlopen error [Errno 11001] getaddrinfo failed>
+- `http://0x7c.space:7070/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://10.rarbg.com:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://104.143.10.186:8000/announce` — URLError: <urlopen error timed out>
 - `http://104.238.198.186:8000/announce` — URLError: <urlopen error timed out>
-- `http://104.244.77.14:1337/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://104.244.77.14:1337/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://104.28.1.30:8080/announce` — URLError: <urlopen error timed out>
 - `http://104.28.16.69:80/announce` — URLError: <urlopen error timed out>
 - `http://106.14.254.164:6969/announce` — URLError: <urlopen error timed out>
 - `http://106.55.172.54:6969/announce` — URLError: <urlopen error timed out>
 - `http://107.150.14.110:6969/announce` — URLError: <urlopen error timed out>
-- `http://107.152.127.9:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://107.152.45.140:80/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://107.152.127.9:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://107.152.45.140:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://107.189.10.20.sslip.io:7777/announce` — URLError: <urlopen error timed out>
-- `http://107.189.31.134:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://107.189.31.134:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://107.189.7.143:6969/announce` — URLError: <urlopen error timed out>
 - `http://109.121.134.121:1337/announce` — URLError: <urlopen error timed out>
 - `http://109.71.253.37:1096/announce` — URLError: <urlopen error timed out>
-- `http://11.rarbg.com:80/announce` — URLError: <urlopen error [Errno 11001] getaddrinfo failed>
+- `http://11.rarbg.com:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://110.187.214.10:6969/announce` — URLError: <urlopen error timed out>
 - `http://110.187.214.137:6969/announce` — URLError: <urlopen error timed out>
 - `http://110.187.214.29:6969/announce` — URLError: <urlopen error timed out>
 - `http://110.187.214.6:6969/announce` — URLError: <urlopen error timed out>
 - `http://110.187.215.166:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.13.6.197:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://113.13.6.197:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://113.13.6.40:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.13.7.124:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.13.7.149:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.13.7.186:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.13.7.215:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://113.13.7.90:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://113.13.7.215:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.13.7.90:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://113.16.152.171:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.16.152.94:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://113.16.152.94:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://113.16.153.116:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.16.153.192:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.16.153.249:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://113.16.153.28:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://113.16.153.98:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://113.16.154.16:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://113.16.153.192:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.153.249:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.153.28:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.153.98:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://113.16.154.16:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://113.16.154.70:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.16.155.111:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://113.16.155.111:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://113.16.155.112:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.16.155.116:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.16.155.135:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.16.155.146:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.16.155.21:6969/announce` — URLError: <urlopen error [WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。>
+- `http://113.16.155.21:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://113.16.155.226:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.16.155.243:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.17.152.163:6969/announce` — URLError: <urlopen error timed out>
@@ -105,7 +105,7 @@
 - `http://113.17.153.206:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.17.153.227:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.17.153.232:6969/announce` — URLError: <urlopen error timed out>
-- `http://113.17.153.71:6969/announce` — URLError: <urlopen error timed out>
+- `http://113.17.153.71:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://113.17.66.164:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.17.66.235:6969/announce` — URLError: <urlopen error timed out>
 - `http://113.17.66.72:6969/announce` — URLError: <urlopen error timed out>
@@ -116,7 +116,7 @@
 - `http://116.16.42.86:6969/announce` — URLError: <urlopen error timed out>
 - `http://116.16.45.177:6969/announce` — URLError: <urlopen error timed out>
 - `http://116.16.46.54:6969/announce` — URLError: <urlopen error timed out>
-- `http://116.16.47.170:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://116.16.47.170:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://116.16.47.172:6969/announce` — URLError: <urlopen error timed out>
 - `http://116.252.176.125:6969/announce` — URLError: <urlopen error timed out>
 - `http://116.5.128.165:6969/announce` — URLError: <urlopen error timed out>
@@ -150,7 +150,7 @@
 - `http://117.84.134.178:6969/announce` — URLError: <urlopen error timed out>
 - `http://117.84.154.98:6969/announce` — URLError: <urlopen error timed out>
 - `http://118.163.198.106:6969/announce` — URLError: <urlopen error timed out>
-- `http://118.163.198.106:80/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://118.163.198.106:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://118.25.157.230:6969/announce` — URLError: <urlopen error timed out>
 - `http://119.28.71.45:8080/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.100:6969/announce` — URLError: <urlopen error timed out>
@@ -162,45 +162,45 @@
 - `http://123.245.62.112:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.16:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.21:6969/announce` — URLError: <urlopen error timed out>
-- `http://123.245.62.37:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://123.245.62.39:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://123.245.62.3:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://123.245.62.41:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://123.245.62.47:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://123.245.62.37:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.39:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.3:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.41:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.47:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.50:6969/announce` — URLError: <urlopen error timed out>
-- `http://123.245.62.53:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://123.245.62.53:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.58:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.67:6969/announce` — URLError: <urlopen error timed out>
-- `http://123.245.62.68:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://123.245.62.69:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://123.245.62.72:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://123.245.62.68:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.69:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.72:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.74:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.75:6969/announce` — URLError: <urlopen error timed out>
-- `http://123.245.62.7:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://123.245.62.80:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://123.245.62.7:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://123.245.62.80:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.83:6969/announce` — URLError: <urlopen error timed out>
-- `http://123.245.62.84:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://123.245.62.84:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.88:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.90:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.95:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.98:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.99:6969/announce` — URLError: <urlopen error timed out>
 - `http://125.227.35.196:6969/announce` — URLError: <urlopen error timed out>
-- `http://125.227.79.123:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://125.227.79.123:80/announce` — URLError: <urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1082)>
+- `http://125.227.79.123:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://125.227.79.123:80/announce` — URLError: <urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1010)>
 - `http://128.199.70.66:5944/announce` — URLError: <urlopen error timed out>
 - `http://129.146.193.240:6699/announce` — URLError: <urlopen error timed out>
 - `http://13.115.115.32:6969/announce` — URLError: <urlopen error timed out>
-- `http://132.243.161.144:6969/announce` — URLError: <urlopen error timed out>
+- `http://132.243.161.144:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://1337.abcvg.info:443/announce` — HTTPError: HTTP Error 400: Bad Request
-- `http://138.124.183.78:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://138.199.241.244:80/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://138.124.183.78:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://138.199.241.244:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://139.202.228.28:6969/announce` — URLError: <urlopen error timed out>
 - `http://139.202.228.61:6969/announce` — URLError: <urlopen error timed out>
-- `http://139.202.229.106:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://139.202.230.226:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://139.202.229.106:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://139.202.230.226:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://139.202.230.63:6969/announce` — URLError: <urlopen error timed out>
-- `http://139.202.231.164:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://139.202.231.164:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://139.202.231.170:6969/announce` — URLError: <urlopen error timed out>
 - `http://139.202.231.176:6969/announce` — URLError: <urlopen error timed out>
 - `http://139.202.231.249:6969/announce` — URLError: <urlopen error timed out>
@@ -214,7 +214,7 @@
 - `http://144.76.118.107:6969/announce` — URLError: <urlopen error timed out>
 - `http://145.223.96.109:8000/announce` — URLError: <urlopen error timed out>
 - `http://147job.com:6969/announce` — URLError: <urlopen error timed out>
-- `http://148.252.75.241:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://148.252.75.241:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://15.204.239.175:6969/announce` — URLError: <urlopen error timed out>
 - `http://15.204.57.168:6969/announce` — URLError: <urlopen error timed out>
 - `http://151.115.49.115:1337/announce` — URLError: <urlopen error timed out>
@@ -225,60 +225,60 @@
 - `http://152.243.213.247:6969/announce` — URLError: <urlopen error timed out>
 - `http://152.249.214.198:6969/announce` — URLError: <urlopen error timed out>
 - `http://152.249.214.23:6969/announce` — URLError: <urlopen error timed out>
-- `http://152.249.214.53:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://152.249.214.68:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://152.249.214.53:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://152.249.214.68:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://152.249.214.74:6969/announce` — URLError: <urlopen error timed out>
 - `http://152.249.75.131:6969/announce` — URLError: <urlopen error timed out>
 - `http://152.249.97.159:6969/announce` — URLError: <urlopen error timed out>
 - `http://152.249.97.82:6969/announce` — URLError: <urlopen error timed out>
-- `http://152.53.194.103:2710/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://152.53.194.103:2710/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://152.67.8.255:6969/announce` — URLError: <urlopen error timed out>
-- `http://154.29.145.56:17715/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://155.248.200.105:80/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://154.29.145.56:17715/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://155.248.200.105:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://156.234.201.18:80/announce` — URLError: <urlopen error timed out>
 - `http://157.131.124.190:6969/announce` — URLError: <urlopen error timed out>
 - `http://157.7.202.64:8080/announce` — URLError: <urlopen error timed out>
 - `http://157.90.169.123:80/announce` — HTTPError: HTTP Error 404: Not Found
-- `http://158.101.137.177:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://158.101.137.177:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://158.69.146.212:7777/announce` — URLError: <urlopen error timed out>
 - `http://159.148.57.222:6969/announce` — HTTPError: HTTP Error 503: Service Unavailable
-- `http://159.195.43.181:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://159.195.43.181:80/announce` — URLError: <urlopen error [WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。>
+- `http://159.195.43.181:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://159.195.43.181:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://159.69.65.157:6969/announce` — URLError: <urlopen error timed out>
 - `http://160.251.231.187:6969/announce` — URLError: <urlopen error timed out>
 - `http://160.251.78.190:6969/announce` — URLError: <urlopen error timed out>
 - `http://163.172.209.40:80/announce` — URLError: <urlopen error timed out>
-- `http://163.172.29.130:80/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://163.172.29.130:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://167.235.245.209:80/announce` — HTTPError: HTTP Error 404: Not Found
 - `http://167.253.78.20:8080/announce` — URLError: <urlopen error timed out>
-- `http://171.104.110.193:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://171.104.110.21:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://171.104.110.88:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://171.104.110.193:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.110.21:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.110.88:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://171.104.110.95:6969/announce` — URLError: <urlopen error timed out>
-- `http://171.104.111.14:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://171.104.111.14:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://171.104.111.201:6969/announce` — URLError: <urlopen error timed out>
-- `http://171.104.111.20:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://171.104.111.20:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://171.104.111.250:6969/announce` — URLError: <urlopen error timed out>
-- `http://171.104.111.30:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://171.104.111.83:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://171.104.111.30:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.83:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://171.104.111.89:6969/announce` — URLError: <urlopen error timed out>
 - `http://171.104.226.15:6969/announce` — URLError: <urlopen error timed out>
 - `http://171.104.226.221:6969/announce` — URLError: <urlopen error timed out>
 - `http://171.104.226.25:6969/announce` — URLError: <urlopen error timed out>
 - `http://171.104.226.31:6969/announce` — URLError: <urlopen error timed out>
 - `http://171.104.226.87:6969/announce` — URLError: <urlopen error timed out>
-- `http://172.245.168.134:80/announce` — timeout
-- `http://173.254.204.71:1096/announce` — URLError: <urlopen error timed out>
-- `http://176.32.38.223:6961/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://172.245.168.134:80/announce` — invalid bencoded response
+- `http://173.254.204.71:1096/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://176.32.38.223:6961/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://177.112.215.129:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.112.215.131:6969/announce` — URLError: <urlopen error timed out>
-- `http://177.112.215.160:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://177.112.215.160:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://177.112.215.4:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.112.215.99:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.139.44.145:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.139.44.203:6969/announce` — URLError: <urlopen error timed out>
-- `http://177.139.44.78:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://177.139.46.160:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://177.139.44.78:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://177.139.46.160:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://177.139.47.105:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.139.47.18:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.139.47.236:6969/announce` — URLError: <urlopen error timed out>
@@ -309,17 +309,17 @@
 - `http://177.172.67.94:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.173.31.33:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.188.141.137:6969/announce` — URLError: <urlopen error timed out>
-- `http://177.188.141.175:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://177.188.141.175:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://177.188.141.28:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.188.141.32:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.215.65.114:6969/announce` — URLError: <urlopen error timed out>
-- `http://177.215.65.176:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://177.215.65.176:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://177.215.65.40:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.215.66.183:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.215.67.115:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.215.67.165:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.215.67.185:6969/announce` — URLError: <urlopen error timed out>
-- `http://177.215.67.242:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://177.215.67.242:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://177.27.223.184:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.27.223.186:6969/announce` — URLError: <urlopen error timed out>
 - `http://177.68.44.127:6969/announce` — URLError: <urlopen error timed out>
@@ -332,38 +332,38 @@
 - `http://179.118.133.224:6969/announce` — URLError: <urlopen error timed out>
 - `http://179.146.54.147:6969/announce` — URLError: <urlopen error timed out>
 - `http://179.146.54.238:6969/announce` — URLError: <urlopen error timed out>
-- `http://179.175.247.60:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://179.175.247.60:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://179.175.247.70:6969/announce` — URLError: <urlopen error timed out>
-- `http://179.175.247.98:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://179.175.247.98:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://179.98.254.109:6969/announce` — URLError: <urlopen error timed out>
-- `http://179.98.254.138:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://179.98.254.138:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://179.98.254.201:6969/announce` — URLError: <urlopen error timed out>
 - `http://179.98.254.95:6969/announce` — URLError: <urlopen error timed out>
 - `http://179.98.51.208:6969/announce` — URLError: <urlopen error timed out>
 - `http://179.98.51.248:6969/announce` — URLError: <urlopen error timed out>
 - `http://179.98.51.66:6969/announce` — URLError: <urlopen error timed out>
 - `http://180.112.57.159:6969/announce` — URLError: <urlopen error timed out>
-- `http://180.113.224.97:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://180.113.224.97:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://180.113.227.211:6969/announce` — URLError: <urlopen error timed out>
-- `http://180.113.232.20:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://180.114.103.80:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://180.113.232.20:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://180.114.103.80:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://180.139.151.58:6969/announce` — URLError: <urlopen error timed out>
 - `http://180.97.219.76:8070/announce` — URLError: <urlopen error timed out>
 - `http://181.214.58.63:6969/announce` — URLError: <urlopen error timed out>
 - `http://182.176.139.129:6969/announce` — URLError: <urlopen error timed out>
 - `http://184.61.17.58:9000/announce` — URLError: <urlopen error timed out>
-- `http://185.121.24.141:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://185.130.47.2:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://185.121.24.141:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://185.130.47.2:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://185.148.3.231:80/announce` — URLError: <urlopen error timed out>
 - `http://185.171.202.111:6969/announce` — URLError: <urlopen error timed out>
 - `http://185.185.40.51:6969/announce` — URLError: <urlopen error timed out>
 - `http://185.185.40.95:6969/announce` — URLError: <urlopen error timed out>
 - `http://185.197.195.20:1919/announce` — URLError: <urlopen error timed out>
-- `http://185.216.178.49:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://185.216.178.49:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://185.230.4.150:1337/announce` — URLError: <urlopen error timed out>
 - `http://185.232.169.109:80/announce` — URLError: <urlopen error timed out>
 - `http://185.5.97.139:8089/announce` — URLError: <urlopen error timed out>
-- `http://185.70.187.79:6969/announce` — URLError: <urlopen error timed out>
+- `http://185.70.187.79:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://185.83.215.123:6969/announce` — URLError: <urlopen error timed out>
 - `http://186.10.170.119:1337/announce` — URLError: <urlopen error timed out>
 - `http://186.10.170.186:1337/announce` — URLError: <urlopen error timed out>
@@ -376,14 +376,14 @@
 - `http://186.10.172.248:1337/announce` — URLError: <urlopen error timed out>
 - `http://187.10.24.160:6969/announce` — URLError: <urlopen error timed out>
 - `http://187.11.72.168:6969/announce` — URLError: <urlopen error timed out>
-- `http://187.11.72.188:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://187.11.72.188:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://187.11.72.236:6969/announce` — URLError: <urlopen error timed out>
 - `http://187.11.73.135:6969/announce` — URLError: <urlopen error timed out>
 - `http://187.11.73.178:6969/announce` — URLError: <urlopen error timed out>
 - `http://187.11.73.20:6969/announce` — URLError: <urlopen error timed out>
 - `http://187.11.73.213:6969/announce` — URLError: <urlopen error timed out>
-- `http://187.11.74.138:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
-- `http://187.11.75.160:6969/announce` — URLError: <urlopen error [WinError 10061] 由于目标计算机积极拒绝，无法连接。>
+- `http://187.11.74.138:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://187.11.75.160:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://187.11.75.17:6969/announce` — URLError: <urlopen error timed out>
 - `http://187.11.75.196:6969/announce` — URLError: <urlopen error timed out>
 - `http://187.11.75.60:6969/announce` — URLError: <urlopen error timed out>
@@ -424,28 +424,28 @@
 - `http://189.18.164.36:6969/announce` — URLError: <urlopen error timed out>
 - `http://189.18.96.199:6969/announce` — URLError: <urlopen error timed out>
 - `http://189.18.96.56:6969/announce` — URLError: <urlopen error timed out>
-- `http://bt1.archive.org:6969/announce` — URLError: <urlopen error timed out>
-- `http://bt2.archive.org:6969/announce` — URLError: <urlopen error timed out>
 - `http://torrentsmd.com:8080/announce` — HTTPError: HTTP Error 403: Forbidden
-- `http://tracker.23794.top:6969/announce` — timeout
-- `http://tracker1.itzmx.com:8080/announce` — timeout
+- `http://tracker.23794.top:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://www.wareztorrent.com:80/announce` — RemoteDisconnected: Remote end closed connection without response
-- `https://pybittrack.retiolus.net:443/announce` — URLError: <urlopen error [WinError 10054] 远程主机强迫关闭了一个现有的连接。>
-- `https://tr.abiir.top:443/announce` — URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1082)>
-- `https://tr.burnabyhighstar.com:443/announce` — URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'tr.burnabyhighstar.com'. (_ssl.c:1082)>
+- `https://tr.abiir.top:443/announce` — URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)>
+- `https://tr.burnabyhighstar.com:443/announce` — URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'tr.burnabyhighstar.com'. (_ssl.c:1010)>
 - `https://tracker.kuroy.me:443/announce` — HTTPError: HTTP Error 503: Service Unavailable
 - `https://tracker.pmman.tech:443/announce` — HTTPError: HTTP Error 404: Not Found
 - `https://tracker1.520.jp:443/announce` — HTTPError: HTTP Error 521: <none>
+- `udp://52.58.128.163:6969/announce` — no connect response
+- `udp://[2a03:7220:8083:cd00::1]:451/announce` — no connect response
+- `udp://[2a04:ac00:1:3dd8::1:2710]:2710/announce` — no connect response
 - `udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce` — no connect response
-- `udp://exodus.desync.com:6969/announce` — no connect response
 - `udp://ipv6.govt.hu:6969/announce` — no connect response
 - `udp://open.tracker.ink:6969/announce` — no connect response
 - `udp://opentor.org:2710/announce` — no connect response
 - `udp://p4p.arenabg.com:1337/announce` — no connect response
 - `udp://retracker.hotplug.ru:2710/announce` — no connect response
-- `udp://tracker.004430.xyz:1337/announce` — no connect response
 - `udp://tracker.filemail.com:6969/announce` — no connect response
-- `udp://tracker.k.vu:6969/announce` — no connect response
+- `udp://tracker.flatuslifir.is:6969/announce` — no connect response
 - `udp://tracker.skyts.net:6969/announce` — no connect response
 - `udp://tracker.yume-hatsuyuki.moe:6969/announce` — no connect response
 - `udp://tracker1.itzmx.com:8080/announce` — no connect response
+- `udp://tracker2.itzmx.com:6961/announce` — no connect response
+- `udp://tracker3.itzmx.com:6961/announce` — no connect response
+- `udp://tracker4.itzmx.com:2710/announce` — no connect response
