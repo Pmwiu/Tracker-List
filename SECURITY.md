@@ -18,7 +18,7 @@
 ## 供应链与攻击面
 
 - 工作流**仅由定时计划（schedule）和手动触发（workflow_dispatch）运行**，不监听 `pull_request` 事件，因此来自 Fork 的外部 Pull Request **无法触发**本仓库工作流
-- 工作流设置了最大运行时长（`timeout-minutes: 15`），防止失控
+- 工作流设置了最大运行时长（`timeout-minutes`），防止失控
 - 第三方 Actions 固定使用官方主版本标签（`actions/checkout@v4`、`actions/setup-python@v5`）
 
 ## 功能收敛
@@ -31,7 +31,7 @@
 
 ## 订阅安全建议
 
-推荐订阅经过协议级活性测试的存活列表：
+推荐订阅经过协议级活性测试的存活列表，避免连接失效或不可信节点：
 
 ```
 https://pmwiu.github.io/Tracker-List/s/alive
