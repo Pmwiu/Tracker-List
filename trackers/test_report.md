@@ -1,57 +1,56 @@
 # Tracker 活性测试 + 综合评分排序报告
 
-- 测试时间: 2026-09-29 08:35:32 UTC
+- 测试时间: 2026-09-29 08:44:23 UTC
 - 总 Tracker 数: 500
-- 存活 (alive): **94** (18%)
-- 失效 (dead): **406**
+- 存活 (alive): **96** (19%)
+- 失效 (dead): **404**
 - 不安全 (unsafe): **0**
 - 无法测试 (untestable): 0
 - 低速淘汰 (low-speed >5s): 0
-- 同 IP 去重 (kept faster): 25
-- 综合评分后保留前 25 个，淘汰 44 个
-- 耗时: 115.8 秒
+- 同 IP 去重 (kept faster): 26
+- 综合评分后保留前 25 个，淘汰 45 个
+- 耗时: 121.4 秒
 
 ## 协议分布
 
-- udp: 49
-- http: 32
+- udp: 50
+- http: 33
 - https: 12
 - wss: 1
 
 ## 最终订阅列表（前 25 个，按综合评分降序）
 
-1. `udp://open.ftorrent.com:443/announce` — score=91.4, 28ms, 连续5天
-2. `udp://tracker.wildkat.net:6969/announce` — score=91.4, 47ms, 连续5天
-3. `udp://tracker.torrents.observer:80/announce` — score=88.0, 143ms, 连续5天
-4. `udp://tracker.nyaa.vc:6969/announce` — score=88.0, 144ms, 连续5天
-5. `udp://tracker.teambelgium.net:6969/announce` — score=87.7, 148ms, 连续5天
-6. `udp://martin-gebhardt.eu:25/announce` — score=87.6, 149ms, 连续5天
-7. `udp://rekcart.duckdns.org:15480/announce` — score=87.6, 150ms, 连续5天
-8. `udp://tracker.ducks.party:1984/announce` — score=87.3, 153ms, 连续5天
-9. `udp://open.stealth.si:80/announce` — score=87.3, 154ms, 连续5天
-10. `wss://tracker.openwebtorrent.com:443/announce` — score=87.1, 7ms, 连续4天
-11. `https://t.213891.xyz:443/announce` — score=87.1, 14ms, 连续4天
-12. `https://1.tracker.eu.org:443/announce` — score=87.1, 17ms, 连续4天
-13. `udp://tracker.004430.xyz:1337/announce` — score=87.1, 49ms, 连续4天
-14. `udp://evan.im:6969/announce` — score=87.1, 64ms, 连续4天
-15. `udp://tr4ck3r.duckdns.org:6969/announce` — score=87.1, 68ms, 连续4天
-16. `udp://ns575949.ip-51-222-82.net:6969/announce` — score=87.1, 69ms, 连续4天
-17. `http://004430.xyz:80/announce` — score=87.1, 75ms, 连续4天
-18. `https://tracker.nekomi.cn:443/announce` — score=87.1, 82ms, 连续4天
-19. `http://tracker.renfei.net:8080/announce` — score=81.5, 172ms, 连续4天
-20. `udp://exodus.desync.com:6969/announce` — score=74.3, 4ms, 连续1天
-21. `http://207.241.226.111:6969/announce` — score=74.3, 6ms, 连续1天
-22. `http://207.241.231.226:6969/announce` — score=74.3, 9ms, 连续1天
-23. `udp://explodie.org:6969/announce` — score=74.3, 34ms, 连续1天
-24. `udp://seedpeer.net:6969/announce` — score=70.0, 16ms, 连续0天
-25. `udp://tracker.bittor.pw:1337/announce` — score=70.0, 45ms, 连续0天
+1. `udp://tracker.wildkat.net:6969/announce` — score=95.7, 11ms, 连续6天
+2. `udp://open.ftorrent.com:443/announce` — score=95.7, 20ms, 连续6天
+3. `udp://tracker.nyaa.vc:6969/announce` — score=95.6, 102ms, 连续6天
+4. `udp://martin-gebhardt.eu:25/announce` — score=94.4, 117ms, 连续6天
+5. `udp://tracker.torrents.observer:80/announce` — score=94.3, 118ms, 连续6天
+6. `udp://rekcart.duckdns.org:15480/announce` — score=94.3, 118ms, 连续6天
+7. `udp://tracker.teambelgium.net:6969/announce` — score=94.1, 120ms, 连续6天
+8. `udp://tracker.ducks.party:1984/announce` — score=94.0, 122ms, 连续6天
+9. `udp://open.stealth.si:80/announce` — score=94.0, 123ms, 连续6天
+10. `udp://tracker.004430.xyz:1337/announce` — score=91.4, 10ms, 连续5天
+11. `wss://tracker.openwebtorrent.com:443/announce` — score=91.4, 19ms, 连续5天
+12. `udp://evan.im:6969/announce` — score=91.4, 27ms, 连续5天
+13. `udp://ns575949.ip-51-222-82.net:6969/announce` — score=91.4, 32ms, 连续5天
+14. `http://004430.xyz:80/announce` — score=91.4, 34ms, 连续5天
+15. `udp://tr4ck3r.duckdns.org:6969/announce` — score=91.4, 42ms, 连续5天
+16. `https://t.213891.xyz:443/announce` — score=91.4, 47ms, 连续5天
+17. `https://tracker.nekomi.cn:443/announce` — score=91.4, 48ms, 连续5天
+18. `https://1.tracker.eu.org:443/announce` — score=91.4, 49ms, 连续5天
+19. `http://tracker.renfei.net:8080/announce` — score=91.4, 84ms, 连续5天
+20. `udp://explodie.org:6969/announce` — score=78.6, 53ms, 连续2天
+21. `http://207.241.226.111:6969/announce` — score=78.6, 78ms, 连续2天
+22. `http://207.241.231.226:6969/announce` — score=78.6, 89ms, 连续2天
+23. `udp://seedpeer.net:6969/announce` — score=74.3, 72ms, 连续1天
+24. `udp://tracker.corpscorp.online:80/announce` — score=70.0, 19ms, 连续0天
+25. `udp://yuptracker-eu.gaijinent.com:27022/announce` — score=70.0, 99ms, 连续0天
 
 ## 失效 Tracker
 
 - `http://00.alarmasqueretaro.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://00.mercax.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://00.xxtor.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
-- `http://0123456789nonexistent.com:80/announce` — ConnectionResetError: [Errno 104] Connection reset by peer
 - `http://0205.uptm.ch:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://0d.kebhana.mx:443/announce` — timeout
 - `http://0x7c.space:7070/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
@@ -176,7 +175,7 @@
 - `http://123.245.62.68:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.69:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.72:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
-- `http://123.245.62.74:6969/announce` — URLError: <urlopen error timed out>
+- `http://123.245.62.74:6969/announce` — timeout
 - `http://123.245.62.75:6969/announce` — URLError: <urlopen error timed out>
 - `http://123.245.62.7:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
 - `http://123.245.62.80:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
@@ -427,20 +426,18 @@
 - `http://189.18.96.199:6969/announce` — URLError: <urlopen error timed out>
 - `http://189.18.96.56:6969/announce` — URLError: <urlopen error timed out>
 - `http://torrentsmd.com:8080/announce` — HTTPError: HTTP Error 403: Forbidden
-- `http://tracker.23794.top:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `http://tracker.23794.top:6969/announce` — timeout
 - `http://www.wareztorrent.com:80/announce` — RemoteDisconnected: Remote end closed connection without response
 - `https://pybittrack.retiolus.net:443/announce` — timeout
 - `https://tr.abiir.top:443/announce` — URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)>
 - `https://tr.burnabyhighstar.com:443/announce` — URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'tr.burnabyhighstar.com'. (_ssl.c:1010)>
-- `https://tracker.kuroy.me:443/announce` — HTTPError: HTTP Error 503: Service Unavailable
+- `https://tracker.kuroy.me:443/announce` — timeout
 - `https://tracker.pmman.tech:443/announce` — HTTPError: HTTP Error 404: Not Found
 - `https://tracker1.520.jp:443/announce` — HTTPError: HTTP Error 521: <none>
-- `udp://52.58.128.163:6969/announce` — no connect response
 - `udp://[2a03:7220:8083:cd00::1]:451/announce` — no connect response
 - `udp://[2a04:ac00:1:3dd8::1:2710]:2710/announce` — no connect response
-- `udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce` — no connect response
+- `udp://exodus.desync.com:6969/announce` — no connect response
 - `udp://ipv6.govt.hu:6969/announce` — no connect response
-- `udp://open.demonii.com:1337/announce` — no connect response
 - `udp://open.tracker.ink:6969/announce` — no connect response
 - `udp://opentor.org:2710/announce` — no connect response
 - `udp://p4p.arenabg.com:1337/announce` — no connect response
@@ -454,16 +451,16 @@
 - `udp://tracker2.itzmx.com:6961/announce` — no connect response
 - `udp://tracker3.itzmx.com:6961/announce` — no connect response
 - `udp://tracker4.itzmx.com:2710/announce` — no connect response
+- `udp://v2.iperson.xyz:6969/announce` — no connect response
 
 ## 同 IP 去重（保留响应最快）
 
+- `http://0123456789nonexistent.com:80/announce`
 - `http://107.189.2.131:1337/announce`
-- `http://1337.abcvg.info:80/announce`
 - `http://135.125.198.235:2710/announce`
 - `http://135.125.198.235:80/announce`
 - `http://140.235.237.23:6969/announce`
 - `http://177.188.141.75:6969/announce`
-- `http://185.126.65.92:6969/announce`
 - `http://announce.sktorrent.eu:6969/announce`
 - `http://bt1.archive.org:6969/announce`
 - `http://bt2.archive.org:6969/announce`
@@ -472,13 +469,15 @@
 - `http://t.overflow.biz:6969/announce`
 - `http://tracker.dler.com:6969/announce`
 - `http://tracker.dler.org:6969/announce`
+- `http://tracker.mywaifu.best:6969/announce`
 - `http://tracker.opentrackr.org:1337/announce`
 - `http://tracker.qu.ax:6969/announce`
 - `http://tracker2.dler.org:80/announce`
 - `https://004430.xyz:443/announce`
+- `https://1337.abcvg.info:443/announce`
 - `https://open.ftorrent.com:443/announce`
 - `https://tr.nyacat.pw:443/announce`
 - `udp://93.158.213.92:6969/announce`
-- `udp://tracker.corpscorp.online:80/announce`
-- `udp://tracker.dler.org:6969/announce`
+- `udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce`
+- `udp://tracker.bittor.pw:1337/announce`
 - `udp://tracker.qu.ax:6969/announce`
