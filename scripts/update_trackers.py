@@ -14,7 +14,7 @@
   - 下载内容校验（拒绝非 tracker 内容）
   - 原子写入（临时文件 + rename，防止中途崩溃损坏文件）
   - 文件锁防止并发运行
-  - 仅保留 GitHub Raw 直链与 Pages 短链接，无 CDN/代理加速链接
+  - 短链接与直链均使用 github.io，规避 DNS 污染
   - 纯文本 .txt 直链供 BT 客户端直接订阅
 """
 
@@ -43,22 +43,22 @@ SOURCES = [
 MAX_TRACKERS = 25
 
 MIRRORS = [
-    ("GitHub Raw", "https://raw.githubusercontent.com/{repo}/main/trackers/{file}"),
+    ("GitHub Pages", "https://pmwiu.github.io/{repo}/merged.txt"),
 ]
 
 SHORT_LINKS = [
     ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_alive.txt"),
+     "https://pmwiu.github.io/{repo}/alive.txt"),
     ("xiu2", "订阅源", "XIU2 TrackersListCollection all",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_xiu2.txt"),
+     "https://pmwiu.github.io/{repo}/xiu2.txt"),
     ("adysec", "订阅源", "adysec trackers_all",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_adysec.txt"),
+     "https://pmwiu.github.io/{repo}/adysec.txt"),
     ("ngosang", "订阅源", "ngosang trackers_all",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_ngosang.txt"),
+     "https://pmwiu.github.io/{repo}/ngosang.txt"),
     ("newtrackon", "订阅源", "newtrackon live",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_newtrackon.txt"),
+     "https://pmwiu.github.io/{repo}/newtrackon.txt"),
     ("all", "合并总表", "合并去重总表",
-     "https://raw.githubusercontent.com/{repo}/main/trackers/trackers_merged.txt"),
+     "https://pmwiu.github.io/{repo}/merged.txt"),
 ]
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -289,7 +289,7 @@ def write_mirrors_file(repo):
     lines = [
         "# Tracker 订阅地址清单",
         f"# Generated: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC",
-        "# 仅保留 GitHub Raw 直连，无 CDN/代理加速链接",
+        "# 短链接与直链均使用 github.io，规避 DNS 污染",
         "",
     ]
     for name, template in MIRRORS:
