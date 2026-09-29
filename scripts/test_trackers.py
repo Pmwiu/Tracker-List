@@ -582,6 +582,29 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
 # ============================================================
 # 主流程
 # ============================================================
+def daily_backup_alive():
+    """把 trackers_alive.txt 按日期备份到 trackers/backup/，保留7天。"""
+    src = os.path.join(ut.OUTPUT_DIR, ut.ALIVE_FILE)
+    if not os.path.exists(src):
+        return
+    backup_dir = os.path.join(ut.OUTPUT_DIR, "backup")
+    os.makedirs(backup_dir, exist_ok=True)
+    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
+    dst = os.path.join(backup_dir, f"trackers_alive_{today}.txt")
+    with open(src, "r", encoding="utf-8") as f:
+        content = f.read()
+    ut.atomic_write(dst, content)
+    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
+    for fn in os.listdir(backup_dir):
+        if fn.startswith("trackers_alive_") and fn.endswith(".txt"):
+            try:
+                d = datetime.datetime.strptime(fn[len("trackers_alive_"):-4], "%Y%m%d").replace(tzinfo=datetime.timezone.utc)
+                if d < cutoff:
+                    os.remove(os.path.join(backup_dir, fn))
+            except ValueError:
+                pass
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', type=int, default=10)
@@ -752,8 +775,13 @@ def main():
     print(f'  Same-IP dedup:  {len(same_ip_removed)} (kept faster)')
     print(f'  Dead final:     {n_dead}')
     print(f'  Time:           {total_elapsed:.1f}s')
-    print(f'  Protocols:      {protocol_stats}')
+    print('=== 协议分布统计 ===')
+    for proto in ('http', 'https', 'udp', 'wss', 'ws'):
+        print(f'  {proto.upper():<6}: {protocol_stats.get(proto, 0)} 个')
+    print(f'  总计: {sum(protocol_stats.values())} 个（存活）')
     print('=========================')
+
+    daily_backup_alive()
 
     # 重新生成主页
     repo = ut.get_repo()
