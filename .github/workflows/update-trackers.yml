@@ -2,9 +2,16 @@ name: Auto Update Trackers
 
 on:
   schedule:
+    # 每天 UTC 00:00 运行（北京时间 08:00）
     - cron: "0 0 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-trackers.yml'
+      - 'scripts/**'
 
+# 防止并发运行：同一时间只允许一个实例，新的取消旧的
 concurrency:
   group: tracker-update
   cancel-in-progress: false
@@ -32,23 +39,28 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # 当前无外部依赖，预留位置
           echo "No external dependencies required"
 
+      # 步骤 1：下载源列表、合并去重
       - name: Download, merge and deduplicate trackers
         id: download
         run: |
           python scripts/update_trackers.py
           echo "exit_code=$?" >> $GITHUB_OUTPUT
 
+      # 步骤 2：协议级活性测试 + 综合评分排序
       - name: Test tracker liveness and score ranking
         id: test
         run: |
           python scripts/test_trackers.py --timeout 10 --workers 30
           echo "exit_code=$?" >> $GITHUB_OUTPUT
 
+      # 步骤 3：本地健康检查（跳过网络，因为后面单独做）
       - name: Local health check
         run: python scripts/health_check.py --rounds 1 --skip-net
 
+      # 步骤 4：检测变更
       - name: Check for changes
         id: git-check
         run: |
@@ -60,6 +72,7 @@ jobs:
             echo "Changes detected."
           fi
 
+      # 步骤 5：提交推送
       - name: Commit and push changes
         if: steps.git-check.outputs.changed == 'true'
         run: |
@@ -69,9 +82,10 @@ jobs:
           git commit -m "chore: auto-update trackers $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
 
+      # 步骤 6：推送后网络健康检查（3轮）
       - name: Post-push health check
         if: steps.git-check.outputs.changed == 'true'
         run: |
-          sleep 5
+          sleep 5  # 等待 Pages 部署
           python scripts/health_check.py --rounds 3 --interval 5
         continue-on-error: true
