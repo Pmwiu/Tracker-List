@@ -136,17 +136,19 @@ jobs:
           python scripts/health_check.py --rounds 3 --interval 5 2>&1 | tee -a diag.log
         continue-on-error: true
 
-      # 总是运行：把诊断日志回传到 GitHub Issue（无法下载日志时用于排查）
-      - name: Report diagnostics to issue
+      # 总是运行：把诊断日志持久化到仓库文件（可靠，便于无法下载日志时排查）
+      - name: Persist diagnostics to repo
         if: always()
         continue-on-error: true
         run: |
           echo "=== End of diagnostics ($(date -u)) ===" >> diag.log
-          set -x
-          ISSUE_NUM=$(gh issue list --search "CI Diagnostics in:title" --state open --limit 1 --json number --jq '.[0].number' 2>/dev/null || true)
-          echo "Found issue number: '$ISSUE_NUM'"
-          if [ -n "$ISSUE_NUM" ]; then
-            gh issue edit "$ISSUE_NUM" --body-file diag.log
-          else
-            gh issue create --title "CI Diagnostics" --body-file diag.log
-          fi
+          cp diag.log docs/ci-diag.md
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/ci-diag.md
+          git commit -m "ci: persist diagnostics report" || true
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "${GITHUB_REF_NAME}" && break
+            echo "retry push $i..."
+            sleep 3
+          done
