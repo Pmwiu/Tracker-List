@@ -1,48 +1,48 @@
 # Tracker 活性测试 + 综合评分排序报告
 
-- 测试时间: 2026-09-29 03:38:46 UTC
+- 测试时间: 2026-09-29 04:06:27 UTC
 - 总 Tracker 数: 500
-- 存活 (alive): **96** (19%)
-- 失效 (dead): **404**
+- 存活 (alive): **97** (19%)
+- 失效 (dead): **403**
 - 不安全 (unsafe): **0**
 - 无法测试 (untestable): 0
-- 综合评分后保留前 25 个，淘汰 71 个
-- 耗时: 118.9 秒
+- 综合评分后保留前 25 个，淘汰 72 个
+- 耗时: 124.2 秒
 
 ## 协议分布
 
 - udp: 51
 - http: 32
-- https: 12
+- https: 13
 - wss: 1
 
 ## 最终订阅列表（前 25 个，按综合评分降序）
 
-1. `udp://anime-tracker.aruku.kro.kr:8081/announce` — score=84.1, 139ms, 连续4天
-2. `udp://tracker2.dler.org:80/announce` — score=83.9, 142ms, 连续4天
-3. `udp://tracker.dler.org:6969/announce` — score=83.9, 142ms, 连续4天
-4. `udp://tracker.dler.com:6969/announce` — score=83.7, 144ms, 连续4天
-5. `udp://tracker.cn.nyaa.net:6969/announce` — score=83.0, 154ms, 连续4天
-6. `udp://tracker.gmi.gd:6969/announce` — score=82.9, 15ms, 连续3天
-7. `udp://exodus.desync.com:6969/announce` — score=82.9, 23ms, 连续3天
-8. `udp://explodie.org:6969/announce` — score=82.9, 28ms, 连续3天
-9. `udp://seedpeer.net:6969/announce` — score=82.9, 32ms, 连续3天
-10. `http://207.241.226.111:6969/announce` — score=82.9, 34ms, 连续3天
-11. `udp://open.ftorrent.com:443/announce` — score=82.9, 36ms, 连续3天
-12. `http://bt2.archive.org:6969/announce` — score=82.9, 45ms, 连续3天
-13. `http://207.241.231.226:6969/announce` — score=82.9, 45ms, 连续3天
-14. `https://1.tracker.eu.org:443/announce` — score=82.9, 48ms, 连续3天
-15. `udp://tracker.004430.xyz:1337/announce` — score=82.9, 48ms, 连续3天
-16. `udp://evan.im:6969/announce` — score=82.9, 50ms, 连续3天
-17. `udp://tracker.corpscorp.online:80/announce` — score=82.9, 53ms, 连续3天
-18. `udp://tracker.bittor.pw:1337/announce` — score=82.9, 54ms, 连续3天
-19. `udp://tracker.wildkat.net:6969/announce` — score=82.9, 56ms, 连续3天
-20. `udp://ns575949.ip-51-222-82.net:6969/announce` — score=82.9, 72ms, 连续3天
-21. `udp://tr4ck3r.duckdns.org:6969/announce` — score=82.9, 73ms, 连续3天
-22. `http://004430.xyz:80/announce` — score=82.9, 94ms, 连续3天
-23. `wss://tracker.openwebtorrent.com:443/announce` — score=82.9, 98ms, 连续3天
-24. `https://t.213891.xyz:443/announce` — score=73.0, 226ms, 连续3天
-25. `http://bt1.archive.org:6969/announce` — score=70.0, 40ms, 连续0天
+1. `udp://anime-tracker.aruku.kro.kr:8081/announce` — score=88.1, 143ms, 连续5天
+2. `udp://tracker2.dler.org:80/announce` — score=87.4, 152ms, 连续5天
+3. `udp://tracker.dler.com:6969/announce` — score=87.4, 152ms, 连续5天
+4. `udp://tracker.dler.org:6969/announce` — score=87.4, 152ms, 连续5天
+5. `udp://open.ftorrent.com:443/announce` — score=87.1, 6ms, 连续4天
+6. `udp://tracker.wildkat.net:6969/announce` — score=87.1, 26ms, 连续4天
+7. `udp://tracker.bittor.pw:1337/announce` — score=87.1, 31ms, 连续4天
+8. `udp://tracker.corpscorp.online:80/announce` — score=87.1, 31ms, 连续4天
+9. `udp://tracker.004430.xyz:1337/announce` — score=87.1, 33ms, 连续4天
+10. `udp://evan.im:6969/announce` — score=87.1, 37ms, 连续4天
+11. `udp://tracker.gmi.gd:6969/announce` — score=87.1, 39ms, 连续4天
+12. `udp://exodus.desync.com:6969/announce` — score=87.1, 43ms, 连续4天
+13. `udp://ns575949.ip-51-222-82.net:6969/announce` — score=87.1, 44ms, 连续4天
+14. `udp://tr4ck3r.duckdns.org:6969/announce` — score=87.1, 46ms, 连续4天
+15. `http://207.241.226.111:6969/announce` — score=87.1, 51ms, 连续4天
+16. `udp://explodie.org:6969/announce` — score=87.1, 54ms, 连续4天
+17. `udp://seedpeer.net:6969/announce` — score=87.1, 72ms, 连续4天
+18. `http://207.241.231.226:6969/announce` — score=87.1, 87ms, 连续4天
+19. `wss://tracker.openwebtorrent.com:443/announce` — score=86.6, 107ms, 连续4天
+20. `udp://tracker.cn.nyaa.net:6969/announce` — score=86.5, 164ms, 连续5天
+21. `http://bt2.archive.org:6969/announce` — score=86.2, 112ms, 连续4天
+22. `http://004430.xyz:80/announce` — score=82.8, 156ms, 连续4天
+23. `https://t.213891.xyz:443/announce` — score=82.1, 164ms, 连续4天
+24. `https://1.tracker.eu.org:443/announce` — score=80.8, 181ms, 连续4天
+25. `http://bt1.archive.org:6969/announce` — score=74.3, 79ms, 连续1天
 
 ## 失效 Tracker
 
@@ -426,7 +426,6 @@
 - `http://tracker.ipv6tracker.ru:80/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://wegkxfcivgx.ydns.eu:80/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://www.wareztorrent.com:80/announce` — RemoteDisconnected: Remote end closed connection without response
-- `https://pybittrack.retiolus.net:443/announce` — timeout
 - `https://tr.abiir.top:443/announce` — URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)>
 - `https://tr.burnabyhighstar.com:443/announce` — URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'tr.burnabyhighstar.com'. (_ssl.c:1010)>
 - `https://tracker.kuroy.me:443/announce` — timeout
@@ -435,7 +434,6 @@
 - `udp://52.58.128.163:6969/announce` — no connect response
 - `udp://[2a03:7220:8083:cd00::1]:451/announce` — no connect response
 - `udp://[2a04:ac00:1:3dd8::1:2710]:2710/announce` — no connect response
-- `udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce` — no connect response
 - `udp://ipv6.govt.hu:6969/announce` — no connect response
 - `udp://open.tracker.ink:6969/announce` — no connect response
 - `udp://opentor.org:2710/announce` — no connect response
@@ -444,6 +442,7 @@
 - `udp://tr3.ysagin.top:2715/announce` — no connect response
 - `udp://tracker.flatuslifir.is:6969/announce` — no connect response
 - `udp://tracker.skyts.net:6969/announce` — no connect response
+- `udp://tracker.torrents.observer:80/announce` — no connect response
 - `udp://tracker.yume-hatsuyuki.moe:6969/announce` — no connect response
 - `udp://tracker1.itzmx.com:8080/announce` — no connect response
 - `udp://tracker2.itzmx.com:6961/announce` — no connect response
