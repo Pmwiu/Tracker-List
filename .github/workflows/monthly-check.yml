@@ -1,0 +1,24 @@
+name: Monthly Subscription Check
+
+on:
+  schedule:
+    # 每月 1 日 05:00 UTC
+    - cron: "0 5 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run subscription health check
+        run: python scripts/health_check.py --rounds 1

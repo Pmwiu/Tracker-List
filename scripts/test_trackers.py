@@ -153,6 +153,13 @@ def is_safe_tracker(tracker_url):
 # ============================================================
 # HTTP / HTTPS 测试
 # ============================================================
+class _LimitedRedirectHandler(urllib.request.HTTPRedirectHandler):
+    max_redirections = 3
+
+
+_http_opener = urllib.request.build_opener(_LimitedRedirectHandler())
+
+
 def test_http(tracker_url, timeout):
     info_hash, peer_id = make_identity()
     query = (
@@ -169,7 +176,7 @@ def test_http(tracker_url, timeout):
     )
 
     start = time.time()
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
+    with _http_opener.open(req, timeout=timeout) as resp:
         data = resp.read()
     elapsed = (time.time() - start) * 1000
 
@@ -330,7 +337,7 @@ def test_one(tracker, timeout):
 
         if scheme == 'udp':
             if port is None:
-                port = 6969
+                return tracker, 'dead', 'missing port', 0.0
             ok, elapsed, detail = test_udp(host, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
 

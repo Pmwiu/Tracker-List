@@ -226,16 +226,21 @@ def check_url_format(results):
 
 
 def check_raw_mirrors(results):
-    """检查 GitHub Raw 直链可达性。"""
+    """检查 GitHub Raw 直链可达性，并校验 alive ≤ MAX_ALIVE、merged 非空。"""
     urls = [
-        ("alive (Raw)", f"{RAW_BASE}/trackers/trackers_alive.txt"),
-        ("merged (Raw)", f"{RAW_BASE}/trackers/trackers_merged.txt"),
+        ("alive (Raw)", f"{RAW_BASE}/trackers/trackers_alive.txt", "alive"),
+        ("merged (Raw)", f"{RAW_BASE}/trackers/trackers_merged.txt", "merged"),
     ]
-    for name, url in urls:
+    for name, url, kind in urls:
         ok, content, status = fetch_url(url)
         if ok:
             count = count_trackers_in_text(content)
-            results.append(("PASS", f"Raw: {name}", f"HTTP {status}, {count} trackers"))
+            if kind == "alive" and count > MAX_ALIVE:
+                results.append(("FAIL", f"Raw: {name}", f"{count} > {MAX_ALIVE}"))
+            elif kind == "merged" and count <= 0:
+                results.append(("FAIL", f"Raw: {name}", f"{count} trackers (empty)"))
+            else:
+                results.append(("PASS", f"Raw: {name}", f"HTTP {status}, {count} trackers"))
         else:
             results.append(("WARN", f"Raw: {name}", f"unreachable: {content[:80]}"))
 
