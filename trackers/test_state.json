@@ -1,5 +1,6 @@
 {
   "alive_history": [
+<<<<<<< HEAD
     "udp://evan.im:6969/announce",
     "wss://tracker.openwebtorrent.com:443/announce",
     "udp://tr4ck3r.duckdns.org:6969/announce",
@@ -21,12 +22,39 @@
     "udp://rekcart.duckdns.org:15480/announce",
     "udp://explodie.org:6969/announce",
     "http://207.241.226.111:6969/announce",
+=======
+    "http://211.75.210.221:80/announce",
+    "http://211.75.205.188:80/announce",
+    "http://211.75.205.187:80/announce",
+    "http://211.75.205.189:80/announce",
+    "http://60.249.37.20:80/announce",
+    "http://94.23.207.177:6969/announce",
+    "http://004430.xyz:80/announce",
+    "http://135.125.198.235:2710/announce",
+    "http://nyaa.tracker.wf:7777/announce",
+    "http://bt02.nnm-club.info:2710/announce",
+    "http://93.158.213.92:1337/announce",
+    "http://ehtracker.org:80/1104308/announce",
+    "http://1337.abcvg.info:80/announce",
+    "http://37.120.182.83:2710/announce",
+    "http://43.250.54.126:6969/announce",
+    "http://bt.zlofenix.org:81/announce",
+    "http://open.touki.ru:80/announce",
+    "http://open.demonii.si:80/announce",
+    "http://bittorrent.kali.org:80/announce",
+    "http://bt02.nnm-club.cc:2710/announce",
+    "http://140.235.237.23:6969/announce",
+    "http://31.38.161.123:6969/announce",
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)
     "http://207.241.231.226:6969/announce",
-    "udp://seedpeer.net:6969/announce",
-    "udp://tracker.corpscorp.online:80/announce",
-    "udp://yuptracker-eu.gaijinent.com:27022/announce"
+    "http://bttracker.debian.org:6969/announce",
+    "http://177.188.141.75:6969/announce",
+    "http://bt.beatrice-raws.org:80/announce",
+    "http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce",
+    "http://185.126.65.92:6969/announce"
   ],
   "consecutive_alive": {
+<<<<<<< HEAD
     "udp://evan.im:6969/announce": 8,
     "wss://tracker.openwebtorrent.com:443/announce": 8,
     "udp://tr4ck3r.duckdns.org:6969/announce": 8,
@@ -54,4 +82,36 @@
     "udp://yuptracker-eu.gaijinent.com:27022/announce": 3
   },
   "last_update": "2026-09-29T09:00:13.814441+00:00"
+=======
+    "http://211.75.210.221:80/announce": 1,
+    "http://211.75.205.188:80/announce": 1,
+    "http://211.75.205.187:80/announce": 1,
+    "http://211.75.205.189:80/announce": 1,
+    "http://60.249.37.20:80/announce": 1,
+    "http://94.23.207.177:6969/announce": 1,
+    "http://004430.xyz:80/announce": 1,
+    "http://135.125.198.235:2710/announce": 1,
+    "http://nyaa.tracker.wf:7777/announce": 1,
+    "http://bt02.nnm-club.info:2710/announce": 1,
+    "http://93.158.213.92:1337/announce": 1,
+    "http://ehtracker.org:80/1104308/announce": 1,
+    "http://1337.abcvg.info:80/announce": 1,
+    "http://37.120.182.83:2710/announce": 1,
+    "http://43.250.54.126:6969/announce": 1,
+    "http://bt.zlofenix.org:81/announce": 1,
+    "http://open.touki.ru:80/announce": 1,
+    "http://open.demonii.si:80/announce": 1,
+    "http://bittorrent.kali.org:80/announce": 1,
+    "http://bt02.nnm-club.cc:2710/announce": 1,
+    "http://140.235.237.23:6969/announce": 1,
+    "http://31.38.161.123:6969/announce": 1,
+    "http://207.241.231.226:6969/announce": 1,
+    "http://bttracker.debian.org:6969/announce": 1,
+    "http://177.188.141.75:6969/announce": 1,
+    "http://bt.beatrice-raws.org:80/announce": 1,
+    "http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce": 1,
+    "http://185.126.65.92:6969/announce": 1
+  },
+  "last_update": "2026-09-29T11:39:47.119876+00:00"
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)
 }

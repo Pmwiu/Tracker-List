@@ -1,7 +1,11 @@
 {
+<<<<<<< HEAD
   "timestamp": "2026-09-29 09:00:13 UTC",
+=======
+  "timestamp": "2026-09-29 11:39:47 UTC",
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)
   "rounds": 1,
-  "pass": 28,
+  "pass": 43,
   "warn": 0,
   "fail": 0,
   "status": "healthy"

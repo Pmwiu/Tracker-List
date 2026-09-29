@@ -1,5 +1,6 @@
 # Tracker 活性测试 + 综合评分排序报告
 
+<<<<<<< HEAD
 - 测试时间: 2026-09-29 09:00:13 UTC
 - 总 Tracker 数: 500
 - 存活 (alive): **98** (19%)
@@ -17,9 +18,26 @@
 - http: 33
 - https: 13
 - wss: 1
+=======
+- 测试时间: 2026-09-29 11:39:47 UTC
+- 总 Tracker 数: 60
+- 存活 (alive): **45** (75%)
+- 失效 (dead): **15**
+- 不安全 (unsafe): **0**
+- 无法测试 (untestable): 0
+- 低速淘汰 (low-speed >5s): 0
+- 同 IP 去重 (kept faster): 17
+- 综合评分后保留前 59 个，淘汰 0 个
+- 耗时: 8.4 秒
 
-## 最终订阅列表（前 25 个，按综合评分降序）
+## 协议分布
 
+- http: 45
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)
+
+## 最终订阅列表（前 59 个，按综合评分降序）
+
+<<<<<<< HEAD
 1. `udp://evan.im:6969/announce` — score=100.0, 6ms, 连续7天
 2. `wss://tracker.openwebtorrent.com:443/announce` — score=100.0, 16ms, 连续7天
 3. `udp://tr4ck3r.duckdns.org:6969/announce` — score=100.0, 20ms, 连续7天
@@ -459,9 +477,66 @@
 ## 同 IP 去重（保留响应最快）
 
 - `http://135.125.198.235:2710/announce`
+=======
+1. `http://211.75.210.221:80/announce` — score=67.9, 127ms, 连续0天
+2. `http://211.75.205.188:80/announce` — score=67.4, 133ms, 连续0天
+3. `http://211.75.205.187:80/announce` — score=66.5, 145ms, 连续0天
+4. `http://211.75.205.189:80/announce` — score=66.1, 150ms, 连续0天
+5. `http://60.249.37.20:80/announce` — score=65.8, 155ms, 连续0天
+6. `http://94.23.207.177:6969/announce` — score=44.0, 434ms, 连续0天
+7. `http://004430.xyz:80/announce` — score=43.7, 438ms, 连续0天
+8. `http://135.125.198.235:2710/announce` — score=39.5, 492ms, 连续0天
+9. `http://nyaa.tracker.wf:7777/announce` — score=36.9, 526ms, 连续0天
+10. `http://bt02.nnm-club.info:2710/announce` — score=34.4, 557ms, 连续0天
+11. `http://93.158.213.92:1337/announce` — score=33.8, 566ms, 连续0天
+12. `http://ehtracker.org:80/1104308/announce` — score=31.0, 602ms, 连续0天
+13. `http://1337.abcvg.info:80/announce` — score=30.4, 609ms, 连续0天
+14. `http://37.120.182.83:2710/announce` — score=27.6, 645ms, 连续0天
+15. `http://43.250.54.126:6969/announce` — score=25.1, 678ms, 连续0天
+16. `http://bt.zlofenix.org:81/announce` — score=24.3, 687ms, 连续0天
+17. `http://open.touki.ru:80/announce` — score=24.0, 691ms, 连续0天
+18. `http://open.demonii.si:80/announce` — score=24.0, 692ms, 连续0天
+19. `http://bittorrent.kali.org:80/announce` — score=22.9, 705ms, 连续0天
+20. `http://bt02.nnm-club.cc:2710/announce` — score=22.7, 709ms, 连续0天
+21. `http://140.235.237.23:6969/announce` — score=16.2, 792ms, 连续0天
+22. `http://31.38.161.123:6969/announce` — score=15.6, 799ms, 连续0天
+23. `http://207.241.231.226:6969/announce` — score=14.4, 815ms, 连续0天
+24. `http://bttracker.debian.org:6969/announce` — score=13.0, 832ms, 连续0天
+25. `http://177.188.141.75:6969/announce` — score=7.0, 910ms, 连续0天
+26. `http://bt.beatrice-raws.org:80/announce` — score=0.0, 1341ms, 连续0天
+27. `http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce` — score=0.0, 1626ms, 连续0天
+28. `http://185.126.65.92:6969/announce` — score=0.0, 3524ms, 连续0天
+
+## 失效 Tracker
+
+- `http://207.241.226.111:6969/announce` — timeout
+- `http://216.144.239.90:6969/announce` — URLError: <urlopen error timed out>
+- `http://bt.edwardk.info:12891/announce` — URLError: <urlopen error timed out>
+- `http://bt.edwardk.info:2710/announce` — URLError: <urlopen error timed out>
+- `http://bt.edwardk.info:4040/announce` — URLError: <urlopen error timed out>
+- `http://bt.edwardk.info:63124/announce` — URLError: <urlopen error timed out>
+- `http://bt.edwardk.info:676/announce` — URLError: <urlopen error timed out>
+- `http://bt.edwardk.info:6767/announce` — URLError: <urlopen error timed out>
+- `http://bt.edwardk.info:6969/announce` — URLError: <urlopen error timed out>
+- `http://bt1.archive.org:6969/announce` — URLError: <urlopen error timed out>
+- `http://bt2.archive.org:6969/announce` — URLError: <urlopen error timed out>
+- `http://bt2.edwardk.info:2710/announce` — URLError: <urlopen error timed out>
+- `http://bt2.edwardk.info:4040/announce` — URLError: <urlopen error timed out>
+- `http://bt2.edwardk.info:6969/announce` — URLError: <urlopen error timed out>
+- `http://opentracker.acgnx.se:80/announce` — URLError: <urlopen error timed out>
+
+## 同 IP 去重（保留响应最快）
+
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)
 - `http://135.125.198.235:80/announce`
-- `http://177.188.141.75:6969/announce`
+- `http://211.75.205.187:6969/announce`
+- `http://211.75.205.188:6969/announce`
+- `http://211.75.205.189:6969/announce`
+- `http://211.75.210.221:6969/announce`
+- `http://37.120.182.83:80/announce`
+- `http://60.249.37.20:6969/announce`
 - `http://announce.sktorrent.eu:6969/announce`
+<<<<<<< HEAD
 - `http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce`
 - `http://bt1.archive.org:6969/announce`
 - `http://bt2.archive.org:6969/announce`
@@ -483,3 +558,14 @@
 - `udp://tracker.bittor.pw:1337/announce`
 - `udp://tracker.dler.com:6969/announce`
 - `udp://tracker.qu.ax:6969/announce`
+=======
+- `http://bt.nnm-club.info:2710/announce`
+- `http://ehtracker.org:80/1/announce`
+- `http://ehtracker.org:80/1113709/announce`
+- `http://ehtracker.org:80/1226599/1080494xo5eXcwFOBq/announce`
+- `http://ehtracker.org:80/2496841/announce`
+- `http://ehtracker.org:80/2541477/announce`
+- `http://ehtracker.org:80/2566145/1159106xUfsJkT9Btg/announce`
+- `http://ipv4announce.sktorrent.eu:6969/announce`
+- `http://opentracker.xyz:80/announce`
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)

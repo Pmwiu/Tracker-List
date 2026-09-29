@@ -40,9 +40,15 @@ SHORT_DIR = os.path.join(PAGES_DIR, "s")
 TIMEOUT = 15
 
 TRACKER_FILES = [
-    "trackers_cf.txt",
-    "trackers_adysec.txt",
-    "trackers_ngosang.txt",
+    "trackers_cf_best.txt",
+    "trackers_ngosang_ip.txt",
+    "trackers_adysec_best.txt",
+    "trackers_adysec_http.txt",
+    "trackers_adysec_https.txt",
+    "trackers_adysec_udp.txt",
+    "trackers_adysec_wss.txt",
+    "trackers_anime_best.txt",
+    "trackers_anime_ip.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
     "trackers_dead.txt",
@@ -51,23 +57,32 @@ TRACKER_FILES = [
 EXTRA_FILES = ["MIRRORS.txt", "test_report.md", "test_state.json"]
 
 SHORT_PAGES = [
-    "alive", "cf", "adysec", "ngosang", "all",
+    "alive", "all",
 ]
 
 PLAIN_TEXT_FILES = [
-    "alive.txt", "merged.txt", "cf.txt", "ngosang.txt", "adysec.txt",
+    "alive.txt", "merged.txt",
+    "cf_best.txt", "ngosang_ip.txt", "adysec_best.txt", "adysec_http.txt",
+    "adysec_https.txt", "adysec_udp.txt", "adysec_wss.txt", "anime_best.txt",
+    "anime_ip.txt",
 ]
 
 # trackers/ 到 docs/ 的映射
 CONSISTENCY_MAP = {
     "trackers_alive.txt": "alive.txt",
     "trackers_merged.txt": "merged.txt",
-    "trackers_cf.txt": "cf.txt",
-    "trackers_ngosang.txt": "ngosang.txt",
-    "trackers_adysec.txt": "adysec.txt",
+    "trackers_cf_best.txt": "cf_best.txt",
+    "trackers_ngosang_ip.txt": "ngosang_ip.txt",
+    "trackers_adysec_best.txt": "adysec_best.txt",
+    "trackers_adysec_http.txt": "adysec_http.txt",
+    "trackers_adysec_https.txt": "adysec_https.txt",
+    "trackers_adysec_udp.txt": "adysec_udp.txt",
+    "trackers_adysec_wss.txt": "adysec_wss.txt",
+    "trackers_anime_best.txt": "anime_best.txt",
+    "trackers_anime_ip.txt": "anime_ip.txt",
 }
 
-MAX_ALIVE = 25
+MAX_ALIVE = 59
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 HEALTH_FILE = os.path.join(REPORTS_DIR, "health.json")
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)

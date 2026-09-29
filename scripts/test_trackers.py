@@ -489,8 +489,12 @@ def read_candidates(max_count=500):
                     seen.add(line)
                     ordered.append(line)
 
-    # 1. 精选源优先（这些列表本身已做过筛选，存活率高）
-    for priority_file in ("trackers_cf.txt", "trackers_ngosang.txt"):
+    # 1. 精选源优先（best 系列，人工筛选、存活率高）
+    for priority_file in ("trackers_adysec_best.txt", "trackers_cf_best.txt",
+                          "trackers_adysec_udp.txt", "trackers_adysec_http.txt",
+                          "trackers_ngosang_ip.txt", "trackers_adysec_https.txt",
+                          "trackers_anime_best.txt", "trackers_adysec_wss.txt",
+                          "trackers_anime_ip.txt"):
         _ingest(priority_file)
 
     # 2. 从合并大列表补足（adysec 等海量来源）

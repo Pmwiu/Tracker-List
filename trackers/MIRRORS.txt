@@ -1,5 +1,9 @@
 # Tracker 订阅地址清单
+<<<<<<< HEAD
 # Generated: 2026-09-29 08:58:07 UTC
+=======
+# Generated: 2026-09-29 11:39:15 UTC
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)
 # 短链接与直链均使用 github.io，规避 DNS 污染
 
 # [GitHub Pages]

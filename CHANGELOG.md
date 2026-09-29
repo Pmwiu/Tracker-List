@@ -3,6 +3,7 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-09-29] - feat
+- 订阅源替换为 9 个 best 精选源（cf best / ngosang best_ip / adysec best 系列 / animeTrackerList best），MAX_TRACKERS 25→59
 - 来源白名单（仅 cf/adysec/ngosang 三源），协议白名单过滤，tempfile 原子写入
 - 低速淘汰（>5s）、同 IP 去重（保留最快）、域名黑名单 blacklist.txt
 - 存活数区间校验 [0,25]、协议分布统计

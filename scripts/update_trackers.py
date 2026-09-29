@@ -3,10 +3,11 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源:
-  - https://cf.trackerslist.com/all.txt
-  - https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt
-  - https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt
+订阅源（9 个 best 精选源）:
+  - cf.trackerslist.com/best.txt
+  - ngosang/trackerslist trackers_best_ip.txt
+  - tracker.adysec.com/trackers_best*.txt（全量/http/https/udp/wss）
+  - DeSireFire/animeTrackerList ATline_best*.txt（全量/ip）
 
 特性:
   - 多源合并去重（URL 规范化后去重）
@@ -37,15 +38,21 @@ except ImportError:
     _HAS_FCNTL = False
 
 SOURCES = [
-    ("trackers_cf.txt", "https://cf.trackerslist.com/all.txt", "cf-all"),
-    ("trackers_adysec.txt", "https://raw.githubusercontent.com/adysec/tracker/main/trackers_all.txt", "adysec-all"),
-    ("trackers_ngosang.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt", "ngosang-all"),
+    ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
+    ("trackers_ngosang_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt", "ngosang-ip"),
+    ("trackers_adysec_best.txt", "https://tracker.adysec.com/trackers_best.txt", "adysec-best"),
+    ("trackers_adysec_http.txt", "https://tracker.adysec.com/trackers_best_http.txt", "adysec-http"),
+    ("trackers_adysec_https.txt", "https://tracker.adysec.com/trackers_best_https.txt", "adysec-https"),
+    ("trackers_adysec_udp.txt", "https://tracker.adysec.com/trackers_best_udp.txt", "adysec-udp"),
+    ("trackers_adysec_wss.txt", "https://tracker.adysec.com/trackers_best_wss.txt", "adysec-wss"),
+    ("trackers_anime_best.txt", "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best.txt", "anime-best"),
+    ("trackers_anime_ip.txt", "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best_ip.txt", "anime-ip"),
 ]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
 
-MAX_TRACKERS = 25
+MAX_TRACKERS = 59
 
 MIRRORS = [
     ("GitHub Pages", "https://pmwiu.github.io/{repo}/merged.txt"),
@@ -54,12 +61,6 @@ MIRRORS = [
 SHORT_LINKS = [
     ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",
      "https://pmwiu.github.io/{repo}/alive.txt"),
-    ("cf", "订阅源", "trackerslist all (Cloudflare)",
-     "https://pmwiu.github.io/{repo}/cf.txt"),
-    ("adysec", "订阅源", "adysec trackers_all",
-     "https://pmwiu.github.io/{repo}/adysec.txt"),
-    ("ngosang", "订阅源", "ngosang trackers_all",
-     "https://pmwiu.github.io/{repo}/ngosang.txt"),
     ("all", "合并总表", "合并去重总表",
      "https://pmwiu.github.io/{repo}/merged.txt"),
 ]
@@ -82,11 +83,9 @@ LEGACY_FILES = [
     os.path.join(OUTPUT_DIR, "trackers_all.txt"),
     os.path.join(OUTPUT_DIR, "trackers_run.txt"),
     os.path.join(OUTPUT_DIR, "trackers_best.txt"),
-    os.path.join(OUTPUT_DIR, "trackers_ngosang_ip.txt"),
     os.path.join(PAGES_DIR, "http.txt"),
     os.path.join(PAGES_DIR, "full.txt"),
     os.path.join(PAGES_DIR, "best.txt"),
-    os.path.join(PAGES_DIR, "ngosang_ip.txt"),
     os.path.join(SHORT_LINKS_DIR, "http.html"),
     os.path.join(SHORT_LINKS_DIR, "full.html"),
     os.path.join(SHORT_LINKS_DIR, "run.html"),
@@ -105,6 +104,16 @@ LEGACY_FILES = [
     os.path.join(PAGES_DIR, "newtrackon.txt"),
     os.path.join(SHORT_LINKS_DIR, "xiu2.html"),
     os.path.join(SHORT_LINKS_DIR, "newtrackon.html"),
+    # 旧的 all 三源（已替换为 best 源）
+    os.path.join(OUTPUT_DIR, "trackers_cf.txt"),
+    os.path.join(OUTPUT_DIR, "trackers_adysec.txt"),
+    os.path.join(OUTPUT_DIR, "trackers_ngosang.txt"),
+    os.path.join(PAGES_DIR, "cf.txt"),
+    os.path.join(PAGES_DIR, "adysec.txt"),
+    os.path.join(PAGES_DIR, "ngosang.txt"),
+    os.path.join(SHORT_LINKS_DIR, "cf.html"),
+    os.path.join(SHORT_LINKS_DIR, "adysec.html"),
+    os.path.join(SHORT_LINKS_DIR, "ngosang.html"),
 ]
 
 TIMEOUT = 30
@@ -469,9 +478,15 @@ def generate_redirect_page(target_url, description=""):
 def generate_source_links():
     """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
-        "cf-all": "trackerslist/all",
-        "adysec-all": "adysec/all",
-        "ngosang-all": "ngosang/all",
+        "cf-best": "trackerslist/best",
+        "ngosang-ip": "ngosang/best-ip",
+        "adysec-best": "adysec/best",
+        "adysec-http": "adysec/best-http",
+        "adysec-https": "adysec/best-https",
+        "adysec-udp": "adysec/best-udp",
+        "adysec-wss": "adysec/best-wss",
+        "anime-best": "animeTrackerList/best",
+        "anime-ip": "animeTrackerList/best-ip",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -621,9 +636,15 @@ def sync_plain_text_files():
     mapping = {
         "trackers_alive.txt": "alive.txt",
         "trackers_merged.txt": "merged.txt",
-        "trackers_cf.txt": "cf.txt",
-        "trackers_ngosang.txt": "ngosang.txt",
-        "trackers_adysec.txt": "adysec.txt",
+        "trackers_cf_best.txt": "cf_best.txt",
+        "trackers_ngosang_ip.txt": "ngosang_ip.txt",
+        "trackers_adysec_best.txt": "adysec_best.txt",
+        "trackers_adysec_http.txt": "adysec_http.txt",
+        "trackers_adysec_https.txt": "adysec_https.txt",
+        "trackers_adysec_udp.txt": "adysec_udp.txt",
+        "trackers_adysec_wss.txt": "adysec_wss.txt",
+        "trackers_anime_best.txt": "anime_best.txt",
+        "trackers_anime_ip.txt": "anime_ip.txt",
     }
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():
@@ -673,8 +694,6 @@ def main():
             try:
                 trackers = download_trackers(url, blacklist=blacklist)
                 source_stats[short_name] = {"http_code": 200, "lines": len(trackers), "ok": True}
-                if len(trackers) < 10:
-                    raise RuntimeError(f"too few valid lines ({len(trackers)} < 10)")
             except Exception as e:
                 # 补丁 D：下载失败或异常源 → 降级到上次成功备份
                 backup = _load_backup(filename)

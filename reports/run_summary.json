@@ -1,25 +1,59 @@
 {
+<<<<<<< HEAD
   "timestamp": "2026-09-29 08:58:07 UTC",
+=======
+  "timestamp": "2026-09-29 11:39:15 UTC",
+>>>>>>> 371c7c0 (feat: replace sources with 9 best curated lists, cap alive at 59)
   "status": "success",
-  "duration_sec": 0.2,
+  "duration_sec": 5.0,
   "sources": {
-    "cf-all": {
+    "cf-best": {
       "http_code": 200,
-      "lines": 117,
+      "lines": 71,
       "ok": true
     },
-    "adysec-all": {
+    "ngosang-ip": {
       "http_code": 200,
-      "lines": 3535,
+      "lines": 20,
       "ok": true
     },
-    "ngosang-all": {
+    "adysec-best": {
       "http_code": 200,
-      "lines": 72,
+      "lines": 318,
+      "ok": true
+    },
+    "adysec-http": {
+      "http_code": 200,
+      "lines": 115,
+      "ok": true
+    },
+    "adysec-https": {
+      "http_code": 200,
+      "lines": 32,
+      "ok": true
+    },
+    "adysec-udp": {
+      "http_code": 200,
+      "lines": 165,
+      "ok": true
+    },
+    "adysec-wss": {
+      "http_code": 200,
+      "lines": 6,
+      "ok": true
+    },
+    "anime-best": {
+      "http_code": 200,
+      "lines": 25,
+      "ok": true
+    },
+    "anime-ip": {
+      "http_code": 200,
+      "lines": 1,
       "ok": true
     }
   },
-  "merged_lines": 3539,
+  "merged_lines": 349,
   "alive_lines": null,
   "failed_sources": []
 }
