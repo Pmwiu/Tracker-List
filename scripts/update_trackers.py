@@ -432,7 +432,7 @@ def write_mirrors_file(repo):
     pages = f"https://pmwiu.github.io/{repo_name}"
     raw_base = f"https://raw.githubusercontent.com/{owner}/{repo_name}/main"
     mirror = "https://gh.pmwiu.com"
-    cf = "https://tracker-list-edj.pages.dev"
+    cf = "https://tracker.pmwiu.com"
     entries = [
         ("存活 best - Pages 短链", f"{pages}/s/alive"),
         ("存活 best - Pages 直链", f"{pages}/alive.txt"),

@@ -24,7 +24,7 @@ https://pmwiu.github.io/Tracker-List/s/alive
 | **all 合并** | 599 | `/s/all` | `/merged.txt` | `.../main/trackers/trackers_merged.txt` | `gh.pmwiu.com/https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt` |
 
 - Pages 基础域名：`https://pmwiu.github.io/Tracker-List`
-- Cloudflare Pages：`https://tracker-list-edj.pages.dev`（`/alive.txt`、`/merged.txt`）
+- Cloudflare Pages（自定义域名）：`https://tracker.pmwiu.com`（`/alive.txt`、`/merged.txt`）
 - 镜像代理规则：在任意 GitHub 链接前加 `https://gh.pmwiu.com/`
 
 完整地址清单见 `trackers/MIRRORS.txt`。

@@ -1,5 +1,5 @@
 # Tracker 订阅地址清单
-# Generated: 2026-09-30 10:46:18 UTC
+# Generated: 2026-09-30 10:49:55 UTC
 # 双托管：GitHub Pages/Raw + Cloudflare Pages；镜像代理：gh.pmwiu.com
 
 # [存活 best - Pages 短链]
@@ -15,7 +15,7 @@ https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_aliv
 https://gh.pmwiu.com/https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_alive.txt
 
 # [存活 best - Cloudflare Pages]
-https://tracker-list-edj.pages.dev/alive.txt
+https://tracker.pmwiu.com/alive.txt
 
 # [合并 all - Pages 短链]
 https://pmwiu.github.io/Tracker-List/s/all
@@ -30,4 +30,4 @@ https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merg
 https://gh.pmwiu.com/https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt
 
 # [合并 all - Cloudflare Pages]
-https://tracker-list-edj.pages.dev/merged.txt
+https://tracker.pmwiu.com/merged.txt
