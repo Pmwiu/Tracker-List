@@ -61,7 +61,7 @@ https://pmwiu.github.io/Tracker-List/s/alive
 
 ## 自动维护流程（GitHub Actions）
 
-工作流 `.github/workflows/update-trackers.yml` 每天 UTC 00:23（北京时间 08:23）自动执行，也支持手动触发（Actions 页面 → Run workflow）：
+工作流 `.github/workflows/update-trackers.yml` 每 6 小时自动执行一次（UTC 02:23/08:23/14:23/20:23），也支持手动触发（Actions 页面 → Run workflow）：
 
 ```
 下载 9 个源 → 合并去重 → 协议级活性测试 → 剔除失效/低速 → 检测变更 → 自动提交推送 → 健康检查

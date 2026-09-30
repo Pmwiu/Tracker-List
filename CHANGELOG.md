@@ -2,6 +2,11 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-09-30] - feat
+- 双托管：新增 Cloudflare Pages 同步部署（可选，需 CF_API_TOKEN/CF_ACCOUNT_ID secrets）
+- 更新频率：cron 每日 → 每 6 小时
+- Cloudflare Pages 缓存策略 docs/_headers（txt 实时 no-cache）
+
 ## [2026-09-29] - feat
 - 订阅源替换为 9 个 best 精选源（cf best / ngosang best_ip / adysec best 系列 / animeTrackerList best），MAX_TRACKERS 25→59
 - 来源白名单（仅 cf/adysec/ngosang 三源），协议白名单过滤，tempfile 原子写入

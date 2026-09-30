@@ -2,8 +2,8 @@ name: Auto Update Trackers
 
 on:
   schedule:
-    # 每天 UTC 00:23 运行（北京时间 08:23，避开整点调度拥堵）
-    - cron: "23 0 * * *"
+    # 每 6 小时运行一次（UTC 02:23/08:23/14:23/20:23，避开整点拥堵，增强实时性）
+    - cron: "23 */6 * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -223,3 +223,14 @@ jobs:
                 state: 'closed',
               });
             }
+
+      # 双托管：同步部署到 Cloudflare Pages（可选；需在仓库 secrets 配置 CF_API_TOKEN、CF_ACCOUNT_ID）
+      - name: Deploy to Cloudflare Pages
+        if: success() && github.ref == 'refs/heads/main' && secrets.CF_API_TOKEN != ''
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          projectName: tracker-list
+          directory: docs
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
