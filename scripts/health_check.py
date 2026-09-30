@@ -51,6 +51,11 @@ TRACKER_FILES = [
     "trackers_anime_ip.txt",
     "trackers_ultimate.txt",
     "trackers_opentracker.txt",
+    "trackers_ngosang_best.txt",
+    "trackers_ngosang_i2p.txt",
+    "trackers_ngosang_ygg.txt",
+    "trackers_ngosang_all_ip.txt",
+    "trackers_ngosang_ygg_ip.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
     "trackers_dead.txt",
@@ -67,6 +72,8 @@ PLAIN_TEXT_FILES = [
     "cf_best.txt", "ngosang_ip.txt", "adysec_best.txt", "adysec_http.txt",
     "adysec_https.txt", "adysec_udp.txt", "adysec_wss.txt", "anime_best.txt",
     "anime_ip.txt", "ultimate.txt", "opentracker.txt",
+    "ngosang_best.txt", "ngosang_i2p.txt", "ngosang_ygg.txt",
+    "ngosang_all_ip.txt", "ngosang_ygg_ip.txt",
 ]
 
 # trackers/ 到 docs/ 的映射
@@ -84,6 +91,11 @@ CONSISTENCY_MAP = {
     "trackers_anime_ip.txt": "anime_ip.txt",
     "trackers_ultimate.txt": "ultimate.txt",
     "trackers_opentracker.txt": "opentracker.txt",
+    "trackers_ngosang_best.txt": "ngosang_best.txt",
+    "trackers_ngosang_i2p.txt": "ngosang_i2p.txt",
+    "trackers_ngosang_ygg.txt": "ngosang_ygg.txt",
+    "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
+    "trackers_ngosang_ygg_ip.txt": "ngosang_ygg_ip.txt",
 }
 
 MAX_ALIVE = 59

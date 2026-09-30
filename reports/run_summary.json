@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-09-30 11:55:58 UTC",
+  "timestamp": "2026-09-30 11:58:28 UTC",
   "status": "success",
-  "duration_sec": 0.4,
+  "duration_sec": 9.4,
   "sources": {
     "cf-best": {
       "http_code": 200,
@@ -57,9 +57,34 @@
       "http_code": 200,
       "lines": 38,
       "ok": true
+    },
+    "ngosang-best": {
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
+    },
+    "ngosang-i2p": {
+      "http_code": 200,
+      "lines": 17,
+      "ok": true
+    },
+    "ngosang-ygg": {
+      "http_code": 200,
+      "lines": 1,
+      "ok": true
+    },
+    "ngosang-all-ip": {
+      "http_code": 200,
+      "lines": 55,
+      "ok": true
+    },
+    "ngosang-ygg-ip": {
+      "http_code": 200,
+      "lines": 4,
+      "ok": true
     }
   },
-  "merged_lines": 402,
+  "merged_lines": 425,
   "alive_lines": null,
   "failed_sources": []
 }

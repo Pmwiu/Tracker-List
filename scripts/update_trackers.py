@@ -49,6 +49,11 @@ SOURCES = [
     ("trackers_anime_ip.txt", "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best_ip.txt", "anime-ip"),
     ("trackers_ultimate.txt", "https://raw.githubusercontent.com/kris3713/UltimateBTTrackersList/refs/heads/master/ultimate_trackers.txt", "ultimate"),
     ("trackers_opentracker.txt", "https://raw.githubusercontent.com/1265578519/OpenTracker/master/tracker.txt", "opentracker"),
+    ("trackers_ngosang_best.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt", "ngosang-best"),
+    ("trackers_ngosang_i2p.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_i2p.txt", "ngosang-i2p"),
+    ("trackers_ngosang_ygg.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil.txt", "ngosang-ygg"),
+    ("trackers_ngosang_all_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ip.txt", "ngosang-all-ip"),
+    ("trackers_ngosang_ygg_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil_ip.txt", "ngosang-ygg-ip"),
 ]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
@@ -504,6 +509,11 @@ def generate_source_links():
         "anime-ip": "animeTrackerList/best-ip",
         "ultimate": "UltimateBTTrackersList",
         "opentracker": "OpenTracker",
+        "ngosang-best": "ngosang/best",
+        "ngosang-i2p": "ngosang/all-i2p",
+        "ngosang-ygg": "ngosang/all-yggdrasil",
+        "ngosang-all-ip": "ngosang/all-ip",
+        "ngosang-ygg-ip": "ngosang/all-yggdrasil-ip",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -664,6 +674,11 @@ def sync_plain_text_files():
         "trackers_anime_ip.txt": "anime_ip.txt",
         "trackers_ultimate.txt": "ultimate.txt",
         "trackers_opentracker.txt": "opentracker.txt",
+        "trackers_ngosang_best.txt": "ngosang_best.txt",
+        "trackers_ngosang_i2p.txt": "ngosang_i2p.txt",
+        "trackers_ngosang_ygg.txt": "ngosang_ygg.txt",
+        "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
+        "trackers_ngosang_ygg_ip.txt": "ngosang_ygg_ip.txt",
     }
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():
