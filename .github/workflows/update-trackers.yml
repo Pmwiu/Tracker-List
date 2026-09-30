@@ -224,9 +224,10 @@ jobs:
               });
             }
 
-      # 双托管：同步部署到 Cloudflare Pages（可选；需在仓库 secrets 配置 CF_API_TOKEN、CF_ACCOUNT_ID）
+      # 双托管：同步部署到 Cloudflare Pages（需仓库 secrets：CF_API_TOKEN、CF_ACCOUNT_ID）
       - name: Deploy to Cloudflare Pages
-        if: success() && github.ref == 'refs/heads/main' && secrets.CF_API_TOKEN != ''
+        if: success() && github.ref == 'refs/heads/main'
+        continue-on-error: true
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
