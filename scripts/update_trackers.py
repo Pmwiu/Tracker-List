@@ -47,6 +47,8 @@ SOURCES = [
     ("trackers_adysec_wss.txt", "https://tracker.adysec.com/trackers_best_wss.txt", "adysec-wss"),
     ("trackers_anime_best.txt", "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best.txt", "anime-best"),
     ("trackers_anime_ip.txt", "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best_ip.txt", "anime-ip"),
+    ("trackers_ultimate.txt", "https://raw.githubusercontent.com/kris3713/UltimateBTTrackersList/refs/heads/master/ultimate_trackers.txt", "ultimate"),
+    ("trackers_opentracker.txt", "https://raw.githubusercontent.com/1265578519/OpenTracker/master/tracker.txt", "opentracker"),
 ]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
@@ -500,6 +502,8 @@ def generate_source_links():
         "adysec-wss": "adysec/best-wss",
         "anime-best": "animeTrackerList/best",
         "anime-ip": "animeTrackerList/best-ip",
+        "ultimate": "UltimateBTTrackersList",
+        "opentracker": "OpenTracker",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -658,6 +662,8 @@ def sync_plain_text_files():
         "trackers_adysec_wss.txt": "adysec_wss.txt",
         "trackers_anime_best.txt": "anime_best.txt",
         "trackers_anime_ip.txt": "anime_ip.txt",
+        "trackers_ultimate.txt": "ultimate.txt",
+        "trackers_opentracker.txt": "opentracker.txt",
     }
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():

@@ -13,7 +13,7 @@
 
 ## 特性
 
-- **9 个 best 精选源**合并去重（trackerslist / ngosang / adysec / animeTrackerList）
+- **11 个精选源**合并去重（trackerslist / ngosang / adysec / animeTrackerList / UltimateBTTrackersList / OpenTracker）
 - 协议级活性测试（HTTP/HTTPS/UDP/WSS/WS）+ 综合评分：速度 70% + 稳定性 30%
 - 低速淘汰（>5s）、同 IP 去重、域名黑名单、失败降级备份、测试熔断
 - 每 6 小时自动更新 · GitHub Pages/Raw + Cloudflare Pages 双托管

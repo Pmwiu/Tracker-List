@@ -3,6 +3,7 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-09-30] - feat
+- 新增 2 个聚合源：kris3713/UltimateBTTrackersList、1265578519/OpenTracker（共 11 源）
 - 双托管：新增 Cloudflare Pages 同步部署（可选，需 CF_API_TOKEN/CF_ACCOUNT_ID secrets）
 - 更新频率：cron 每日 → 每 6 小时
 - Cloudflare Pages 缓存策略 docs/_headers（txt 实时 no-cache）

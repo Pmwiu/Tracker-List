@@ -494,7 +494,8 @@ def read_candidates(max_count=500):
                           "trackers_adysec_udp.txt", "trackers_adysec_http.txt",
                           "trackers_ngosang_ip.txt", "trackers_adysec_https.txt",
                           "trackers_anime_best.txt", "trackers_adysec_wss.txt",
-                          "trackers_anime_ip.txt"):
+                          "trackers_anime_ip.txt", "trackers_ultimate.txt",
+                          "trackers_opentracker.txt"):
         _ingest(priority_file)
 
     # 2. 从合并大列表补足（adysec 等海量来源）

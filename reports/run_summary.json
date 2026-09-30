@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-09-30 11:22:58 UTC",
+  "timestamp": "2026-09-30 11:54:12 UTC",
   "status": "success",
-  "duration_sec": 0.3,
+  "duration_sec": 6.8,
   "sources": {
     "cf-best": {
       "http_code": 200,
@@ -47,9 +47,19 @@
       "http_code": 200,
       "lines": 1,
       "ok": true
+    },
+    "ultimate": {
+      "http_code": 200,
+      "lines": 183,
+      "ok": true
+    },
+    "opentracker": {
+      "http_code": 200,
+      "lines": 38,
+      "ok": true
     }
   },
-  "merged_lines": 364,
+  "merged_lines": 402,
   "alive_lines": null,
   "failed_sources": []
 }

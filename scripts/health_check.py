@@ -49,6 +49,8 @@ TRACKER_FILES = [
     "trackers_adysec_wss.txt",
     "trackers_anime_best.txt",
     "trackers_anime_ip.txt",
+    "trackers_ultimate.txt",
+    "trackers_opentracker.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
     "trackers_dead.txt",
@@ -64,7 +66,7 @@ PLAIN_TEXT_FILES = [
     "alive.txt", "merged.txt",
     "cf_best.txt", "ngosang_ip.txt", "adysec_best.txt", "adysec_http.txt",
     "adysec_https.txt", "adysec_udp.txt", "adysec_wss.txt", "anime_best.txt",
-    "anime_ip.txt",
+    "anime_ip.txt", "ultimate.txt", "opentracker.txt",
 ]
 
 # trackers/ 到 docs/ 的映射
@@ -80,6 +82,8 @@ CONSISTENCY_MAP = {
     "trackers_adysec_wss.txt": "adysec_wss.txt",
     "trackers_anime_best.txt": "anime_best.txt",
     "trackers_anime_ip.txt": "anime_ip.txt",
+    "trackers_ultimate.txt": "ultimate.txt",
+    "trackers_opentracker.txt": "opentracker.txt",
 }
 
 MAX_ALIVE = 59
