@@ -118,8 +118,8 @@ jobs:
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add trackers/ docs/
-          git commit -m "chore: auto-update trackers $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git add -A
+          git commit -m "chore: auto-update trackers $(date -u +'%Y-%m-%d %H:%M UTC')" || true
           # 远程可能在测试期间有新提交，rebase 后重试推送
           pushed=0
           for i in 1 2 3; do
