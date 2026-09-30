@@ -49,20 +49,29 @@ import update_trackers as ut
 # ============================================================
 _dns_cache = {}
 _dns_lock = None  # 线程安全由 GIL 保证简单操作
+DNS_RETRIES = 3
 
 
 def cached_getaddrinfo(host, port=None):
-    """带缓存的 DNS 解析。"""
+    """带缓存的 DNS 解析。
+
+    仅缓存成功结果；失败时重试且不缓存，避免瞬时解析失败（DNS 污染/抖动）
+    被永久固化，从而提升解析稳定性。
+    """
     key = (host, port)
-    if key in _dns_cache:
-        return _dns_cache[key]
-    try:
-        result = socket.getaddrinfo(host, port)
-        _dns_cache[key] = result
-        return result
-    except socket.gaierror as e:
-        _dns_cache[key] = e
-        raise
+    cached = _dns_cache.get(key)
+    if cached is not None:
+        return cached
+    last_error = None
+    for attempt in range(DNS_RETRIES):
+        try:
+            result = socket.getaddrinfo(host, port)
+            _dns_cache[key] = result
+            return result
+        except socket.gaierror as e:
+            last_error = e
+            time.sleep(0.3 * (attempt + 1))
+    raise last_error
 
 
 # ============================================================
@@ -629,6 +638,12 @@ def main():
     parser.add_argument('--no-second-pass', action='store_true', help='跳过第二轮精测')
     parser.add_argument('--max-candidates', type=int, default=500,
                         help='第一轮最多测试的候选数（精选源优先，默认500）')
+    parser.add_argument('--breaker-consecutive', type=int, default=20,
+                        help='连续超时达到该值触发一次熔断暂停（默认20）')
+    parser.add_argument('--breaker-trips', type=int, default=3,
+                        help='熔断累计次数达到该值则终止（默认3）')
+    parser.add_argument('--breaker-pause', type=int, default=60,
+                        help='每次熔断暂停秒数（默认60）')
     args = parser.parse_args()
 
     total_available = len(read_merged())
@@ -664,17 +679,21 @@ def main():
             if done_count % 25 == 0 or status == 'alive':
                 print(f'  {marker} ({done_count}/{len(trackers)}) {tracker}{speed} — {detail}')
 
-            # 熔断：连续10个超时 → 暂停60秒；累计3次 → 终止，保留上次 alive.txt
+            # 熔断：连续超时 → 暂停；累计次数 → 终止（保留上次 alive.txt）
+            # 有存活即重置累计，避免正常的“连遇死节点”被误判为网络故障
             if status == 'dead' and detail == 'timeout':
                 consecutive_timeouts += 1
             else:
                 consecutive_timeouts = 0
-            if consecutive_timeouts >= 10:
+                if status == 'alive':
+                    breaker_trips = 0
+            if consecutive_timeouts >= args.breaker_consecutive:
                 breaker_trips += 1
                 consecutive_timeouts = 0
-                print(f'[WARN] circuit_breaker: 10 consecutive timeouts, pausing 60s (trip {breaker_trips}/3)')
-                time.sleep(60)
-                if breaker_trips >= 3:
+                print(f'[WARN] circuit_breaker: {args.breaker_consecutive} consecutive timeouts, '
+                      f'pausing {args.breaker_pause}s (trip {breaker_trips}/{args.breaker_trips})')
+                time.sleep(args.breaker_pause)
+                if breaker_trips >= args.breaker_trips:
                     print('[ERROR] circuit_breaker_triggered: aborting, keeping previous trackers_alive.txt')
                     aborted = True
                     for f in futures:
