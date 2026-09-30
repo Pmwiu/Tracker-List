@@ -14,16 +14,20 @@
 https://pmwiu.github.io/Tracker-List/s/alive
 ```
 
-`/s/alive` 只包含通过活性测试的最优 Tracker（最多 59 个），最稳定。所有订阅均使用 github.io / raw.githubusercontent.com 直链，无 CDN/代理加速链接。
+`/s/alive` 为 **best 存活计划**（活性测试 + 综合评分，最多 59 个），`/s/all` 为 **all 合并计划**（合并去重总表，最多 599 条）。两个计划均提供 Pages 短链/直链、Raw、镜像代理、Cloudflare Pages 多通道。
 
-## 短链接一览
+## 订阅计划与地址
 
-基础域名：`https://pmwiu.github.io/Tracker-List`
+| 计划 | 上限 | 短链接 | Pages 直链 | Raw | 镜像代理 |
+|------|------|--------|-----------|-----|----------|
+| **best 存活** | 59 | `/s/alive` | `/alive.txt` | `.../main/trackers/trackers_alive.txt` | `gh.pmwiu.com/https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_alive.txt` |
+| **all 合并** | 599 | `/s/all` | `/merged.txt` | `.../main/trackers/trackers_merged.txt` | `gh.pmwiu.com/https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt` |
 
-| 短链接 | 说明 |
-|--------|------|
-| `/s/alive` | 存活 Tracker（活性测试 + 综合评分，推荐） |
-| `/s/all` | 合并去重总表 |
+- Pages 基础域名：`https://pmwiu.github.io/Tracker-List`
+- Cloudflare Pages：`https://tracker-list-edj.pages.dev`（`/alive.txt`、`/merged.txt`）
+- 镜像代理规则：在任意 GitHub 链接前加 `https://gh.pmwiu.com/`
+
+完整地址清单见 `trackers/MIRRORS.txt`。
 
 ## 数据源（9 个 best 精选源）
 

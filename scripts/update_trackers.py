@@ -53,10 +53,7 @@ SOURCES = [
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
 
 MAX_TRACKERS = 59
-
-MIRRORS = [
-    ("GitHub Pages", "https://pmwiu.github.io/{repo}/merged.txt"),
-]
+MAX_ALL = 599
 
 SHORT_LINKS = [
     ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",
@@ -430,15 +427,31 @@ def write_trackers(filepath, trackers, source_url=None, extra_header=None):
 
 
 def write_mirrors_file(repo):
-    repo_name = repo.split("/")[-1]
+    owner = repo.split("/")[0] if "/" in repo else repo
+    repo_name = repo.split("/")[-1] if "/" in repo else repo
+    pages = f"https://pmwiu.github.io/{repo_name}"
+    raw_base = f"https://raw.githubusercontent.com/{owner}/{repo_name}/main"
+    mirror = "https://gh.pmwiu.com"
+    cf = "https://tracker-list-edj.pages.dev"
+    entries = [
+        ("存活 best - Pages 短链", f"{pages}/s/alive"),
+        ("存活 best - Pages 直链", f"{pages}/alive.txt"),
+        ("存活 best - Raw", f"{raw_base}/trackers/trackers_alive.txt"),
+        ("存活 best - 镜像代理", f"{mirror}/{raw_base}/trackers/trackers_alive.txt"),
+        ("存活 best - Cloudflare Pages", f"{cf}/alive.txt"),
+        ("合并 all - Pages 短链", f"{pages}/s/all"),
+        ("合并 all - Pages 直链", f"{pages}/merged.txt"),
+        ("合并 all - Raw", f"{raw_base}/trackers/trackers_merged.txt"),
+        ("合并 all - 镜像代理", f"{mirror}/{raw_base}/trackers/trackers_merged.txt"),
+        ("合并 all - Cloudflare Pages", f"{cf}/merged.txt"),
+    ]
     lines = [
         "# Tracker 订阅地址清单",
         f"# Generated: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC",
-        "# 短链接与直链均使用 github.io，规避 DNS 污染",
+        "# 双托管：GitHub Pages/Raw + Cloudflare Pages；镜像代理：gh.pmwiu.com",
         "",
     ]
-    for name, template in MIRRORS:
-        url = template.format(repo=repo_name, file=MERGED_FILE)
+    for name, url in entries:
         lines += [f"# [{name}]", url, ""]
     atomic_write(os.path.join(OUTPUT_DIR, "MIRRORS.txt"), NL.join(lines))
     print("[OK]   MIRRORS.txt")
@@ -722,6 +735,9 @@ def main():
             # 去重白名单校验：仅保留标准 tracker 协议的行（防御性过滤，跨协议不做折叠）
             merged = [line for line in merged
                       if line.startswith(("http://", "https://", "udp://", "wss://", "ws://"))]
+            # all 订阅计划上限：最多 599 条
+            if len(merged) > MAX_ALL:
+                merged = merged[:MAX_ALL]
             write_trackers(
                 os.path.join(OUTPUT_DIR, MERGED_FILE), merged,
                 source_url=", ".join(u for _, u, _ in SOURCES),
