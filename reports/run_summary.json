@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-09-30 11:59:42 UTC",
+  "timestamp": "2026-09-30 12:09:20 UTC",
   "status": "success",
-  "duration_sec": 1.8,
+  "duration_sec": 33.6,
   "sources": {
     "cf-best": {
       "http_code": 200,
@@ -82,9 +82,34 @@
       "http_code": 200,
       "lines": 4,
       "ok": true
+    },
+    "pkgforge-all": {
+      "http_code": 200,
+      "lines": 970,
+      "ok": true
+    },
+    "pkgforge-general": {
+      "http_code": 200,
+      "lines": 105,
+      "ok": true
+    },
+    "adysec-all": {
+      "http_code": 200,
+      "lines": 3535,
+      "ok": true
+    },
+    "ngosang-all": {
+      "http_code": 200,
+      "lines": 74,
+      "ok": true
+    },
+    "cf-all": {
+      "http_code": 200,
+      "lines": 118,
+      "ok": true
     }
   },
-  "merged_lines": 425,
+  "merged_lines": 599,
   "alive_lines": null,
   "failed_sources": []
 }

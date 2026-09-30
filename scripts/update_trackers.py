@@ -54,6 +54,11 @@ SOURCES = [
     ("trackers_ngosang_ygg.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil.txt", "ngosang-ygg"),
     ("trackers_ngosang_all_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ip.txt", "ngosang-all-ip"),
     ("trackers_ngosang_ygg_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil_ip.txt", "ngosang-ygg-ip"),
+    ("trackers_pkgforge_all.txt", "https://raw.githubusercontent.com/pkgforge-security/Trackers/refs/heads/main/trackers_all.txt", "pkgforge-all"),
+    ("trackers_pkgforge_general.txt", "https://raw.githubusercontent.com/pkgforge-security/Trackers/refs/heads/main/trackers_all_general.txt", "pkgforge-general"),
+    ("trackers_adysec_all.txt", "https://raw.githubusercontent.com/adysec/tracker/refs/heads/main/trackers_all.txt", "adysec-all"),
+    ("trackers_ngosang_all.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt", "ngosang-all"),
+    ("trackers_cf_all.txt", "https://cf.trackerslist.com/all.txt", "cf-all"),
 ]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
@@ -514,6 +519,11 @@ def generate_source_links():
         "ngosang-ygg": "ngosang/all-yggdrasil",
         "ngosang-all-ip": "ngosang/all-ip",
         "ngosang-ygg-ip": "ngosang/all-yggdrasil-ip",
+        "pkgforge-all": "pkgforge-security/all",
+        "pkgforge-general": "pkgforge-security/all-general",
+        "adysec-all": "adysec/all",
+        "ngosang-all": "ngosang/all",
+        "cf-all": "trackerslist/all",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -679,6 +689,11 @@ def sync_plain_text_files():
         "trackers_ngosang_ygg.txt": "ngosang_ygg.txt",
         "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
         "trackers_ngosang_ygg_ip.txt": "ngosang_ygg_ip.txt",
+        "trackers_pkgforge_all.txt": "pkgforge_all.txt",
+        "trackers_pkgforge_general.txt": "pkgforge_general.txt",
+        "trackers_adysec_all.txt": "adysec_all.txt",
+        "trackers_ngosang_all.txt": "ngosang_all.txt",
+        "trackers_cf_all.txt": "cf_all.txt",
     }
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():
@@ -710,7 +725,8 @@ def main():
         if blacklist:
             print(f"[INFO] Blacklist: {len(blacklist)} domains")
 
-        all_merged = set()
+        all_merged = []          # 按源优先级（SOURCES 顺序，精选源在前）收集
+        seen_merged = set()
         results = []
         failures = []
 
@@ -742,7 +758,12 @@ def main():
                     continue
             write_trackers(os.path.join(OUTPUT_DIR, filename), trackers, source_url=url)
             _backup_file(filename)
-            all_merged.update(trackers)
+            for t in trackers:
+                if t in seen_merged or not t.startswith(("http://", "https://", "udp://", "wss://", "ws://")):
+                    continue
+                seen_merged.add(t)
+                if len(all_merged) < MAX_ALL:
+                    all_merged.append(t)
             results.append((filename, len(trackers)))
             print(f"[OK]   {len(trackers)} unique")
 
@@ -752,13 +773,7 @@ def main():
                 print(f"  - {sn}: {err}")
 
         if all_merged:
-            merged = sorted(all_merged)
-            # 去重白名单校验：仅保留标准 tracker 协议的行（防御性过滤，跨协议不做折叠）
-            merged = [line for line in merged
-                      if line.startswith(("http://", "https://", "udp://", "wss://", "ws://"))]
-            # all 订阅计划上限：最多 599 条
-            if len(merged) > MAX_ALL:
-                merged = merged[:MAX_ALL]
+            merged = sorted(all_merged)  # 已按源优先级（精选源在前）取前 MAX_ALL 条
             write_trackers(
                 os.path.join(OUTPUT_DIR, MERGED_FILE), merged,
                 source_url=", ".join(u for _, u, _ in SOURCES),

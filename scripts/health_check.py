@@ -56,6 +56,11 @@ TRACKER_FILES = [
     "trackers_ngosang_ygg.txt",
     "trackers_ngosang_all_ip.txt",
     "trackers_ngosang_ygg_ip.txt",
+    "trackers_pkgforge_all.txt",
+    "trackers_pkgforge_general.txt",
+    "trackers_adysec_all.txt",
+    "trackers_ngosang_all.txt",
+    "trackers_cf_all.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
     "trackers_dead.txt",
@@ -74,6 +79,8 @@ PLAIN_TEXT_FILES = [
     "anime_ip.txt", "ultimate.txt", "opentracker.txt",
     "ngosang_best.txt", "ngosang_i2p.txt", "ngosang_ygg.txt",
     "ngosang_all_ip.txt", "ngosang_ygg_ip.txt",
+    "pkgforge_all.txt", "pkgforge_general.txt", "adysec_all.txt",
+    "ngosang_all.txt", "cf_all.txt",
 ]
 
 # trackers/ 到 docs/ 的映射
@@ -96,6 +103,11 @@ CONSISTENCY_MAP = {
     "trackers_ngosang_ygg.txt": "ngosang_ygg.txt",
     "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
     "trackers_ngosang_ygg_ip.txt": "ngosang_ygg_ip.txt",
+    "trackers_pkgforge_all.txt": "pkgforge_all.txt",
+    "trackers_pkgforge_general.txt": "pkgforge_general.txt",
+    "trackers_adysec_all.txt": "adysec_all.txt",
+    "trackers_ngosang_all.txt": "ngosang_all.txt",
+    "trackers_cf_all.txt": "cf_all.txt",
 }
 
 MAX_ALIVE = 59
