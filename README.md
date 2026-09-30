@@ -15,24 +15,24 @@
 
 ## 订阅源（16 个）
 
-| 项目 | 源文件 | 条数 |
+| 项目 | 源地址 | 条数 |
 |------|--------|------|
-| cf.trackerslist.com | best.txt | 71 |
-| ngosang/trackerslist | trackers_best_ip.txt | 20 |
-| ngosang/trackerslist | trackers_best.txt | 20 |
-| ngosang/trackerslist | trackers_all_i2p.txt | 17 |
-| ngosang/trackerslist | trackers_all_yggdrasil.txt | 1 |
-| ngosang/trackerslist | trackers_all_ip.txt | 55 |
-| ngosang/trackerslist | trackers_all_yggdrasil_ip.txt | 4 |
-| tracker.adysec.com | trackers_best.txt | 332 |
-| tracker.adysec.com | trackers_best_http.txt | 131 |
-| tracker.adysec.com | trackers_best_https.txt | 32 |
-| tracker.adysec.com | trackers_best_udp.txt | 163 |
-| tracker.adysec.com | trackers_best_wss.txt | 6 |
-| DeSireFire/animeTrackerList | ATline_best.txt | 25 |
-| DeSireFire/animeTrackerList | ATline_best_ip.txt | 1 |
-| kris3713/UltimateBTTrackersList | ultimate_trackers.txt | 183 |
-| 1265578519/OpenTracker | tracker.txt | 38 |
+| cf.trackerslist.com | https://cf.trackerslist.com/best.txt | 71 |
+| ngosang/trackerslist | https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt | 20 |
+| ngosang/trackerslist | https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt | 20 |
+| ngosang/trackerslist | https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_i2p.txt | 17 |
+| ngosang/trackerslist | https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil.txt | 1 |
+| ngosang/trackerslist | https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ip.txt | 55 |
+| ngosang/trackerslist | https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil_ip.txt | 4 |
+| tracker.adysec.com | https://tracker.adysec.com/trackers_best.txt | 332 |
+| tracker.adysec.com | https://tracker.adysec.com/trackers_best_http.txt | 131 |
+| tracker.adysec.com | https://tracker.adysec.com/trackers_best_https.txt | 32 |
+| tracker.adysec.com | https://tracker.adysec.com/trackers_best_udp.txt | 163 |
+| tracker.adysec.com | https://tracker.adysec.com/trackers_best_wss.txt | 6 |
+| DeSireFire/animeTrackerList | https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best.txt | 25 |
+| DeSireFire/animeTrackerList | https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best_ip.txt | 1 |
+| kris3713/UltimateBTTrackersList | https://raw.githubusercontent.com/kris3713/UltimateBTTrackersList/refs/heads/master/ultimate_trackers.txt | 183 |
+| 1265578519/OpenTracker | https://raw.githubusercontent.com/1265578519/OpenTracker/master/tracker.txt | 38 |
 
 ## 特性
 
