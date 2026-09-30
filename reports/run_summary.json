@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-09-30 10:30:12 UTC",
+  "timestamp": "2026-09-30 10:34:38 UTC",
   "status": "success",
-  "duration_sec": 0.4,
+  "duration_sec": 0.3,
   "sources": {
     "cf-best": {
       "http_code": 200,
