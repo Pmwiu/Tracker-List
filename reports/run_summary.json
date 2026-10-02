@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-10-01 22:48:06 UTC",
+  "timestamp": "2026-10-02 05:55:16 UTC",
   "status": "success",
-  "duration_sec": 2.7,
+  "duration_sec": 0.6,
   "sources": {
     "cf-best": {
       "http_code": 200,
-      "lines": 72,
+      "lines": 71,
       "ok": true
     },
     "ngosang-ip": {
@@ -15,12 +15,12 @@
     },
     "adysec-best": {
       "http_code": 200,
-      "lines": 309,
+      "lines": 333,
       "ok": true
     },
     "adysec-http": {
       "http_code": 200,
-      "lines": 115,
+      "lines": 133,
       "ok": true
     },
     "adysec-https": {
@@ -30,7 +30,7 @@
     },
     "adysec-udp": {
       "http_code": 200,
-      "lines": 156,
+      "lines": 162,
       "ok": true
     },
     "adysec-wss": {
@@ -105,7 +105,7 @@
     },
     "cf-all": {
       "http_code": 200,
-      "lines": 121,
+      "lines": 122,
       "ok": true
     }
   },
