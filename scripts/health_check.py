@@ -110,7 +110,7 @@ CONSISTENCY_MAP = {
     "trackers_cf_all.txt": "cf_all.txt",
 }
 
-MAX_ALIVE = 59
+MAX_ALIVE = 20
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 HEALTH_FILE = os.path.join(REPORTS_DIR, "health.json")
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)

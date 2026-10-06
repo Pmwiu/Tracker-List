@@ -1,5 +1,6 @@
 {
   "alive_history": [
+<<<<<<< HEAD
     "udp://51.81.222.188:6969/announce",
     "udp://173.201.36.219:6969/announce",
     "udp://23.175.184.30:23333/announce",
@@ -122,4 +123,50 @@
     "udp://45.137.199.107:6969/announce": 1
   },
   "last_update": "2026-10-06T06:38:56.176027+00:00"
+=======
+    "udp://tracker.willy.pro:6969/announce",
+    "udp://martin-gebhardt.eu:25/announce",
+    "udp://tracker.dler.org:6969/announce",
+    "udp://211.75.205.187:80/announce",
+    "udp://tracker.dler.com:6969/announce",
+    "udp://31.56.179.159:6969/announce",
+    "udp://83.102.180.21:80/announce",
+    "udp://65.109.28.33:6969/announce",
+    "udp://open.stealth.si:80/announce",
+    "udp://209.141.59.25:6969/announce",
+    "udp://135.125.198.235:1984/announce",
+    "udp://tracker.qu.ax:6969/announce",
+    "udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce",
+    "udp://65.109.28.17:6969/announce",
+    "udp://tracker.nyaa.vc:6969/announce",
+    "udp://95.217.80.20:6969/announce",
+    "udp://135.125.236.64:6969/announce",
+    "udp://34.66.57.33:80/announce",
+    "udp://open.ftorrent.com:443/announce",
+    "udp://93.158.213.92:1337/announce"
+  ],
+  "consecutive_alive": {
+    "udp://tracker.willy.pro:6969/announce": 2,
+    "udp://martin-gebhardt.eu:25/announce": 3,
+    "udp://tracker.dler.org:6969/announce": 1,
+    "udp://211.75.205.187:80/announce": 1,
+    "udp://tracker.dler.com:6969/announce": 1,
+    "udp://31.56.179.159:6969/announce": 3,
+    "udp://83.102.180.21:80/announce": 3,
+    "udp://65.109.28.33:6969/announce": 2,
+    "udp://open.stealth.si:80/announce": 2,
+    "udp://209.141.59.25:6969/announce": 1,
+    "udp://135.125.198.235:1984/announce": 1,
+    "udp://tracker.qu.ax:6969/announce": 1,
+    "udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce": 1,
+    "udp://65.109.28.17:6969/announce": 1,
+    "udp://tracker.nyaa.vc:6969/announce": 1,
+    "udp://95.217.80.20:6969/announce": 1,
+    "udp://135.125.236.64:6969/announce": 1,
+    "udp://34.66.57.33:80/announce": 1,
+    "udp://open.ftorrent.com:443/announce": 1,
+    "udp://93.158.213.92:1337/announce": 1
+  },
+  "last_update": "2026-10-06T11:03:52.736272+00:00"
+>>>>>>> a5287ac (feat: best=20, all=100 exact, best refined from all list)
 }

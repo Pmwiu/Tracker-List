@@ -64,8 +64,8 @@ SOURCES = [
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
 
-MAX_TRACKERS = 59
-MAX_ALL = 599
+MAX_TRACKERS = 20   # best 存活，正好 20 条
+MAX_ALL = 100       # all 合并，正好 100 条
 
 SHORT_LINKS = [
     ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",

@@ -1,7 +1,13 @@
 {
+<<<<<<< HEAD
   "timestamp": "2026-10-06 06:35:46 UTC",
   "status": "success",
   "duration_sec": 1.5,
+=======
+  "timestamp": "2026-10-06 11:03:42 UTC",
+  "status": "success",
+  "duration_sec": 151.6,
+>>>>>>> a5287ac (feat: best=20, all=100 exact, best refined from all list)
   "sources": {
     "cf-best": {
       "http_code": 200,
@@ -9,7 +15,7 @@
       "ok": true
     },
     "ngosang-ip": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 20,
       "ok": true
     },
@@ -39,61 +45,72 @@
       "ok": true
     },
     "anime-best": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 25,
       "ok": true
     },
     "anime-ip": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 1,
       "ok": true
     },
     "ultimate": {
+<<<<<<< HEAD
       "http_code": 200,
       "lines": 174,
+=======
+      "http_code": 0,
+      "lines": 183,
+>>>>>>> a5287ac (feat: best=20, all=100 exact, best refined from all list)
       "ok": true
     },
     "opentracker": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 38,
       "ok": true
     },
     "ngosang-best": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 20,
       "ok": true
     },
     "ngosang-i2p": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 17,
       "ok": true
     },
     "ngosang-ygg": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 1,
       "ok": true
     },
     "ngosang-all-ip": {
+<<<<<<< HEAD
       "http_code": 200,
       "lines": 54,
+=======
+      "http_code": 0,
+      "lines": 55,
+>>>>>>> a5287ac (feat: best=20, all=100 exact, best refined from all list)
       "ok": true
     },
     "ngosang-ygg-ip": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 4,
       "ok": true
     },
     "pkgforge-all": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 970,
       "ok": true
     },
     "pkgforge-general": {
-      "http_code": 200,
+      "http_code": 0,
       "lines": 105,
       "ok": true
     },
     "adysec-all": {
+<<<<<<< HEAD
       "http_code": 200,
       "lines": 3542,
       "ok": true
@@ -101,6 +118,15 @@
     "ngosang-all": {
       "http_code": 200,
       "lines": 77,
+=======
+      "http_code": 0,
+      "lines": 3535,
+      "ok": true
+    },
+    "ngosang-all": {
+      "http_code": 0,
+      "lines": 74,
+>>>>>>> a5287ac (feat: best=20, all=100 exact, best refined from all list)
       "ok": true
     },
     "cf-all": {
@@ -109,7 +135,7 @@
       "ok": true
     }
   },
-  "merged_lines": 599,
+  "merged_lines": 100,
   "alive_lines": null,
   "failed_sources": []
 }

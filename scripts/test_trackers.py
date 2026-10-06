@@ -498,28 +498,28 @@ def read_candidates(max_count=500):
                     seen.add(line)
                     ordered.append(line)
 
-    # 1. 精选源优先（best 系列，人工筛选、存活率高）
-    for priority_file in ("trackers_adysec_best.txt", "trackers_cf_best.txt",
-                          "trackers_adysec_udp.txt", "trackers_adysec_http.txt",
-                          "trackers_ngosang_ip.txt", "trackers_adysec_https.txt",
-                          "trackers_anime_best.txt", "trackers_adysec_wss.txt",
-                          "trackers_anime_ip.txt", "trackers_ultimate.txt",
-                          "trackers_opentracker.txt", "trackers_ngosang_best.txt",
-                          "trackers_ngosang_all_ip.txt", "trackers_ngosang_i2p.txt",
-                          "trackers_ngosang_ygg.txt", "trackers_ngosang_ygg_ip.txt",
-                          "trackers_pkgforge_general.txt", "trackers_ngosang_all.txt",
-                          "trackers_cf_all.txt", "trackers_pkgforge_all.txt",
-                          "trackers_adysec_all.txt"):
-        _ingest(priority_file)
-
-    # 2. 从合并大列表补足（adysec 等海量来源）
-    for t in read_merged():
-        if len(ordered) >= max_count:
-            break
+    # 1. 优先测试 all 合并列表（merged，已按源优先级取前 MAX_ALL 条）——
+    #    best 计划从中精测精选，确保与 all 严格子集、且“最优”
+    all_list = read_merged()
+    if max_count <= len(all_list):
+        # 直接从 all 列表取前 max_count 条（即 best ⊂ all）
+        for t in all_list[:max_count]:
+            if t not in seen:
+                seen.add(t)
+                ordered.append(t)
+        return ordered[:max_count]
+    # all 不足 max_count 时，先用 all、再用精选源补足
+    for t in all_list:
         if t not in seen:
             seen.add(t)
             ordered.append(t)
-
+    for priority_file in ("trackers_adysec_best.txt", "trackers_cf_best.txt",
+                          "trackers_adysec_udp.txt", "trackers_adysec_http.txt",
+                          "trackers_adysec_https.txt", "trackers_ngosang_ip.txt",
+                          "trackers_anime_best.txt", "trackers_adysec_wss.txt",
+                          "trackers_anime_ip.txt", "trackers_ultimate.txt",
+                          "trackers_opentracker.txt"):
+        _ingest(priority_file)
     return ordered[:max_count]
 
 

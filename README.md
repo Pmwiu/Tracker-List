@@ -6,8 +6,8 @@
 
 | 计划 | 条数上限 | txt 订阅链接 |
 |------|---------|-------------|
-| **best 存活**（推荐） | 59 | `https://tracker.pmwiu.com/alive.txt` |
-| **all 合并** | 599 | `https://tracker.pmwiu.com/merged.txt` |
+| **best 存活**（推荐） | 20 | `https://tracker.pmwiu.com/alive.txt` |
+| **all 合并** | 100 | `https://tracker.pmwiu.com/merged.txt` |
 
 备用通道：`https://pmwiu.github.io/Tracker-List/alive.txt`、`https://pmwiu.github.io/Tracker-List/merged.txt`
 
@@ -69,7 +69,7 @@
 - 21 个源合并去重（按仓库分类，受白名单保护）
 - 协议级活性测试（HTTP/HTTPS/UDP/WSS/WS）+ 综合评分：速度 70% + 稳定性 30%
 - 低速淘汰（>5s）、同 IP 去重、域名黑名单、失败降级备份、测试熔断
-- all 计划按源优先级取前 599 条（精选源优先）
+- all 计划按源优先级取前 100 条（精选源优先）
 - 每 6 小时自动更新 · GitHub Pages/Raw + Cloudflare Pages 双托管
 
 ## 许可

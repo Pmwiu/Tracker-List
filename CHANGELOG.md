@@ -2,6 +2,10 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-06] - feat
+- best 计划精确 20 条、all 计划精确 100 条（原 59/599）
+- best 从 all 列表精测精选（best ⊆ all），机制对齐国际合集做减量聚焦
+
 ## [2026-09-30] - feat
 - 新增 5 个源：pkgforge-security(all/general)、adysec all、ngosang all、cf all（共 21 源）
 - all 计划改为按源优先级取前 599 条（精选源优先），候选数 500→1000
