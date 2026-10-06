@@ -1,8 +1,12 @@
-# Tracker List
+<h1 align="center">Tracker List</h1>
 
-| 计划 | 条数 | 短链接 | 长链接 |
-|------|------|--------|--------|
-| **best**（存活·推荐） | 20 | `https://tracker.pmwiu.com/alive.txt` | `https://pmwiu.github.io/Tracker-List/alive.txt` |
-| **all**（合并） | 100 | `https://tracker.pmwiu.com/merged.txt` | `https://pmwiu.github.io/Tracker-List/merged.txt` |
+<p align="center">20 best · 100 merged · 每 6 小时更新</p>
 
-Raw 直链：`https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_alive.txt`（best）· `.../trackers_merged.txt`（all）
+<div align="center">
+
+| | 订阅链接 (txt) |
+|---|---|
+| **best** ⟶ | `https://tracker.pmwiu.com/alive.txt` |
+| **all** ⟶ | `https://tracker.pmwiu.com/merged.txt` |
+
+</div>
