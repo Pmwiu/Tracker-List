@@ -460,6 +460,27 @@ def write_trackers(filepath, trackers, source_url=None, extra_header=None):
     atomic_write(filepath, content)
 
 
+PROTOCOL_SUBLISTS = {
+    "udp": "udp://",
+    "http": "http://",
+    "https": "https://",
+    "wss": "wss://",
+    "ws": "ws://",
+}
+
+
+def write_protocol_sublists(merged):
+    """按协议拆分合并列表，生成各协议子列表（对齐国际聚合项目的多格式列表）。"""
+    for name, prefix in PROTOCOL_SUBLISTS.items():
+        subset = [t for t in merged if t.startswith(prefix)]
+        if subset:
+            write_trackers(
+                os.path.join(OUTPUT_DIR, f"trackers_{name}.txt"),
+                subset,
+                extra_header=f"# 协议: {name}",
+            )
+
+
 def write_mirrors_file(repo):
     owner = repo.split("/")[0] if "/" in repo else repo
     repo_name = repo.split("/")[-1] if "/" in repo else repo
@@ -716,6 +737,11 @@ def sync_plain_text_files():
         "trackers_adysec_all.txt": "adysec_all.txt",
         "trackers_ngosang_all.txt": "ngosang_all.txt",
         "trackers_cf_all.txt": "cf_all.txt",
+        "trackers_udp.txt": "udp.txt",
+        "trackers_http.txt": "http.txt",
+        "trackers_https.txt": "https.txt",
+        "trackers_wss.txt": "wss.txt",
+        "trackers_ws.txt": "ws.txt",
     }
     os.makedirs(PAGES_DIR, exist_ok=True)
     for src, dst in mapping.items():
@@ -806,6 +832,7 @@ def main():
             results.append((MERGED_FILE, len(merged)))
             merged_lines = len(merged)
             print(f"{NL}[OK]   merged: {len(merged)}")
+            write_protocol_sublists(merged)
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
             sys.exit(1)

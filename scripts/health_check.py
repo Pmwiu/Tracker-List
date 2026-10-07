@@ -81,6 +81,7 @@ PLAIN_TEXT_FILES = [
     "ngosang_all_ip.txt", "ngosang_ygg_ip.txt",
     "pkgforge_all.txt", "pkgforge_general.txt", "adysec_all.txt",
     "ngosang_all.txt", "cf_all.txt",
+    "udp.txt", "http.txt", "https.txt", "wss.txt", "ws.txt",
 ]
 
 # trackers/ 到 docs/ 的映射
@@ -108,6 +109,11 @@ CONSISTENCY_MAP = {
     "trackers_adysec_all.txt": "adysec_all.txt",
     "trackers_ngosang_all.txt": "ngosang_all.txt",
     "trackers_cf_all.txt": "cf_all.txt",
+    "trackers_udp.txt": "udp.txt",
+    "trackers_http.txt": "http.txt",
+    "trackers_https.txt": "https.txt",
+    "trackers_wss.txt": "wss.txt",
+    "trackers_ws.txt": "ws.txt",
 }
 
 MAX_ALIVE = 20
