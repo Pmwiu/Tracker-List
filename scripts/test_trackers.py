@@ -74,6 +74,40 @@ def cached_getaddrinfo(host, port=None):
     raise last_error
 
 
+def _is_ipv6_literal(host):
+    try:
+        return ipaddress.ip_address(host).version == 6
+    except ValueError:
+        return False
+
+
+_ipv6_available = None
+
+
+def ipv6_available():
+    """探测本机是否具备 IPv6 出口。
+
+    不具备时把 IPv6 字面量 tracker 标为 untestable（而非 dead），
+    避免在无 IPv6 网络环境下把它们误判为失效并浪费时间探活。
+    """
+    global _ipv6_available
+    if _ipv6_available is None:
+        if not socket.has_ipv6:
+            _ipv6_available = False
+        else:
+            try:
+                s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                s.settimeout(2)
+                try:
+                    s.connect(("2001:4860:4860::8888", 53))
+                    _ipv6_available = True
+                finally:
+                    s.close()
+            except Exception:
+                _ipv6_available = False
+    return _ipv6_available
+
+
 # ============================================================
 # bencode 解码器
 # ============================================================
@@ -338,6 +372,9 @@ def test_one(tracker, timeout):
 
     if host and host.endswith('.i2p'):
         return tracker, 'untestable', 'I2P network required', 0.0
+
+    if host and _is_ipv6_literal(host) and not ipv6_available():
+        return tracker, 'untestable', 'IPv6 unavailable here', 0.0
 
     try:
         if scheme in ('http', 'https'):
@@ -648,9 +685,9 @@ def main():
 
     total_available = len(read_merged())
     trackers = read_candidates(args.max_candidates)
-    print(f'[INFO] Testing {len(trackers)} of {total_available} candidates '
-          f'(timeout={args.timeout}s, workers={args.workers}, '
-          f'priority sources first)')
+    print(f'[INFO] Testing {len(trackers)} candidates '
+          f'(all-pool={total_available}, timeout={args.timeout}s, '
+          f'workers={args.workers})')
     print(f'[INFO] Max alive trackers after scoring: {ut.MAX_TRACKERS}')
 
     history = load_history()

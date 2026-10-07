@@ -301,7 +301,7 @@ def check_pages_links(results):
             results.append(("WARN", f"Pages: /{ptf}", f"unreachable: {content[:80]}"))
 
     # 短链接页面（检查是否返回 200 且包含重定向）
-    for sp in ["alive", "cf"]:
+    for sp in SHORT_PAGES:
         url = f"{PAGES_BASE}/s/{sp}"
         ok, content, status = fetch_url(url)
         if ok and ('refresh' in content or 'location.replace' in content):
