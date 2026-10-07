@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-07 01:30:29 UTC",
+  "timestamp": "2026-10-07 01:31:29 UTC",
   "status": "success",
-  "duration_sec": 151.1,
+  "duration_sec": 1.1,
   "sources": {
     "cf-best": {
       "http_code": 200,
@@ -9,7 +9,7 @@
       "ok": true
     },
     "ngosang-ip": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 20,
       "ok": true
     },
@@ -39,68 +39,68 @@
       "ok": true
     },
     "anime-best": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 25,
       "ok": true
     },
     "anime-ip": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 1,
       "ok": true
     },
     "ultimate": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 174,
       "ok": true
     },
     "opentracker": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 38,
       "ok": true
     },
     "ngosang-best": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 20,
       "ok": true
     },
     "ngosang-i2p": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 17,
       "ok": true
     },
     "ngosang-ygg": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 1,
       "ok": true
     },
     "ngosang-all-ip": {
-      "http_code": 0,
-      "lines": 54,
+      "http_code": 200,
+      "lines": 58,
       "ok": true
     },
     "ngosang-ygg-ip": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 4,
       "ok": true
     },
     "pkgforge-all": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 970,
       "ok": true
     },
     "pkgforge-general": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 105,
       "ok": true
     },
     "adysec-all": {
-      "http_code": 0,
+      "http_code": 200,
       "lines": 3542,
       "ok": true
     },
     "ngosang-all": {
-      "http_code": 0,
-      "lines": 77,
+      "http_code": 200,
+      "lines": 82,
       "ok": true
     },
     "cf-all": {
