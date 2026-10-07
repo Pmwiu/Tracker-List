@@ -159,6 +159,20 @@ def load_blacklist():
     return blacklist
 
 
+def load_url_blacklist():
+    """读取 trackers/blacklist_dynamic.txt，返回需排除的精确 URL 集合。"""
+    path = os.path.join(OUTPUT_DIR, "blacklist_dynamic.txt")
+    if not os.path.exists(path):
+        return set()
+    urls = set()
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                urls.add(line)
+    return urls
+
+
 def write_run_summary(status, duration_sec, source_stats, merged_lines, failed_sources):
     """生成 reports/run_summary.json 运行摘要。"""
     os.makedirs(REPORTS_DIR, exist_ok=True)
@@ -335,15 +349,17 @@ def cleanup_legacy_files():
         print(f"[OK]   Cleaned {removed} legacy files.")
 
 
-def download_trackers(url, blacklist=None):
+def download_trackers(url, blacklist=None, url_blacklist=None):
     """下载并校验 tracker 列表，返回去重后的排序列表。
 
     仅接受 ALLOWED_SOURCE_URLS 白名单内的订阅源；非白名单来源直接拒绝，
-    其内容不会被下载、解析或合并。blacklist 为需排除的域名集合（小写）。
+    其内容不会被下载、解析或合并。blacklist 为需排除的域名集合（小写），
+    url_blacklist 为需排除的精确 URL 集合（动态黑名单）。
     """
     if url not in ALLOWED_SOURCE_URLS:
         raise RuntimeError(f"Source not in whitelist, rejected: {url}")
     blacklist = blacklist or set()
+    url_blacklist = url_blacklist or set()
     last_error = None
     raw = None
     for attempt in range(1, MAX_RETRIES + 1):
@@ -375,12 +391,16 @@ def download_trackers(url, blacklist=None):
     trackers = set()
     invalid = 0
     blacklisted = 0
+    url_blacklisted = 0
     for line in raw.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
         normalized = normalize_tracker(line)
         if normalized and is_valid_tracker(normalized):
+            if normalized in url_blacklist:
+                url_blacklisted += 1
+                continue
             host = (urllib.parse.urlparse(normalized).hostname or "").lower()
             if host and host in blacklist:
                 blacklisted += 1
@@ -394,6 +414,8 @@ def download_trackers(url, blacklist=None):
         print(f"  [INFO] Skipped {invalid} invalid lines")
     if blacklisted > 0:
         print(f"  [INFO] Skipped {blacklisted} blacklisted lines")
+    if url_blacklisted > 0:
+        print(f"  [INFO] Skipped {url_blacklisted} dynamic-blacklisted lines")
 
     if not trackers:
         raise RuntimeError("No valid trackers found in response")
@@ -724,6 +746,9 @@ def main():
         blacklist = load_blacklist()
         if blacklist:
             print(f"[INFO] Blacklist: {len(blacklist)} domains")
+        url_blacklist = load_url_blacklist()
+        if url_blacklist:
+            print(f"[INFO] Dynamic blacklist: {len(url_blacklist)} URLs")
 
         all_merged = []          # 按源优先级（SOURCES 顺序，精选源在前）收集
         seen_merged = set()
@@ -742,7 +767,7 @@ def main():
             source_stats[short_name] = {"http_code": 0, "lines": 0, "ok": False}
             trackers = None
             try:
-                trackers = download_trackers(url, blacklist=blacklist)
+                trackers = download_trackers(url, blacklist=blacklist, url_blacklist=url_blacklist)
                 source_stats[short_name] = {"http_code": 200, "lines": len(trackers), "ok": True}
             except Exception as e:
                 # 补丁 D：下载失败或异常源 → 降级到上次成功备份

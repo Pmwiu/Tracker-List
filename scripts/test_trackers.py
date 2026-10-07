@@ -426,19 +426,34 @@ def load_history():
     return {"alive_history": [], "consecutive_alive": {}}
 
 
-def save_history(alive_trackers):
-    """保存本次 alive 列表和连续存活计数。"""
+DEAD_BLACKLIST_RUNS = 20  # 连续失效 N 次（约 5 天 @ 4 次/天）→ 自动列入动态黑名单
+
+
+def save_history(alive_trackers, dead_trackers=None):
+    """保存本次 alive/dead 列表，维护连续存活与连续失效计数。
+
+    返回新的 dead_streak 字典，供动态黑名单生成。
+    """
     old = load_history()
-    old_set = set(old.get("alive_history", []))
     consecutive = old.get("consecutive_alive", {})
+    dead_streak = old.get("dead_streak", {})
+
+    alive_set = set(alive_trackers)
+    dead_set = set(dead_trackers or [])
 
     new_consecutive = {}
-    for t in alive_trackers:
+    new_dead_streak = dict(dead_streak)
+    for t in alive_set:
         new_consecutive[t] = consecutive.get(t, 0) + 1
+        new_dead_streak.pop(t, None)   # 存活即清零失效 streak
+    for t in dead_set:
+        new_dead_streak[t] = dead_streak.get(t, 0) + 1
+        new_consecutive.pop(t, None)   # 失效即清零存活 streak
 
     state = {
-        "alive_history": alive_trackers,
+        "alive_history": sorted(alive_set),
         "consecutive_alive": new_consecutive,
+        "dead_streak": new_dead_streak,
         "last_update": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
     path = os.path.join(ut.OUTPUT_DIR, 'test_state.json')
@@ -447,6 +462,21 @@ def save_history(alive_trackers):
             json.dump(state, f, indent=2, ensure_ascii=False)
     except IOError:
         pass
+    return new_dead_streak
+
+
+def write_dynamic_blacklist(dead_streak, threshold=DEAD_BLACKLIST_RUNS):
+    """连续失效 ≥ threshold 次的 tracker 写入动态黑名单（精确 URL）。"""
+    urls = sorted(t for t, n in dead_streak.items() if n >= threshold)
+    path = os.path.join(ut.OUTPUT_DIR, 'blacklist_dynamic.txt')
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write("# 动态黑名单：连续失效 >= %d 次，由 test_trackers.py 自动生成\n" % threshold)
+            for u in urls:
+                f.write(u + "\n")
+    except IOError:
+        pass
+    return urls
 
 
 # ============================================================
@@ -793,7 +823,10 @@ def main():
         'Trackers that FAILED, were unsafe, were low-speed, were same-IP duplicates, or were capped by score limit'
     )
     write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats, low_speed, same_ip_removed)
-    save_history(alive_final_list)
+    dead_streak = save_history(alive_final_list, dead_final)
+    dyn_blacklist = write_dynamic_blacklist(dead_streak)
+    if dyn_blacklist:
+        print(f'[INFO] Dynamic blacklist: {len(dyn_blacklist)} consistently-dead trackers')
 
     n_alive = len(alive_final_list)
     n_dead = len(dead_final)

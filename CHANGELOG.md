@@ -2,6 +2,10 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-07] - feat
+- 动态黑名单：连续失效 20 次（约 5 天）的 tracker 自动列入 blacklist_dynamic.txt，
+  后续下载自动过滤（精确 URL 匹配，dead_streak 记录在 test_state.json）
+
 ## [2026-10-07] - fix
 - 修复 best ⊆ all 不成立（best 20 里有 16 条不在 all 100 里）：read_candidates 只返回
   all 列表，best 严格从 all 精筛；测试候选 376 → 100（更快、更聚焦）
