@@ -515,49 +515,11 @@ def read_merged():
 
 
 def read_candidates(max_count=500):
-    """按来源优先级读取候选 tracker。
+    """读取候选 tracker：即 all 合并列表（merged，已按源优先级精选前 MAX_ALL 条）。
 
-    精选源（trackerslist / ngosang，人工维护、质量高）优先测试，
-    再从合并大列表（含 adysec 数千条）中补足到 max_count，
-    避免在 GitHub Actions 中对数千个 tracker 全量测试而超时。
+    best 计划从中精测，确保 best 严格子集于 all；max_count 仅作上限保护。
     """
-    seen = set()
-    ordered = []
-
-    def _ingest(filename):
-        path = os.path.join(ut.OUTPUT_DIR, filename)
-        if not os.path.exists(path):
-            return
-        with open(path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and line not in seen:
-                    seen.add(line)
-                    ordered.append(line)
-
-    # 1. 优先测试 all 合并列表（merged，已按源优先级取前 MAX_ALL 条）——
-    #    best 计划从中精测精选，确保与 all 严格子集、且“最优”
-    all_list = read_merged()
-    if max_count <= len(all_list):
-        # 直接从 all 列表取前 max_count 条（即 best ⊂ all）
-        for t in all_list[:max_count]:
-            if t not in seen:
-                seen.add(t)
-                ordered.append(t)
-        return ordered[:max_count]
-    # all 不足 max_count 时，先用 all、再用精选源补足
-    for t in all_list:
-        if t not in seen:
-            seen.add(t)
-            ordered.append(t)
-    for priority_file in ("trackers_adysec_best.txt", "trackers_cf_best.txt",
-                          "trackers_adysec_udp.txt", "trackers_adysec_http.txt",
-                          "trackers_adysec_https.txt", "trackers_ngosang_ip.txt",
-                          "trackers_anime_best.txt", "trackers_adysec_wss.txt",
-                          "trackers_anime_ip.txt", "trackers_ultimate.txt",
-                          "trackers_opentracker.txt"):
-        _ingest(priority_file)
-    return ordered[:max_count]
+    return read_merged()[:max_count]
 
 
 # ============================================================
