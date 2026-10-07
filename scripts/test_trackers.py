@@ -415,7 +415,7 @@ def test_one(tracker, timeout):
 # 历史状态加载/保存
 # ============================================================
 def load_history():
-    """加载上一次的 alive 列表，用于稳定性加权。"""
+    """加载上一次的状态，用于存活率 EMA 加权与动态黑名单。"""
     path = os.path.join(ut.OUTPUT_DIR, 'test_state.json')
     if os.path.exists(path):
         try:
@@ -423,36 +423,40 @@ def load_history():
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             pass
-    return {"alive_history": [], "consecutive_alive": {}}
+    return {"alive_history": [], "uptime_ema": {}, "dead_streak": {}}
 
 
 DEAD_BLACKLIST_RUNS = 20  # 连续失效 N 次（约 5 天 @ 4 次/天）→ 自动列入动态黑名单
+UPTIME_ALPHA = 0.2       # 存活率 EMA 权重（半衰期约 3 次运行）
 
 
 def save_history(alive_trackers, dead_trackers=None):
-    """保存本次 alive/dead 列表，维护连续存活与连续失效计数。
+    """保存本次 alive/dead 列表，维护存活率 EMA 与连续失效计数。
 
     返回新的 dead_streak 字典，供动态黑名单生成。
     """
     old = load_history()
-    consecutive = old.get("consecutive_alive", {})
+    uptime = old.get("uptime_ema", {})
     dead_streak = old.get("dead_streak", {})
 
     alive_set = set(alive_trackers)
     dead_set = set(dead_trackers or [])
+    observed = alive_set | dead_set
 
-    new_consecutive = {}
+    new_uptime = dict(uptime)
+    for t in observed:
+        val = 1.0 if t in alive_set else 0.0
+        new_uptime[t] = uptime.get(t, 0.0) * (1 - UPTIME_ALPHA) + UPTIME_ALPHA * val
+
     new_dead_streak = dict(dead_streak)
     for t in alive_set:
-        new_consecutive[t] = consecutive.get(t, 0) + 1
         new_dead_streak.pop(t, None)   # 存活即清零失效 streak
     for t in dead_set:
         new_dead_streak[t] = dead_streak.get(t, 0) + 1
-        new_consecutive.pop(t, None)   # 失效即清零存活 streak
 
     state = {
         "alive_history": sorted(alive_set),
-        "consecutive_alive": new_consecutive,
+        "uptime_ema": new_uptime,
         "dead_streak": new_dead_streak,
         "last_update": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
@@ -482,11 +486,11 @@ def write_dynamic_blacklist(dead_streak, threshold=DEAD_BLACKLIST_RUNS):
 # ============================================================
 # 综合评分排序
 # ============================================================
-def compute_score(elapsed_ms, consecutive_days):
+def compute_score(elapsed_ms, uptime):
     """
     综合评分 = 速度分(70%) + 稳定性分(30%)
     速度分：基于响应时间的归一化（越快分越高）
-    稳定性分：连续存活天数（越多分越高）
+    稳定性分：存活率 EMA（0~1，越接近 1 越稳定；偶发失效不会直接清零）
     返回分数，越高越好。
     """
     # 速度分：100ms 满分，1000ms 归零，超过 1000ms 为 0（连续单调递减）
@@ -499,8 +503,8 @@ def compute_score(elapsed_ms, consecutive_days):
     else:
         speed_score = 0
 
-    # 稳定性分：连续存活天数，最多 7 天满分
-    stability_score = min(consecutive_days, 7) / 7 * 100
+    # 稳定性分：存活率 EMA（0~1）→ 0~100
+    stability_score = max(0.0, min(1.0, uptime)) * 100
 
     return speed_score * 0.7 + stability_score * 0.3
 
@@ -603,8 +607,8 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         lines.append(f'- {proto}: {count}')
 
     lines += ['', f'## 最终订阅列表（前 {ut.MAX_TRACKERS} 个，按综合评分降序）', '']
-    for rank, (t, score, speed, days) in enumerate(alive_final, 1):
-        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 连续{days}天')
+    for rank, (t, score, speed, up) in enumerate(alive_final, 1):
+        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%')
 
     if dead:
         lines += ['', '## 失效 Tracker', '']
@@ -683,7 +687,7 @@ def main():
     print(f'[INFO] Max alive trackers after scoring: {ut.MAX_TRACKERS}')
 
     history = load_history()
-    consecutive = history.get("consecutive_alive", {})
+    uptime_map = history.get("uptime_ema", {})
 
     # ---- 第一轮：全量探活（带熔断）----
     results = []
@@ -795,15 +799,15 @@ def main():
 
     scored = []
     for t, d, e in alive_with_speed:
-        days = consecutive.get(t, 0)
-        score = compute_score(e, days)
-        scored.append((t, score, e, days, d))
+        up = uptime_map.get(t, 0.0)
+        score = compute_score(e, up)
+        scored.append((t, score, e, up, d))
 
     # 按综合评分降序，分数相同按速度升序
     scored.sort(key=lambda x: (-x[1], x[2]))
 
     alive_final_list = [t for t, _, _, _, _ in scored[:ut.MAX_TRACKERS]]
-    alive_final_detail = [(t, score, speed, days) for t, score, speed, days, _ in scored[:ut.MAX_TRACKERS]]
+    alive_final_detail = [(t, score, speed, up) for t, score, speed, up, _ in scored[:ut.MAX_TRACKERS]]
     capped = scored[ut.MAX_TRACKERS:]
 
     # 失效 = dead + unsafe + 低速 + 同IP重复 + 被淘汰的
