@@ -1,5 +1,5 @@
 # Tracker 订阅地址清单
-# Generated: 2026-10-08 06:32:51 UTC
+# Generated: 2026-10-08 06:41:35 UTC
 # 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr
 # 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)
 
@@ -66,6 +66,10 @@ https://tracker.pmwiu.com/jsd/p/ws.txt
 https://tracker.pmwiu.com/src/ngosang_best.txt
 # [ngosang-best 加速]
 https://tracker.pmwiu.com/jsd/src/ngosang_best.txt
+# [ngosang-best-ip 短链接]
+https://tracker.pmwiu.com/src/ngosang_best_ip.txt
+# [ngosang-best-ip 加速]
+https://tracker.pmwiu.com/jsd/src/ngosang_best_ip.txt
 # [cf-best 短链接]
 https://tracker.pmwiu.com/src/cf_best.txt
 # [cf-best 加速]
@@ -94,3 +98,11 @@ https://tracker.pmwiu.com/jsd/src/alphacatmeow_best.txt
 https://tracker.pmwiu.com/src/pexcn_best.txt
 # [pexcn-best 加速]
 https://tracker.pmwiu.com/jsd/src/pexcn_best.txt
+# [ngosang-i2p 短链接]
+https://tracker.pmwiu.com/src/ngosang_i2p.txt
+# [ngosang-i2p 加速]
+https://tracker.pmwiu.com/jsd/src/ngosang_i2p.txt
+# [ngosang-yggdrasil 短链接]
+https://tracker.pmwiu.com/src/ngosang_yggdrasil.txt
+# [ngosang-yggdrasil 加速]
+https://tracker.pmwiu.com/jsd/src/ngosang_yggdrasil.txt

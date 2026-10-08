@@ -1,9 +1,14 @@
 {
-  "timestamp": "2026-10-08 06:32:51 UTC",
+  "timestamp": "2026-10-08 06:41:35 UTC",
   "status": "success",
-  "duration_sec": 0.9,
+  "duration_sec": 0.3,
   "sources": {
     "ngosang-best": {
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
+    },
+    "ngosang-best-ip": {
       "http_code": 200,
       "lines": 20,
       "ok": true
@@ -42,9 +47,19 @@
       "http_code": 200,
       "lines": 73,
       "ok": true
+    },
+    "ngosang-i2p": {
+      "http_code": 200,
+      "lines": 17,
+      "ok": true
+    },
+    "ngosang-yggdrasil": {
+      "http_code": 200,
+      "lines": 1,
+      "ok": true
     }
   },
-  "merged_lines": 95,
+  "merged_lines": 100,
   "alive_lines": 20,
   "failed_sources": []
 }
