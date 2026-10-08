@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-08 13:37:35 UTC",
+  "timestamp": "2026-10-08 13:49:06 UTC",
   "status": "success",
-  "duration_sec": 2.3,
+  "duration_sec": 1.1,
   "sources": {
     "ngosang-best": {
       "http_code": 200,
@@ -60,7 +60,7 @@
     },
     "trackersrun-ws": {
       "http_code": 200,
-      "lines": 46,
+      "lines": 45,
       "ok": true
     },
     "ngosang-i2p": {
