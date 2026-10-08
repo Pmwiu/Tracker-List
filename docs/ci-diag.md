@@ -1,19 +1,19 @@
-=== Diagnostics Thu Oct  8 02:02:55 UTC 2026 ===
+=== Diagnostics Thu Oct  8 02:48:57 UTC 2026 ===
 Python: Python 3.12.15
 PWD: /home/runner/work/Tracker-List/Tracker-List
 --- Test file lock (fcntl) ---
 lock OK
 --- Test source connectivity ---
 >>> https://cf.trackerslist.com/best.txt
-  HTTP 200, total 0.215033s
+  HTTP 200, total 0.072726s
 >>> https://trackers.run/s/rw_up_hp_hs_v4_v6.txt
-  HTTP 200, total 0.529203s
+  HTTP 200, total 0.810824s
 >>> https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt
-  HTTP 200, total 0.039035s
+  HTTP 200, total 0.025266s
 >>> https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt
-  HTTP 200, total 0.149587s
+  HTTP 200, total 0.032302s
 >>> https://raw.githubusercontent.com/1265578519/OpenTracker/refs/heads/master/tracker.txt
-  HTTP 200, total 0.168001s
+  HTTP 200, total 0.061728s
 [INFO] Repo: Pmwiu/Tracker-List, Max: 20
 
 [INFO] trackers_cf_best.txt (cf-best)
@@ -60,112 +60,110 @@ lock OK
 ===================
 [INFO] Testing 100 candidates (all-pool=100, timeout=10s, workers=30)
 [INFO] Max alive trackers after scoring: 20
-  [ALIVE] (1/100) http://207.241.226.111:6969/announce 85ms — valid announce response
-  [ALIVE] (2/100) http://207.241.231.226:6969/announce 92ms — valid announce response
-  [ALIVE] (3/100) http://bt1.archive.org:6969/announce 97ms — valid announce response
-  [ALIVE] (5/100) https://t.213891.xyz:443/announce 87ms — valid announce response
-  [ALIVE] (7/100) http://tracker.dhitechnical.com:6969/announce 129ms — valid announce response
-  [ALIVE] (8/100) https://004430.xyz:443/announce 187ms — valid announce response
-  [ALIVE] (10/100) http://bt2.archive.org:6969/announce 123ms — valid announce response
-  [ALIVE] (11/100) http://tracker.nyaa.vc:6969/announce 217ms — valid announce response
-  [ALIVE] (12/100) http://211.75.205.188:80/announce 337ms — valid announce response
-  [ALIVE] (13/100) http://211.75.210.221:80/announce 340ms — valid announce response
-  [ALIVE] (14/100) http://211.75.210.221:6969/announce 345ms — valid announce response
-  [ALIVE] (15/100) http://211.75.205.187:6969/announce 347ms — valid announce response
-  [ALIVE] (16/100) https://1.tracker.eu.org:443/announce 69ms — valid announce response
-  [ALIVE] (18/100) http://1337.abcvg.info:80/announce 229ms — valid announce response
-  [ALIVE] (19/100) udp://193.148.251.93:6969/announce 21ms — valid connect + announce
-  [ALIVE] (20/100) https://1337.abcvg.info:443/announce 248ms — valid announce response
-  [ALIVE] (21/100) http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce 276ms — valid announce response
-  [ALIVE] (22/100) http://ipv4announce.sktorrent.eu:6969/announce 221ms — valid announce response
-  [ALIVE] (23/100) http://tracker.dler.org:6969/announce 380ms — valid announce response
-  [ALIVE] (24/100) https://tracker.7471.top:443/announce 205ms — valid announce response
-  [ALIVE] (25/100) https://tracker.foreverpirates.co:443/announce 219ms — valid announce response
-  [ALIVE] (26/100) http://nyaa.tracker.wf:7777/announce 310ms — valid announce response
-  [ALIVE] (27/100) http://tracker.renfei.net:8080/announce 119ms — valid announce response
-  [ALIVE] (28/100) udp://51.81.222.188:6969/announce 53ms — valid connect + announce
-  [ALIVE] (29/100) http://tracker.qu.ax:6969/announce 230ms — valid announce response
-  [ALIVE] (30/100) http://tracker.auctor.tv:6969/announce 243ms — valid announce response
-  [ALIVE] (31/100) http://tracker.mywaifu.best:6969/announce 380ms — valid announce response
-  [ALIVE] (33/100) udp://109.201.134.183:80/announce 120ms — valid connect + announce
-  [ALIVE] (34/100) http://tracker.dler.com:6969/announce 376ms — valid announce response
-  [ALIVE] (36/100) udp://135.125.198.235:1984/announce 124ms — valid connect + announce
-  [ALIVE] (37/100) http://tracker.waaa.moe:6969/announce 436ms — valid announce response
-  [ALIVE] (38/100) udp://132.226.6.145:6969/announce 135ms — valid connect + announce
-  [ALIVE] (39/100) udp://51.15.41.46:6969/announce 109ms — valid connect + announce
-  [ALIVE] (40/100) udp://31.38.161.123:6969/announce 124ms — valid connect + announce
-  [ALIVE] (41/100) udp://evan.im:6969/announce 28ms — valid connect + announce
-  [ALIVE] (42/100) udp://89.234.156.205:451/announce 120ms — valid connect + announce
-  [ALIVE] (43/100) udp://193.34.92.5:80/announce 151ms — valid connect + announce
-  [ALIVE] (44/100) udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce 135ms — valid connect + announce
-  [ALIVE] (45/100) https://tr.nyacat.pw:443/announce 331ms — valid announce response
-  [ALIVE] (47/100) https://tracker.midnightprogrammer.net:443/announce 396ms — valid announce response
-  [ALIVE] (48/100) udp://ipv4announce.sktorrent.eu:6969/announce 111ms — valid connect + announce
-  [ALIVE] (49/100) udp://43.154.112.29:17272/announce 181ms — valid connect + announce
-  [ALIVE] (50/100) udp://open.ftorrent.com:443/announce 22ms — valid connect + announce
-  [ALIVE] (51/100) udp://tr4ck3r.duckdns.org:6969/announce 31ms — valid connect + announce
-  [ALIVE] (52/100) udp://tracker.corpscorp.online:80/announce 21ms — valid connect + announce
-  [ALIVE] (53/100) udp://martin-gebhardt.eu:25/announce 120ms — valid connect + announce
-  [ALIVE] (54/100) https://tracker.nekomi.cn:443/announce 142ms — valid announce response
-  [ALIVE] (55/100) udp://exodus.desync.com:6969/announce 50ms — valid connect + announce
-  [ALIVE] (56/100) udp://tracker.bittor.pw:1337/announce 30ms — valid connect + announce
-  [ALIVE] (57/100) udp://open.stealth.si:80/announce 129ms — valid connect + announce
-  [ALIVE] (58/100) udp://admin.52ywp.com:6969/announce 205ms — valid connect + announce
-  [ALIVE] (59/100) udp://mail.segso.net:6969/announce 143ms — valid connect + announce
-  [ALIVE] (60/100) udp://open.demonii.com:1337/announce 172ms — valid connect + announce
-  [ALIVE] (61/100) udp://tracker.ducks.party:1984/announce 117ms — valid connect + announce
-  [ALIVE] (62/100) udp://tracker-udp.gbitt.info:80/announce 116ms — valid connect + announce
-  [ALIVE] (63/100) udp://kolankoalastree.newtrackon.co.nz:1337/announce 171ms — valid connect + announce
-  [ALIVE] (64/100) https://tracker.qingwapt.org:443/announce 608ms — online (failure reason)
-  [ALIVE] (65/100) udp://tracker.dler.com:6969/announce 179ms — valid connect + announce
-  [ALIVE] (66/100) udp://tracker.dler.org:6969/announce 169ms — valid connect + announce
-  [ALIVE] (67/100) udp://tracker.cn.nyaa.net:6969/announce 178ms — valid connect + announce
-  [ALIVE] (68/100) udp://tracker.qu.ax:6969/announce 112ms — valid connect + announce
-  [ALIVE] (69/100) udp://tracker.nyaa.vc:6969/announce 145ms — valid connect + announce
-  [ALIVE] (70/100) udp://tracker.wildkat.net:6969/announce 18ms — valid connect + announce
-  [ALIVE] (71/100) udp://tracker.opentrackr.com:6969/announce 142ms — valid connect + announce
-  [ALIVE] (72/100) udp://tracker.peerfect.org:6969/announce 136ms — valid connect + announce
-  [ALIVE] (73/100) udp://t.overflow.biz:6969/announce 149ms — valid connect + announce
-  [ALIVE] (74/100) udp://torrent.tracker.durukanbal.com:6969/announce 118ms — valid connect + announce
-  [ALIVE] (75/100) udp://retracker01-msk-virt.corbina.net:80/announce 150ms — valid connect + announce
-  [ALIVE] (76/100) udp://tracker.aruku.ovh:8081/announce 202ms — valid connect + announce
-  [ALIVE] (77/100) udp://tracker.gmi.gd:6969/announce 53ms — valid connect + announce
-  [ALIVE] (78/100) udp://tracker.ilibr.org:6969/announce 143ms — valid connect + announce
-  [ALIVE] (79/100) udp://opentracker.lain.moscow:6969/announce 140ms — valid connect + announce
-  [ALIVE] (80/100) wss://tracker.openwebtorrent.com:443/announce 46ms — TLS reachable
-  [ALIVE] (81/100) udp://tracker.opentrackr.org:1337/announce 112ms — valid connect + announce
-  [ALIVE] (82/100) udp://tracker.skynetcloud.site:6969/announce 120ms — valid connect + announce
-  [ALIVE] (83/100) udp://v2.iperson.xyz:6969/announce 220ms — valid connect + announce
-  [ALIVE] (84/100) udp://tracker2.dler.org:80/announce 168ms — valid connect + announce
-  [ALIVE] (85/100) udp://tracker.willy.pro:6969/announce 227ms — valid connect + announce
-  [ALIVE] (87/100) udp://tracker.torrents.observer:80/announce 118ms — valid connect + announce
-  [ALIVE] (88/100) udp://tracker.torrent.eu.org:451/announce 121ms — valid connect + announce
-  [ALIVE] (89/100) http://tracker.xn--djrq4gl4hvoi.top:80/announce 1277ms — valid announce response
-  [ALIVE] (90/100) udp://tracker.tryhackx.org:6969/announce 127ms — valid connect (announce not confirmed)
-  [DEAD]  (100/100) https://tr.abir.ga:443/announce — URLError: <urlopen error _ssl.c:993: The handshake operation timed out>
+  [ALIVE] (1/100) https://t.213891.xyz:443/announce 22ms — valid announce response
+  [ALIVE] (5/100) http://207.241.226.111:6969/announce 134ms — valid announce response
+  [ALIVE] (6/100) http://207.241.231.226:6969/announce 137ms — valid announce response
+  [ALIVE] (7/100) http://tracker.dhitechnical.com:6969/announce 62ms — valid announce response
+  [ALIVE] (8/100) http://tracker.waaa.moe:6969/announce 147ms — valid announce response
+  [ALIVE] (9/100) https://004430.xyz:443/announce 158ms — valid announce response
+  [ALIVE] (10/100) http://tracker.nyaa.vc:6969/announce 188ms — valid announce response
+  [ALIVE] (11/100) http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce 199ms — valid announce response
+  [ALIVE] (12/100) http://ipv4announce.sktorrent.eu:6969/announce 172ms — valid announce response
+  [ALIVE] (14/100) https://tracker.7471.top:443/announce 129ms — valid announce response
+  [ALIVE] (16/100) http://nyaa.tracker.wf:7777/announce 195ms — valid announce response
+  [ALIVE] (17/100) https://tracker.foreverpirates.co:443/announce 136ms — valid announce response
+  [ALIVE] (18/100) http://tracker.renfei.net:8080/announce 36ms — valid announce response
+  [ALIVE] (21/100) http://tracker.qu.ax:6969/announce 188ms — valid announce response
+  [ALIVE] (22/100) http://bt1.archive.org:6969/announce 201ms — valid announce response
+  [ALIVE] (23/100) http://tracker.mywaifu.best:6969/announce 188ms — valid announce response
+  [ALIVE] (24/100) http://211.75.205.187:6969/announce 378ms — valid announce response
+  [ALIVE] (25/100) http://211.75.205.188:80/announce 378ms — valid announce response
+  [ALIVE] (26/100) http://211.75.210.221:6969/announce 378ms — valid announce response
+  [ALIVE] (27/100) http://211.75.210.221:80/announce 378ms — valid announce response
+  [ALIVE] (28/100) https://tr.nyacat.pw:443/announce 234ms — valid announce response
+  [ALIVE] (29/100) https://tracker.qingwapt.org:443/announce 165ms — online (failure reason)
+  [ALIVE] (30/100) https://1337.abcvg.info:443/announce 347ms — valid announce response
+  [ALIVE] (31/100) udp://193.148.251.93:6969/announce 44ms — valid connect + announce
+  [ALIVE] (32/100) http://bt2.archive.org:6969/announce 138ms — valid announce response
+  [ALIVE] (33/100) http://1337.abcvg.info:80/announce 357ms — valid announce response
+  [ALIVE] (34/100) udp://109.201.134.183:80/announce 89ms — valid connect + announce
+  [ALIVE] (35/100) http://tracker.auctor.tv:6969/announce 187ms — valid announce response
+  [ALIVE] (36/100) udp://135.125.198.235:1984/announce 89ms — valid connect + announce
+  [ALIVE] (37/100) udp://51.81.222.188:6969/announce 68ms — valid connect + announce
+  [ALIVE] (38/100) udp://evan.im:6969/announce 2ms — valid connect + announce
+  [ALIVE] (39/100) https://1.tracker.eu.org:443/announce 35ms — valid announce response
+  [ALIVE] (40/100) udp://31.38.161.123:6969/announce 107ms — valid connect + announce
+  [ALIVE] (41/100) udp://51.15.41.46:6969/announce 95ms — valid connect + announce
+  [ALIVE] (42/100) udp://explodie.org:6969/announce 73ms — valid connect + announce
+  [ALIVE] (43/100) udp://89.234.156.205:451/announce 95ms — valid connect + announce
+  [ALIVE] (44/100) udp://193.34.92.5:80/announce 122ms — valid connect + announce
+  [ALIVE] (45/100) udp://ipv4announce.sktorrent.eu:6969/announce 84ms — valid connect + announce
+  [ALIVE] (46/100) http://tracker.dler.org:6969/announce 388ms — valid announce response
+  [ALIVE] (47/100) udp://open.ftorrent.com:443/announce 42ms — valid connect + announce
+  [ALIVE] (49/100) udp://martin-gebhardt.eu:25/announce 98ms — valid connect + announce
+  [ALIVE] (50/100) udp://tr4ck3r.duckdns.org:6969/announce 15ms — valid connect + announce
+  [ALIVE] (51/100) udp://132.226.6.145:6969/announce 163ms — valid connect + announce
+  [ALIVE] (53/100) http://tracker.dler.com:6969/announce 384ms — valid announce response
+  [ALIVE] (54/100) udp://tracker.bittor.pw:1337/announce 26ms — valid connect + announce
+  [ALIVE] (55/100) udp://open.stealth.si:80/announce 93ms — valid connect + announce
+  [ALIVE] (56/100) udp://mail.segso.net:6969/announce 116ms — valid connect + announce
+  [ALIVE] (57/100) udp://43.154.112.29:17272/announce 199ms — valid connect + announce
+  [ALIVE] (58/100) udp://tracker-udp.gbitt.info:80/announce 91ms — valid connect + announce
+  [ALIVE] (59/100) udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce 224ms — valid connect + announce
+  [ALIVE] (60/100) udp://open.demonii.com:1337/announce 179ms — valid connect + announce
+  [ALIVE] (61/100) udp://tracker.corpscorp.online:80/announce 27ms — valid connect + announce
+  [ALIVE] (62/100) udp://kolankoalastree.newtrackon.co.nz:1337/announce 191ms — valid connect + announce
+  [ALIVE] (63/100) udp://tracker.gmi.gd:6969/announce 62ms — valid connect + announce
+  [ALIVE] (64/100) udp://opentracker.lain.moscow:6969/announce 93ms — valid connect + announce
+  [ALIVE] (65/100) https://tracker.nekomi.cn:443/announce 156ms — valid announce response
+  [ALIVE] (66/100) udp://tracker.nyaa.vc:6969/announce 90ms — valid connect + announce
+  [ALIVE] (67/100) udp://tracker.wildkat.net:6969/announce 18ms — valid connect + announce
+  [ALIVE] (68/100) https://tracker.midnightprogrammer.net:443/announce 750ms — valid announce response
+  [ALIVE] (69/100) udp://tracker.qu.ax:6969/announce 91ms — valid connect + announce
+  [ALIVE] (70/100) udp://admin.52ywp.com:6969/announce 243ms — valid connect + announce
+  [ALIVE] (71/100) udp://torrent.tracker.durukanbal.com:6969/announce 90ms — valid connect + announce
+  [ALIVE] (72/100) udp://tracker.dler.com:6969/announce 187ms — valid connect + announce
+  [ALIVE] (73/100) udp://tracker.cn.nyaa.net:6969/announce 196ms — valid connect + announce
+  [ALIVE] (74/100) udp://retracker01-msk-virt.corbina.net:80/announce 130ms — valid connect + announce
+  [ALIVE] (75/100) udp://tracker.opentrackr.com:6969/announce 122ms — valid connect + announce
+  [ALIVE] (76/100) udp://tracker.ilibr.org:6969/announce 118ms — valid connect + announce
+  [ALIVE] (77/100) udp://tracker.ducks.party:1984/announce 91ms — valid connect + announce
+  [ALIVE] (78/100) wss://tracker.openwebtorrent.com:443/announce 11ms — TLS reachable
+  [ALIVE] (79/100) udp://tracker.skynetcloud.site:6969/announce 88ms — valid connect + announce
+  [ALIVE] (80/100) udp://tracker.aruku.ovh:8081/announce 218ms — valid connect + announce
+  [ALIVE] (81/100) udp://tracker.torrents.observer:80/announce 92ms — valid connect + announce
+  [ALIVE] (82/100) udp://tracker.peerfect.org:6969/announce 118ms — valid connect + announce
+  [ALIVE] (83/100) udp://tracker.opentrackr.org:1337/announce 89ms — valid connect + announce
+  [ALIVE] (84/100) udp://v2.iperson.xyz:6969/announce 245ms — valid connect + announce
+  [ALIVE] (85/100) udp://tracker.willy.pro:6969/announce 232ms — valid connect + announce
+  [ALIVE] (86/100) udp://tracker.torrent.eu.org:451/announce 95ms — valid connect + announce
+  [ALIVE] (87/100) udp://tracker2.dler.org:80/announce 191ms — valid connect + announce
+  [ALIVE] (89/100) udp://t.overflow.biz:6969/announce 115ms — valid connect + announce
+  [ALIVE] (90/100) udp://tracker.dler.org:6969/announce 195ms — valid connect (announce not confirmed)
+  [DEAD]  (100/100) udp://wegkxfcivgx.ydns.eu:80/announce — no connect response
 
-[INFO] First pass done in 17.4s
-[INFO] Second pass: re-testing top 82 alive trackers...
-[INFO] Second pass done, refined 81 trackers
+[INFO] First pass done in 11.3s
+[INFO] Second pass: re-testing top 80 alive trackers...
+[INFO] Second pass done, refined 78 trackers
 [INFO] Same-IP dedup removed 19 slower tracker(s)
 
 ===== Test Summary =====
   Total tested:   100
-  Alive (raw):    63
+  Alive (raw):    61
   Alive (final):  20 (top 20 by composite score)
-  Score-capped:   43
+  Score-capped:   41
   Unsafe filtered:0
   Low-speed:      0 (>5s excluded)
   Same-IP dedup:  19 (kept faster)
   Dead final:     80
-  Time:           25.6s
+  Time:           19.9s
 === 协议分布统计 ===
-  HTTP  : 22 个
+  HTTP  : 21 个
   HTTPS : 10 个
-  UDP   : 49 个
+  UDP   : 48 个
   WSS   : 1 个
   WS    : 0 个
-  总计: 82 个（存活）
+  总计: 80 个（存活）
 =========================
 [OK]   /s/alive
 [OK]   /s/all
@@ -186,7 +184,7 @@ lock OK
 [OK] Plain-text files synced to docs/.
 
 ============================================================
- Round 1 - 2026-10-08 02:03:23
+ Round 1 - 2026-10-08 02:49:19
 ============================================================
   [PASS] Local tracker: trackers_cf_best.txt: 71 trackers
   [PASS] Local tracker: trackers_run_best.txt: 53 trackers
@@ -242,7 +240,7 @@ lock OK
 ############################################################
 
 ============================================================
- Round 1 - 2026-10-08 02:03:30
+ Round 1 - 2026-10-08 02:49:26
 ============================================================
   [PASS] Local tracker: trackers_cf_best.txt: 71 trackers
   [PASS] Local tracker: trackers_run_best.txt: 53 trackers
@@ -296,7 +294,7 @@ lock OK
 ============================================================
 
 ============================================================
- Round 2 - 2026-10-08 02:03:35
+ Round 2 - 2026-10-08 02:49:31
 ============================================================
   [PASS] Local tracker: trackers_cf_best.txt: 71 trackers
   [PASS] Local tracker: trackers_run_best.txt: 53 trackers
@@ -350,7 +348,7 @@ lock OK
 ============================================================
 
 ============================================================
- Round 3 - 2026-10-08 02:03:40
+ Round 3 - 2026-10-08 02:49:36
 ============================================================
   [PASS] Local tracker: trackers_cf_best.txt: 71 trackers
   [PASS] Local tracker: trackers_run_best.txt: 53 trackers
@@ -410,4 +408,4 @@ lock OK
    Total FAIL: 0
    STATUS: ALL ROUNDS HEALTHY (warnings may be network-related)
 ############################################################
-=== End of diagnostics (Thu Oct  8 02:03:40 UTC 2026) ===
+=== End of diagnostics (Thu Oct  8 02:49:36 UTC 2026) ===
