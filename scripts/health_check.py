@@ -275,12 +275,25 @@ def check_raw_mirrors(results):
             results.append(("WARN", f"Raw: {name}", f"unreachable: {content[:80]}"))
 
 
+def _fetch_pages_retry(url, attempts=3, delay=15):
+    """抓取 Pages 资源；Pages 推送后异步部署，404 瞬时态时重试。"""
+    last = (False, "", 0)
+    for i in range(attempts):
+        ok, content, status = fetch_url(url)
+        if ok or status != 404:
+            return ok, content, status
+        last = (ok, content, status)
+        if i + 1 < attempts:
+            time.sleep(delay)
+    return last
+
+
 def check_pages_links(results):
-    """检查 GitHub Pages 短链接和纯文本可达性。"""
+    """检查 GitHub Pages 短链接和纯文本可达性（容忍推送后异步部署的瞬时 404）。"""
     # 纯文本直链
     for ptf in ["alive.txt", "merged.txt"]:
         url = f"{PAGES_BASE}/{ptf}"
-        ok, content, status = fetch_url(url)
+        ok, content, status = _fetch_pages_retry(url)
         if ok:
             count = count_trackers_in_text(content)
             results.append(("PASS", f"Pages: /{ptf}", f"HTTP {status}, {count} trackers"))
@@ -290,7 +303,7 @@ def check_pages_links(results):
     # 短链接页面（检查是否返回 200 且包含重定向）
     for sp in SHORT_PAGES:
         url = f"{PAGES_BASE}/s/{sp}"
-        ok, content, status = fetch_url(url)
+        ok, content, status = _fetch_pages_retry(url)
         if ok and ('refresh' in content or 'location.replace' in content):
             results.append(("PASS", f"Pages short: /s/{sp}", f"HTTP {status}, redirect OK"))
         elif ok:
