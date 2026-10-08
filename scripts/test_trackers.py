@@ -236,11 +236,11 @@ def test_http(tracker_url, timeout):
     # bdecode 的 key 都是 bytes，直接检查 bytes key
     if b'failure reason' in decoded:
         return True, elapsed, 'online (failure reason)'
-    if b'interval' in decoded or b'complete' in decoded or b'incomplete' in decoded:
-        return True, elapsed, 'valid announce response'
-    # 有 peers 字段也算有效
+    # 细分：返回 peers（真正可用的节点列表）质量最高；仅 interval/complete/incomplete 次之
     if b'peers' in decoded:
-        return True, elapsed, 'valid announce response'
+        return True, elapsed, 'announce with peers'
+    if b'interval' in decoded or b'complete' in decoded or b'incomplete' in decoded:
+        return True, elapsed, 'announce without peers'
     return True, elapsed, 'online (bencoded dict)'
 
 
@@ -493,13 +493,14 @@ SCORE_QUALITY_WEIGHT = 0.20
 
 # 响应质量分：协议级握手/响应完整性越充分，可信度越高（参考 adysec/ngosang 的测试分级）
 QUALITY_SCORES = {
-    'valid announce response': 100,            # HTTP/HTTPS：完整 announce 响应
-    'valid connect + announce': 100,           # UDP：connect + announce 全握手
-    'TLS reachable': 90,                       # WSS：TLS 建连成功
-    'TCP reachable': 80,                       # WS：TCP 建连成功
-    'online (bencoded dict)': 80,              # HTTP：有 bencoded 响应但缺 announce 字段
+    'announce with peers': 100,               # HTTP/HTTPS：返回 peers（可用节点列表）
+    'valid connect + announce': 100,          # UDP：connect + announce 全握手
+    'announce without peers': 90,             # HTTP/HTTPS：有 announce 字段但无 peers
+    'TLS reachable': 90,                      # WSS：TLS 建连成功
+    'TCP reachable': 80,                      # WS：TCP 建连成功
+    'online (bencoded dict)': 80,             # HTTP：有 bencoded 响应但缺 announce 字段
     'valid connect (announce not confirmed)': 70,  # UDP：仅 connect 确认
-    'online (failure reason)': 55,             # HTTP：可达但拒绝请求
+    'online (failure reason)': 55,            # HTTP：可达但拒绝请求
 }
 
 
@@ -593,10 +594,20 @@ def select_top_with_protocol_quota(scored, max_total, min_non_udp):
 
 
 def dedup_same_ip(entries):
-    """同 IP 去重：解析到同一 IP 的多个 tracker 只保留响应最快的。
+    """同 IP / 同网段去重：解析到同一 IP 或同一 /24 网段（IPv4）的多个 tracker
+    只保留响应最快的，避免同一主机/同一运营商的冗余节点占据名额。
 
-    entries: [(tracker, detail, elapsed_ms)]，返回需移除的 tracker 集合（同 IP 中较慢者）。
+    entries: [(tracker, detail, elapsed_ms)]，返回需移除的 tracker 集合（同网段中较慢者）。
     """
+    def _key(ip):
+        try:
+            obj = ipaddress.ip_address(ip)
+            if obj.version == 4:
+                return str(ipaddress.ip_network(f"{ip}/24", strict=False))
+            return ip  # IPv6 按精确 IP
+        except ValueError:
+            return ip
+
     groups = {}
     for t, _, e in entries:
         try:
@@ -607,7 +618,7 @@ def dedup_same_ip(entries):
             ip = infos[0][4][0]
         except Exception:
             continue
-        groups.setdefault(ip, []).append((t, e))
+        groups.setdefault(_key(ip), []).append((t, e))
 
     removed = set()
     for lst in groups.values():
@@ -674,7 +685,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 不安全 (unsafe): **{len(unsafe)}**',
         f'- 无法测试 (untestable): {len(untestable)}',
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
-        f'- 同 IP 去重 (kept faster): {len(same_ip_removed or [])}',
+        f'- 同网段去重 (/24, kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
         f'- 评分维度: 速度 50% + 历史稳定性 30% + 响应质量 20% + 地域适配加分(最高 +11)',
         f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
@@ -712,7 +723,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
             lines.append(f'- `{t}` — {e:.0f}ms')
 
     if same_ip_removed:
-        lines += ['', '## 同 IP 去重（保留响应最快）', '']
+        lines += ['', '## 同网段去重（/24，保留响应最快）', '']
         for t in sorted(same_ip_removed):
             lines.append(f'- `{t}`')
 
@@ -881,10 +892,10 @@ def main():
     alive_with_speed = [(t, d, e) for t, s, d, e in results
                         if s == 'alive' and t not in low_speed_trackers]
 
-    # ---- 同 IP 去重：解析到同一 IP 只保留响应最快的 ----
+    # ---- 同网段(/24)去重：解析到同一 IP/网段只保留响应最快的 ----
     same_ip_removed = dedup_same_ip(alive_with_speed)
     if same_ip_removed:
-        print(f'[INFO] Same-IP dedup removed {len(same_ip_removed)} slower tracker(s)')
+        print(f'[INFO] Same-subnet(/24) dedup removed {len(same_ip_removed)} slower tracker(s)')
     alive_with_speed = [(t, d, e) for t, d, e in alive_with_speed if t not in same_ip_removed]
 
     scored = []
@@ -941,7 +952,7 @@ def main():
     print(f'  Score-capped:   {n_capped}')
     print(f'  Unsafe filtered:{n_unsafe}')
     print(f'  Low-speed:      {len(low_speed)} (>5s excluded)')
-    print(f'  Same-IP dedup:  {len(same_ip_removed)} (kept faster)')
+    print(f'  Same-subnet dedup:  {len(same_ip_removed)} (kept faster)')
     print(f'  Dead final:     {n_dead}')
     print(f'  Time:           {total_elapsed:.1f}s')
     print('=== 协议分布统计 ===')

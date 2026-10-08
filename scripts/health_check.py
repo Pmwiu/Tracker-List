@@ -105,6 +105,8 @@ CONSISTENCY_MAP = {
 }
 
 MAX_ALIVE = 20
+MIN_ALIVE_WARN = 5    # 存活数低于该值告警（可能源大面积失效）
+MIN_MERGED_WARN = 30  # 合并数低于该值告警（可能源异常或去重过度）
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 HEALTH_FILE = os.path.join(REPORTS_DIR, "health.json")
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
@@ -344,6 +346,23 @@ def check_worker_links(results):
             results.append(("WARN", name, f"unreachable: {content[:80]}"))
 
 
+def check_minimum_counts(results):
+    """最低数量异常告警：alive/merged 数量过低时告警，避免静默退化。"""
+    def _count(filename):
+        path = os.path.join(TRACKERS_DIR, filename)
+        if not os.path.exists(path):
+            return None
+        with open(path, "r", encoding="utf-8") as f:
+            return count_trackers_in_text(f.read())
+
+    alive = _count("trackers_alive.txt")
+    merged = _count("trackers_merged.txt")
+    if alive is not None and alive < MIN_ALIVE_WARN:
+        results.append(("WARN", "Minimum alive count", f"{alive} < {MIN_ALIVE_WARN}"))
+    if merged is not None and merged < MIN_MERGED_WARN:
+        results.append(("WARN", "Minimum merged count", f"{merged} < {MIN_MERGED_WARN}"))
+
+
 def run_single_check(round_num, skip_net=False):
     results = []
     check_local_files(results)
@@ -355,6 +374,7 @@ def run_single_check(round_num, skip_net=False):
         check_raw_mirrors(results)
         check_pages_links(results)
         check_worker_links(results)
+    check_minimum_counts(results)
 
     # 未配置订阅源时数据文件必然缺失：FAIL 降级为 WARN，避免误报
     if not HAS_SOURCES:
@@ -380,14 +400,24 @@ def run_single_check(round_num, skip_net=False):
 
 
 def write_health_json(rounds, total_passes, total_warns, total_fails):
-    """生成 reports/health.json 健康检查结果。"""
+    """生成 reports/health.json 健康检查结果（含 alive/merged 当前计数）。"""
     os.makedirs(REPORTS_DIR, exist_ok=True)
+
+    def _count(filename):
+        path = os.path.join(TRACKERS_DIR, filename)
+        if not os.path.exists(path):
+            return 0
+        with open(path, "r", encoding="utf-8") as f:
+            return count_trackers_in_text(f.read())
+
     data = {
         "timestamp": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
         "rounds": rounds,
         "pass": total_passes,
         "warn": total_warns,
         "fail": total_fails,
+        "alive": _count("trackers_alive.txt"),
+        "merged": _count("trackers_merged.txt"),
         "status": "healthy" if total_fails == 0 else "issues",
     }
     try:

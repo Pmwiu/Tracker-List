@@ -3,6 +3,14 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- 细分响应质量评分：HTTP 区分「返回 peers（可用节点，100）」与「仅 interval/complete
+  等字段（90）」，使「真正能返回节点」的 tracker 评分更高
+- 筛选细化：同 IP 去重升级为同网段去重（IPv4 按 /24、IPv6 按精确 IP），
+  避免同一主机/同一运营商的冗余节点占据名额
+- 自动维护增强：health.json 新增 alive/merged 实时计数；新增最低数量异常告警
+  （alive < 5 或 merged < 30 时 WARN），防止源大面积失效时的静默退化
+
+## [2026-10-08] - feat
 - 补充 3 个 ngosang 订阅源：trackers_best_ip.txt（IP 直连最佳，契合内地/内网地域加分）、
   trackers_all_i2p.txt、trackers_all_yggdrasil.txt（特殊网络，仅入 all 不计 best）
 
