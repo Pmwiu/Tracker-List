@@ -511,20 +511,16 @@ def compute_score(elapsed_ms, uptime, detail):
     """
     多维综合评分 = 速度(50%) + 历史稳定性(30%) + 响应质量(20%)
 
-    - 速度分：响应时间归一化（100ms 满分，1000ms 归零，单调递减）
+    - 速度分：响应时间连续线性归一化（0ms=100，1000ms=0）
     - 稳定性分：存活率 EMA（0~1）× 100，历史越稳越高
     - 质量分：协议级握手/响应完整性分级（完整 announce > 仅建连 > 仅可达）
     返回分数，越高越优。
     """
-    # 速度分：100ms 满分，1000ms 归零，超过 1000ms 为 0（连续单调递减）
+    # 速度分：连续线性映射，0ms=100、1000ms=0（越近 0ms 越接近满分，速度差异如实反映）
     if elapsed_ms <= 0:
         speed_score = 0
-    elif elapsed_ms <= 100:
-        speed_score = 100
-    elif elapsed_ms <= 1000:
-        speed_score = 100 - (elapsed_ms - 100) / 9  # 100ms=100, 1000ms=0
     else:
-        speed_score = 0
+        speed_score = max(0.0, 100.0 * (1.0 - elapsed_ms / 1000.0))
 
     # 稳定性分：存活率 EMA（0~1）→ 0~100
     stability_score = max(0.0, min(1.0, uptime)) * 100
