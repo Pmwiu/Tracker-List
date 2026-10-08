@@ -12,6 +12,7 @@
   6. GitHub Raw 直链 URL 的 HTTP 可达性
   7. GitHub Pages 短链接页面可达性
   8. Tracker URL 格式校验
+  9. Cloudflare Worker 短链接 + jsDelivr 加速短链接可达性
 
 用法:
   python scripts/health_check.py              单次检查
@@ -42,6 +43,7 @@ OWNER = REPO.split("/")[0]
 REPO_NAME = REPO.split("/")[-1]
 PAGES_BASE = f"https://{OWNER}.github.io/{REPO_NAME}"
 RAW_BASE = f"https://raw.githubusercontent.com/{REPO}/main"
+WORKER_BASE = "https://tracker.pmwiu.com"
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRACKERS_DIR = os.path.join(PROJECT_ROOT, "trackers")
@@ -291,6 +293,28 @@ def check_pages_links(results):
             results.append(("WARN", f"Pages short: /s/{sp}", f"unreachable: {content[:80]}"))
 
 
+def check_worker_links(results):
+    """检查 Cloudflare Worker 短链接与 jsDelivr 加速短链接可达性。"""
+    checks = [
+        ("Worker best 短链", f"{WORKER_BASE}/best.txt", "alive"),
+        ("Worker all 短链", f"{WORKER_BASE}/all.txt", "merged"),
+        ("Worker best 加速", f"{WORKER_BASE}/jsd/best.txt", "alive"),
+        ("Worker all 加速", f"{WORKER_BASE}/jsd/all.txt", "merged"),
+    ]
+    for name, url, kind in checks:
+        ok, content, status = fetch_url(url)
+        if ok:
+            count = count_trackers_in_text(content)
+            if kind == "alive" and count > MAX_ALIVE:
+                results.append(("FAIL", name, f"{count} > {MAX_ALIVE}"))
+            elif count <= 0:
+                results.append(("FAIL", name, f"{count} trackers (empty)"))
+            else:
+                results.append(("PASS", name, f"HTTP {status}, {count} trackers"))
+        else:
+            results.append(("WARN", name, f"unreachable: {content[:80]}"))
+
+
 def run_single_check(round_num, skip_net=False):
     results = []
     check_local_files(results)
@@ -301,6 +325,7 @@ def run_single_check(round_num, skip_net=False):
     if not skip_net:
         check_raw_mirrors(results)
         check_pages_links(results)
+        check_worker_links(results)
 
     # 未配置订阅源时数据文件必然缺失：FAIL 降级为 WARN，避免误报
     if not HAS_SOURCES:
