@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-08 13:00:55 UTC",
+  "timestamp": "2026-10-08 13:15:09 UTC",
   "status": "success",
   "duration_sec": 0.6,
   "sources": {
@@ -15,27 +15,27 @@
     },
     "cf-best": {
       "http_code": 200,
-      "lines": 71,
+      "lines": 62,
       "ok": true
     },
     "adysec-best": {
       "http_code": 200,
-      "lines": 310,
+      "lines": 243,
       "ok": true
     },
     "gonghailink-best": {
       "http_code": 200,
-      "lines": 20,
+      "lines": 17,
       "ok": true
     },
     "pandamen-best": {
       "http_code": 200,
-      "lines": 20,
+      "lines": 18,
       "ok": true
     },
     "gspu-best": {
       "http_code": 200,
-      "lines": 20,
+      "lines": 19,
       "ok": true
     },
     "linuxjin-best": {
@@ -45,12 +45,12 @@
     },
     "alphacatmeow-best": {
       "http_code": 200,
-      "lines": 20,
+      "lines": 15,
       "ok": true
     },
     "pexcn-best": {
       "http_code": 200,
-      "lines": 73,
+      "lines": 64,
       "ok": true
     },
     "ngosang-i2p": {

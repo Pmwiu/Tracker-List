@@ -1,5 +1,4 @@
 http://tracker.opentrackr.org:1337/announce
-https://torrent.tracker.durukanbal.com:443/announce
 https://tracker.pmman.tech:443/announce
 https://tracker.zhuqiy.com:443/announce
 udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce
