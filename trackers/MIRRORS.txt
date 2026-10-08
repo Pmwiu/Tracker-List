@@ -1,5 +1,5 @@
 # Tracker 订阅地址清单
-# Generated: 2026-10-08 12:51:59 UTC
+# Generated: 2026-10-08 13:00:55 UTC
 # 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr
 # 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)
 
@@ -21,19 +21,25 @@ https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_aliv
 # [jsDelivr 直链]
 https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_alive.txt
 
-# === all 合并 (trackers_merged.txt) ===
+# === all 存活 (trackers_all.txt, 完整 announce 握手) ===
 # [短链接]
 https://tracker.pmwiu.com/all.txt
 # [加速短链接 (jsDelivr)]
 https://tracker.pmwiu.com/jsd/all.txt
-# [兼容短链接]
+# [Pages 直链]
+https://pmwiu.github.io/Tracker-List/all.txt
+# [Cloudflare Pages 直链]
+https://tracker-list-edj.pages.dev/all.txt
+# [GitHub Raw]
+https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt
+# [jsDelivr 直链]
+https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt
+
+# === merged 原始候选池 (trackers_merged.txt) ===
+# [短链接]
 https://tracker.pmwiu.com/merged.txt
-# [Pages 短跳]
-https://pmwiu.github.io/Tracker-List/s/all
 # [Pages 直链]
 https://pmwiu.github.io/Tracker-List/merged.txt
-# [Cloudflare Pages 直链]
-https://tracker-list-edj.pages.dev/merged.txt
 # [GitHub Raw]
 https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt
 # [jsDelivr 直链]
