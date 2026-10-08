@@ -571,11 +571,8 @@ def atomic_write(filepath, content):
         raise
 
 
-def write_trackers(filepath, trackers, source_url=None, extra_header=None):
-    """写入纯 tracker 列表：每行一个 tracker，无注释头、无空行。
-
-    source_url / extra_header 仅为兼容旧调用签名保留，不再写入文件内容。
-    """
+def write_trackers(filepath, trackers):
+    """写入纯 tracker 列表：每行一个 tracker，无注释头、无空行。"""
     content = NL.join(trackers)
     if trackers:
         content += NL
@@ -728,7 +725,7 @@ def generate_source_links():
     return (" &middot;" + NL + "      ").join(parts)
 
 
-def generate_index_page(repo, short_links_with_urls, tracker_counts):
+def generate_index_page(repo, tracker_counts):
     """生成现代化订阅主页：卡片式订阅区（短链接 + jsDelivr 加速短链接）、
     协议芯片、统计表。所有订阅入口均为 tracker.pmwiu.com 短链接（txt）。"""
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -920,14 +917,12 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
 def generate_pages(repo, results):
     repo_name = repo.split("/")[-1]
     os.makedirs(SHORT_LINKS_DIR, exist_ok=True)
-    sl = []
-    for short, group, desc, template in SHORT_LINKS:
+    for short, _, desc, template in SHORT_LINKS:
         target = template.format(repo=repo_name)
-        sl.append((short, group, desc, target))
         page_content = generate_redirect_page(target, desc)
         atomic_write(os.path.join(SHORT_LINKS_DIR, f"{short}.html"), page_content)
         print(f"[OK]   /s/{short}")
-    index_content = generate_index_page(repo, sl, results)
+    index_content = generate_index_page(repo, results)
     atomic_write(os.path.join(PAGES_DIR, "index.html"), index_content)
     print("[OK]   index.html")
     nj = os.path.join(PAGES_DIR, ".nojekyll")
@@ -1032,7 +1027,7 @@ def main():
                     failures.append((filename, short_name, str(e)))
                     failed_names.append(short_name)
                     continue
-            write_trackers(os.path.join(OUTPUT_DIR, filename), trackers, source_url=url)
+            write_trackers(os.path.join(OUTPUT_DIR, filename), trackers)
             _backup_file(filename)
             per_source.append((short_name, trackers))
             results.append((filename, len(trackers)))
@@ -1096,10 +1091,7 @@ def main():
 
         if all_merged:
             merged = sorted(all_merged)  # 轮转合并 + 去重，取前 MAX_ALL 条
-            write_trackers(
-                os.path.join(OUTPUT_DIR, MERGED_FILE), merged,
-                source_url=", ".join(u for _, u, _ in SOURCES),
-            )
+            write_trackers(os.path.join(OUTPUT_DIR, MERGED_FILE), merged)
             results.append((MERGED_FILE, len(merged)))
             merged_lines = len(merged)
             print(f"{NL}[OK]   merged: {len(merged)}")

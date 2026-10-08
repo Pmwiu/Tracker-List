@@ -708,11 +708,8 @@ def read_candidates(max_count=500):
 # ============================================================
 # 写结果文件
 # ============================================================
-def write_result_file(filename, trackers, description):
-    """写入纯 tracker 列表：每行一个，无注释头、无空行。
-
-    description 仅作调用语义说明，不再写入文件内容。
-    """
+def write_result_file(filename, trackers):
+    """写入纯 tracker 列表：每行一个，无注释头、无空行。"""
     content = ut.NL.join(trackers)
     if trackers:
         content += ut.NL
@@ -722,7 +719,7 @@ def write_result_file(filename, trackers, description):
 # ============================================================
 # 写测试报告
 # ============================================================
-def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_stats, low_speed=None, same_ip_removed=None):
+def write_report(results, alive_final, capped, elapsed, protocol_stats, low_speed=None, same_ip_removed=None):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
     unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
@@ -983,22 +980,12 @@ def main():
         + sorted(same_ip_removed)
     )
 
-    write_result_file(
-        ut.ALIVE_FILE, alive_final_list,
-        f'Trackers that PASSED liveness test, top {ut.MAX_TRACKERS} by composite score '
-        f'(>= {ut.MIN_NON_UDP_TRACKERS} non-UDP, >= {MIN_CLASSIC_TRACKERS} classic)'
-    )
+    write_result_file(ut.ALIVE_FILE, alive_final_list)
     # "all" = 全部存活（完成完整 announce 握手、返回有效响应），按综合评分降序，取前 MAX_ALL
     all_alive_list = [t for t, _, _, _, _ in scored[:ut.MAX_ALL]]
-    write_result_file(
-        ut.ALL_FILE, all_alive_list,
-        'Trackers that PASSED full announce handshake (all alive, deduped)'
-    )
-    write_result_file(
-        ut.DEAD_FILE, dead_final,
-        'Trackers that FAILED, were unsafe, were low-speed, were same-IP duplicates, or were capped by score limit'
-    )
-    write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats, low_speed, same_ip_removed)
+    write_result_file(ut.ALL_FILE, all_alive_list)
+    write_result_file(ut.DEAD_FILE, dead_final)
+    write_report(results, alive_final_detail, capped, total_elapsed, protocol_stats, low_speed, same_ip_removed)
 
     # 历史状态必须按「真实探活结果」记录：存活 = 本次响应成功，失效 = 本次响应失败。
     # capped / low_speed / same_ip_removed 都是「存活但被淘汰」的 tracker，绝不能记为失效，
@@ -1050,7 +1037,7 @@ def main():
     repo = ut.get_repo()
     page_stats = [
         (ut.ALIVE_FILE, n_alive),
-        (ut.MERGED_FILE, total_available),
+        (ut.ALL_FILE, len(all_alive_list)),
         (ut.DEAD_FILE, n_dead),
     ]
     ut.generate_pages(repo, page_stats)

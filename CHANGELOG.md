@@ -2,6 +2,13 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - chore
+- 清理死参数与冗余：write_trackers 移除 source_url/extra_header、write_result_file
+  移除 description、generate_index_page 移除 short_links_with_urls、write_report 移除
+  alive_sorted；首页统计改用 ALL_FILE（all 存活）而非 merged 候选池
+- 修正过时/矛盾文本：SECURITY.md「功能收敛」说明 Issues 仅用于自动告警（不再宣称关闭）、
+  DNS 重绑定已知限制更新（UDP 已硬化）；README 健康检查项数改为非硬编码
+
 ## [2026-10-08] - feat
 - 补充 2 个订阅源：1265578519/OpenTracker tracker.txt、trackers.run rw_ws
   （WebSocket 列表），源数 12→14；同步更新白名单、docs 镜像、健康检查清单与 README
