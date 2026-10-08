@@ -41,7 +41,7 @@
 - **聚合**：8 个 best 精选源按优先级合并，来源白名单 + 内容校验 + 原子写入
 - **清洗**：URL 规范化去重、同 IP 保留最快、动态黑名单（连续失效自动下线）
 - **探活**：HTTP/HTTPS 验证 bencoded announce 响应、UDP connect+announce 握手、WSS/WS TLS 连通；>5s 低速淘汰
-- **评分**：速度 70% + 历史稳定性 EMA 30%；best 保底 4 条非 UDP（协议多样性配额）
+- **评分**：多维综合评分 = 速度 50% + 历史稳定性 EMA 30% + 响应质量 20%；best 保底 4 条非 UDP（协议多样性配额）
 - **托管**：GitHub Pages + Cloudflare Pages 双托管，Worker 短链接网关，`/jsd/` 前缀切换 jsDelivr 加速
 - **监控**：定时任务 + 心跳 + 运行摘要 + 失败自动告警 Issue + 3 轮网络健康检查
 

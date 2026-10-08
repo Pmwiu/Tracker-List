@@ -10,7 +10,7 @@ Tracker 活性自动测试 + 测速排序脚本（v3.0 优化版）。
      - wss/ws     : TCP + TLS 连通性检查
   3. 第二轮精测：对第一轮存活的前 100 个再次测速，取较优值
   4. 历史加权：读取上一次 alive 列表，连续存活的 tracker 获得稳定性加分
-  5. 综合评分排序：速度(70%) + 历史稳定性(30%)
+  5. 综合评分排序：速度(50%) + 历史稳定性(30%) + 响应质量(20%)
   6. 取前 MAX_TRACKERS 个写入 alive.txt
 
 输出:
@@ -486,12 +486,35 @@ def write_dynamic_blacklist(dead_streak, threshold=DEAD_BLACKLIST_RUNS):
 # ============================================================
 # 综合评分排序
 # ============================================================
-def compute_score(elapsed_ms, uptime):
+# 权重：速度 / 历史稳定性 / 响应质量
+SCORE_SPEED_WEIGHT = 0.50
+SCORE_STABILITY_WEIGHT = 0.30
+SCORE_QUALITY_WEIGHT = 0.20
+
+# 响应质量分：协议级握手/响应完整性越充分，可信度越高（参考 adysec/ngosang 的测试分级）
+QUALITY_SCORES = {
+    'valid announce response': 100,            # HTTP/HTTPS：完整 announce 响应
+    'valid connect + announce': 100,           # UDP：connect + announce 全握手
+    'TLS reachable': 90,                       # WSS：TLS 建连成功
+    'TCP reachable': 80,                       # WS：TCP 建连成功
+    'online (bencoded dict)': 80,              # HTTP：有 bencoded 响应但缺 announce 字段
+    'valid connect (announce not confirmed)': 70,  # UDP：仅 connect 确认
+    'online (failure reason)': 55,             # HTTP：可达但拒绝请求
+}
+
+
+def quality_score(detail):
+    return QUALITY_SCORES.get(detail, 60)
+
+
+def compute_score(elapsed_ms, uptime, detail):
     """
-    综合评分 = 速度分(70%) + 稳定性分(30%)
-    速度分：基于响应时间的归一化（越快分越高）
-    稳定性分：存活率 EMA（0~1，越接近 1 越稳定；偶发失效不会直接清零）
-    返回分数，越高越好。
+    多维综合评分 = 速度(50%) + 历史稳定性(30%) + 响应质量(20%)
+
+    - 速度分：响应时间归一化（100ms 满分，1000ms 归零，单调递减）
+    - 稳定性分：存活率 EMA（0~1）× 100，历史越稳越高
+    - 质量分：协议级握手/响应完整性分级（完整 announce > 仅建连 > 仅可达）
+    返回分数，越高越优。
     """
     # 速度分：100ms 满分，1000ms 归零，超过 1000ms 为 0（连续单调递减）
     if elapsed_ms <= 0:
@@ -506,7 +529,12 @@ def compute_score(elapsed_ms, uptime):
     # 稳定性分：存活率 EMA（0~1）→ 0~100
     stability_score = max(0.0, min(1.0, uptime)) * 100
 
-    return speed_score * 0.7 + stability_score * 0.3
+    # 质量分：握手/响应完整性
+    quality = quality_score(detail)
+
+    return (speed_score * SCORE_SPEED_WEIGHT
+            + stability_score * SCORE_STABILITY_WEIGHT
+            + quality * SCORE_QUALITY_WEIGHT)
 
 
 def select_top_with_protocol_quota(scored, max_total, min_non_udp):
@@ -625,6 +653,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
         f'- 同 IP 去重 (kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
+        f'- 评分维度: 速度 50% + 历史稳定性 30% + 响应质量 20%',
         f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
         f'实际保留 {sum(1 for t, *_ in alive_final if not t.startswith("udp://"))} 条',
         f'- 耗时: {elapsed:.1f} 秒',
@@ -636,8 +665,8 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         lines.append(f'- {proto}: {count}')
 
     lines += ['', f'## 最终订阅列表（前 {ut.MAX_TRACKERS} 个，按综合评分降序）', '']
-    for rank, (t, score, speed, up) in enumerate(alive_final, 1):
-        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%')
+    for rank, (t, score, speed, up, q) in enumerate(alive_final, 1):
+        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%, 质量{q:.0f}')
 
     if dead:
         lines += ['', '## 失效 Tracker', '']
@@ -838,7 +867,7 @@ def main():
     scored = []
     for t, d, e in alive_with_speed:
         up = uptime_map.get(t, 0.0)
-        score = compute_score(e, up)
+        score = compute_score(e, up, d)
         scored.append((t, score, e, up, d))
 
     # 按综合评分降序，分数相同按速度升序
@@ -849,7 +878,8 @@ def main():
         scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS
     )
     alive_final_list = [t for t, _, _, _, _ in selected]
-    alive_final_detail = [(t, score, speed, up) for t, score, speed, up, _ in selected]
+    alive_final_detail = [(t, score, speed, up, quality_score(d))
+                          for t, score, speed, up, d in selected]
     n_non_udp_kept = sum(1 for t in alive_final_list if not t.startswith('udp://'))
 
     # 失效 = dead + unsafe + 低速 + 同IP重复 + 被淘汰的
