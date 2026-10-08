@@ -3,11 +3,12 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源（8 个 best 精选源，SOURCES 顺序即优先级）:
-  - ngosang/trackerslist trackers_best.txt（经 jsDelivr 加速）
+订阅源（11 个，SOURCES 顺序即优先级）:
+  - ngosang/trackerslist trackers_best.txt + trackers_best_ip.txt（经 jsDelivr 加速）
   - cf.trackerslist.com/best.txt
   - gonghailink / panda-men / gspu / linux-jin / AlphaCatMeow（ngosang 各 fork 的 trackers_best.txt）
   - pexcn/daily trackerlist-best.txt
+  - ngosang trackers_all_i2p.txt + trackers_all_yggdrasil.txt（特殊网络，仅入 all 不计 best）
   在下方 SOURCES 中增删 (输出文件名, 源 URL, 短名) 三元组即可调整；
   白名单 ALLOWED_SOURCE_URLS 与下游脚本会自动同步，无需其它改动。
 
@@ -44,6 +45,7 @@ except ImportError:
 # 顺序即优先级：靠前的源在合并 all 列表时优先入选。
 SOURCES = [
     ("trackers_ngosang_best.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best.txt", "ngosang-best"),
+    ("trackers_ngosang_best_ip.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best_ip.txt", "ngosang-best-ip"),
     ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
     ("trackers_gonghailink_best.txt", "https://raw.githubusercontent.com/gonghailink/trackerslist/master/trackers_best.txt", "gonghailink-best"),
     ("trackers_pandamen_best.txt", "https://raw.githubusercontent.com/panda-men/trackerslist/master/trackers_best.txt", "pandamen-best"),
@@ -51,6 +53,8 @@ SOURCES = [
     ("trackers_linuxjin_best.txt", "https://raw.githubusercontent.com/linux-jin/trackerslist/master/trackers_best.txt", "linuxjin-best"),
     ("trackers_alphacatmeow_best.txt", "https://raw.githubusercontent.com/AlphaCatMeow/trackerslist/master/trackers_best.txt", "alphacatmeow-best"),
     ("trackers_pexcn_best.txt", "https://raw.githubusercontent.com/pexcn/daily/gh-pages/trackerlist/trackerlist-best.txt", "pexcn-best"),
+    ("trackers_ngosang_i2p.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_i2p.txt", "ngosang-i2p"),
+    ("trackers_ngosang_yggdrasil.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_yggdrasil.txt", "ngosang-yggdrasil"),
 ]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
@@ -87,9 +91,9 @@ LOCK_FILE = os.path.join(PROJECT_ROOT, ".update.lock")
 REMOVED_SOURCE_NAMES = [
     "adysec_best", "adysec_http", "adysec_https", "adysec_udp", "adysec_wss",
     "adysec_all", "anime_best", "anime_ip", "ultimate", "ngosang_ip",
-    "ngosang_i2p", "ngosang_ygg", "ngosang_all_ip", "ngosang_ygg_ip",
+    "ngosang_ygg", "ngosang_all_ip", "ngosang_ygg_ip",
     "ngosang_all", "pkgforge_all", "pkgforge_general", "cf_all",
-    "run_best", "ngosang_best_ip", "opentracker",
+    "run_best", "opentracker",
 ]
 
 LEGACY_FILES = [
@@ -631,6 +635,7 @@ def generate_source_links():
     """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
         "ngosang-best": "ngosang/best",
+        "ngosang-best-ip": "ngosang/best-ip",
         "cf-best": "trackerslist/best",
         "gonghailink-best": "gonghailink/best",
         "pandamen-best": "panda-men/best",
@@ -638,6 +643,8 @@ def generate_source_links():
         "linuxjin-best": "linux-jin/best",
         "alphacatmeow-best": "AlphaCatMeow/best",
         "pexcn-best": "pexcn/daily",
+        "ngosang-i2p": "ngosang/i2p",
+        "ngosang-yggdrasil": "ngosang/yggdrasil",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -858,6 +865,7 @@ def sync_plain_text_files():
         "trackers_alive.txt": "alive.txt",
         "trackers_merged.txt": "merged.txt",
         "trackers_ngosang_best.txt": "ngosang_best.txt",
+        "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",
         "trackers_cf_best.txt": "cf_best.txt",
         "trackers_gonghailink_best.txt": "gonghailink_best.txt",
         "trackers_pandamen_best.txt": "pandamen_best.txt",
@@ -865,6 +873,8 @@ def sync_plain_text_files():
         "trackers_linuxjin_best.txt": "linuxjin_best.txt",
         "trackers_alphacatmeow_best.txt": "alphacatmeow_best.txt",
         "trackers_pexcn_best.txt": "pexcn_best.txt",
+        "trackers_ngosang_i2p.txt": "ngosang_i2p.txt",
+        "trackers_ngosang_yggdrasil.txt": "ngosang_yggdrasil.txt",
         "trackers_udp.txt": "udp.txt",
         "trackers_http.txt": "http.txt",
         "trackers_https.txt": "https.txt",

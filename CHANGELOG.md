@@ -3,6 +3,10 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- 补充 3 个 ngosang 订阅源：trackers_best_ip.txt（IP 直连最佳，契合内地/内网地域加分）、
+  trackers_all_i2p.txt、trackers_all_yggdrasil.txt（特殊网络，仅入 all 不计 best）
+
+## [2026-10-08] - feat
 - 针对中国内地/内网环境增加地域适配精细加分（参考 XIU2 TrackersListCollection 的
   best_ip 思路）：IPv4 直连 +5、IPv6 直连 +2、.cn 域名 +4、https +2（最高 +11），
   使规避 DNS 污染、国内低延迟、穿透网络干扰的 tracker 在综合评分中优先
