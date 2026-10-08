@@ -7,7 +7,7 @@
 <img src="https://img.shields.io/github/actions/workflow/status/Pmwiu/Tracker-List/update-trackers.yml?branch=main&label=build&style=flat-square" alt="build">
 <img src="https://img.shields.io/badge/best-20-2563eb?style=flat-square" alt="best 20">
 <img src="https://img.shields.io/badge/all-100-2563eb?style=flat-square" alt="all 100">
-<img src="https://img.shields.io/badge/sources-12-2563eb?style=flat-square" alt="12 sources">
+<img src="https://img.shields.io/badge/sources-14-2563eb?style=flat-square" alt="14 sources">
 <img src="https://img.shields.io/badge/secure-no%20secrets-16a34a?style=flat-square" alt="no secrets">
 
 </div>
@@ -31,7 +31,7 @@
 
 `tracker.pmwiu.com/p/udp.txt` · `/p/http.txt` · `/p/https.txt` · `/p/wss.txt` · `/p/ws.txt`
 
-**按源** `/src/<源>.txt`（覆盖全部 12 个源，如 `/src/ngosang_best.txt`、`/src/adysec_best.txt`、`/src/pexcn_best.txt`）
+**按源** `/src/<源>.txt`（覆盖全部 14 个源，如 `/src/ngosang_best.txt`、`/src/adysec_best.txt`、`/src/pexcn_best.txt`）
 
 </details>
 

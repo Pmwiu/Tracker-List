@@ -62,6 +62,8 @@ TRACKER_FILES = [
     "trackers_linuxjin_best.txt",
     "trackers_alphacatmeow_best.txt",
     "trackers_pexcn_best.txt",
+    "trackers_opentracker.txt",
+    "trackers_run_ws.txt",
     "trackers_ngosang_i2p.txt",
     "trackers_ngosang_yggdrasil.txt",
     "trackers_merged.txt",
@@ -80,7 +82,8 @@ PLAIN_TEXT_FILES = [
     "alive.txt", "all.txt", "merged.txt",
     "ngosang_best.txt", "ngosang_best_ip.txt", "cf_best.txt", "adysec_best.txt",
     "gonghailink_best.txt", "pandamen_best.txt", "gspu_best.txt", "linuxjin_best.txt",
-    "alphacatmeow_best.txt", "pexcn_best.txt", "ngosang_i2p.txt", "ngosang_yggdrasil.txt",
+    "alphacatmeow_best.txt", "pexcn_best.txt", "opentracker.txt", "run_ws.txt",
+    "ngosang_i2p.txt", "ngosang_yggdrasil.txt",
     "udp.txt", "http.txt", "https.txt", "wss.txt", "ws.txt",
 ]
 
@@ -99,6 +102,8 @@ CONSISTENCY_MAP = {
     "trackers_linuxjin_best.txt": "linuxjin_best.txt",
     "trackers_alphacatmeow_best.txt": "alphacatmeow_best.txt",
     "trackers_pexcn_best.txt": "pexcn_best.txt",
+    "trackers_opentracker.txt": "opentracker.txt",
+    "trackers_run_ws.txt": "run_ws.txt",
     "trackers_ngosang_i2p.txt": "ngosang_i2p.txt",
     "trackers_ngosang_yggdrasil.txt": "ngosang_yggdrasil.txt",
     "trackers_udp.txt": "udp.txt",

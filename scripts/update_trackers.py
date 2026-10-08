@@ -3,12 +3,14 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源（12 个，SOURCES 顺序即优先级）:
+订阅源（14 个，SOURCES 顺序即优先级）:
   - ngosang/trackerslist trackers_best.txt + trackers_best_ip.txt（经 jsDelivr 加速）
   - cf.trackerslist.com/best.txt
   - tracker.adysec.com/trackers_best.txt
   - gonghailink / panda-men / gspu / linux-jin / AlphaCatMeow（ngosang 各 fork 的 trackers_best.txt）
   - pexcn/daily trackerlist-best.txt
+  - 1265578519/OpenTracker tracker.txt
+  - trackers.run rw_ws（WebSocket 列表）
   - ngosang trackers_all_i2p.txt + trackers_all_yggdrasil.txt（特殊网络，仅入 all 不计 best）
   在下方 SOURCES 中增删 (输出文件名, 源 URL, 短名) 三元组即可调整；
   白名单 ALLOWED_SOURCE_URLS 与下游脚本会自动同步，无需其它改动。
@@ -56,6 +58,8 @@ SOURCES = [
     ("trackers_linuxjin_best.txt", "https://raw.githubusercontent.com/linux-jin/trackerslist/master/trackers_best.txt", "linuxjin-best"),
     ("trackers_alphacatmeow_best.txt", "https://raw.githubusercontent.com/AlphaCatMeow/trackerslist/master/trackers_best.txt", "alphacatmeow-best"),
     ("trackers_pexcn_best.txt", "https://raw.githubusercontent.com/pexcn/daily/gh-pages/trackerlist/trackerlist-best.txt", "pexcn-best"),
+    ("trackers_opentracker.txt", "https://raw.githubusercontent.com/1265578519/OpenTracker/refs/heads/master/tracker.txt", "opentracker"),
+    ("trackers_run_ws.txt", "https://trackers.run/s/rw_ws_up_hp_hs_v4_v6.txt", "trackersrun-ws"),
     ("trackers_ngosang_i2p.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_i2p.txt", "ngosang-i2p"),
     ("trackers_ngosang_yggdrasil.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_yggdrasil.txt", "ngosang-yggdrasil"),
 ]
@@ -98,7 +102,7 @@ REMOVED_SOURCE_NAMES = [
     "adysec_all", "anime_best", "anime_ip", "ultimate", "ngosang_ip",
     "ngosang_ygg", "ngosang_all_ip", "ngosang_ygg_ip",
     "ngosang_all", "pkgforge_all", "pkgforge_general", "cf_all",
-    "run_best", "opentracker",
+    "run_best",
 ]
 
 LEGACY_FILES = [
@@ -712,6 +716,8 @@ def generate_source_links():
         "linuxjin-best": "linux-jin/best",
         "alphacatmeow-best": "AlphaCatMeow/best",
         "pexcn-best": "pexcn/daily",
+        "opentracker": "OpenTracker",
+        "trackersrun-ws": "trackers.run/ws",
         "ngosang-i2p": "ngosang/i2p",
         "ngosang-yggdrasil": "ngosang/yggdrasil",
     }
@@ -944,6 +950,8 @@ def sync_plain_text_files():
         "trackers_linuxjin_best.txt": "linuxjin_best.txt",
         "trackers_alphacatmeow_best.txt": "alphacatmeow_best.txt",
         "trackers_pexcn_best.txt": "pexcn_best.txt",
+        "trackers_opentracker.txt": "opentracker.txt",
+        "trackers_run_ws.txt": "run_ws.txt",
         "trackers_ngosang_i2p.txt": "ngosang_i2p.txt",
         "trackers_ngosang_yggdrasil.txt": "ngosang_yggdrasil.txt",
         "trackers_udp.txt": "udp.txt",

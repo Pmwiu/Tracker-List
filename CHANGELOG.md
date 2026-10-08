@@ -3,6 +3,10 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- 补充 2 个订阅源：1265578519/OpenTracker tracker.txt、trackers.run rw_ws
+  （WebSocket 列表），源数 12→14；同步更新白名单、docs 镜像、健康检查清单与 README
+
+## [2026-10-08] - feat
 - 冷门/死种/老种子优化：best 新增「经典高可用」保底配额（≥4 条），经典 tracker
   长期稳定、拥有深厚 peer 数据库、真正开放，对老资源加速显著；all 天然含全部存活经典
 - 补充知名热门黑名单项目源：ngosang、XIU2 的 blacklist.txt 拉取并合并（精确 URL 级
