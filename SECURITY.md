@@ -20,6 +20,11 @@
 - 工作流由定时计划（schedule）、手动触发（workflow_dispatch）以及 `main` 分支上 `scripts/**` 与工作流文件变更时触发；**不监听 `pull_request` 事件**，因此来自 Fork 的外部 Pull Request **无法触发**本仓库工作流
 - 工作流设置了最大运行时长（`timeout-minutes`），防止失控
 - 第三方 Actions 固定使用官方主版本标签（`actions/checkout@v5`、`actions/setup-python@v6`、`actions/github-script@v8`，均运行于 Node 24）
+- SSRF 防护：探活前校验 tracker 主机名（拒绝 localhost、私网/环回/链路本地/保留/多播 IP，域名解析后二次校验解析结果）
+
+## 已知限制（低风险）
+
+- **DNS 重绑定**：探活校验时解析域名并检查 IP，但实际连接会重新解析域名。理论上恶意域名可在两次解析间返回不同 IP（公网→内网）绕过校验。由于订阅源白名单化、tracker 均为公开地址，实际可利用性极低；彻底修复需在连接时固定使用已校验的 IP（HTTP 需处理 SNI/Host 头，UDP 需改用解析结果），暂未实施。
 
 ## 功能收敛
 

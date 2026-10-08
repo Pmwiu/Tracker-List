@@ -2,6 +2,13 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - fix
+- 修复历史状态记录 bug：此前 `save_history(alive_final, dead_final)` 把「存活但被
+  淘汰」（capped/低速/同网段去重）的 tracker 错误记为失效，导致其稳定性 EMA 被拉低、
+  连续失效计数累积、20 次后被动态黑名单误杀。现改为按真实探活结果记录 alive/dead
+- health_check 新增「best ⊆ all」不变量校验（Alive subset check）
+- SECURITY.md 补充 SSRF 防护说明与 DNS 重绑定已知限制（低风险）
+
 ## [2026-10-08] - feat
 - 细分响应质量评分：HTTP 区分「返回 peers（可用节点，100）」与「仅 interval/complete
   等字段（90）」，使「真正能返回节点」的 tracker 评分更高

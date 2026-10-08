@@ -233,6 +233,22 @@ def check_merged_dedup(results):
         results.append(("FAIL", "Merged dedup check", f"{dupes} duplicates found"))
 
 
+def check_alive_subset_of_merged(results):
+    """校验 best（alive）列表是 all（merged）列表的子集（设计不变量）。"""
+    alive_path = os.path.join(TRACKERS_DIR, "trackers_alive.txt")
+    merged_path = os.path.join(TRACKERS_DIR, "trackers_merged.txt")
+    if not os.path.exists(alive_path) or not os.path.exists(merged_path):
+        results.append(("WARN", "Alive subset check", "file missing"))
+        return
+    alive = set(extract_trackers(open(alive_path, "r", encoding="utf-8").read()))
+    merged = set(extract_trackers(open(merged_path, "r", encoding="utf-8").read()))
+    outside = alive - merged
+    if outside:
+        results.append(("FAIL", "Alive subset check", f"{len(outside)} not in merged"))
+    else:
+        results.append(("PASS", "Alive subset check", "best is subset of all"))
+
+
 def check_consistency(results):
     """校验 trackers/ 与 docs/ 纯文本文件内容一致。"""
     for src, dst in CONSISTENCY_MAP.items():
@@ -368,6 +384,7 @@ def run_single_check(round_num, skip_net=False):
     check_local_files(results)
     check_alive_count(results)
     check_merged_dedup(results)
+    check_alive_subset_of_merged(results)
     check_consistency(results)
     check_url_format(results)
     if not skip_net:

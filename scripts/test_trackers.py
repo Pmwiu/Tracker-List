@@ -934,7 +934,13 @@ def main():
         'Trackers that FAILED, were unsafe, were low-speed, were same-IP duplicates, or were capped by score limit'
     )
     write_report(results, alive_final_detail, scored, capped, total_elapsed, protocol_stats, low_speed, same_ip_removed)
-    dead_streak = save_history(alive_final_list, dead_final)
+
+    # 历史状态必须按「真实探活结果」记录：存活 = 本次响应成功，失效 = 本次响应失败。
+    # capped / low_speed / same_ip_removed 都是「存活但被淘汰」的 tracker，绝不能记为失效，
+    # 否则它们会被错误计入连续失效、拉低稳定性 EMA，并在 20 次后被动态黑名单误杀。
+    actual_alive = [t for t, s, _, _ in results if s == 'alive']
+    actual_dead = [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
+    dead_streak = save_history(actual_alive, actual_dead)
     dyn_blacklist = write_dynamic_blacklist(dead_streak)
     if dyn_blacklist:
         print(f'[INFO] Dynamic blacklist: {len(dyn_blacklist)} consistently-dead trackers')
