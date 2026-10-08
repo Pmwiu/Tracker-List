@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-08 02:48:59 UTC",
+  "timestamp": "2026-10-08 03:03:26 UTC",
   "status": "success",
-  "duration_sec": 0.6,
+  "duration_sec": 0.4,
   "sources": {
     "cf-best": {
       "http_code": 200,
@@ -10,7 +10,7 @@
     },
     "trackersrun-best": {
       "http_code": 200,
-      "lines": 53,
+      "lines": 52,
       "ok": true
     },
     "ngosang-best": {
