@@ -92,7 +92,6 @@ https://tracker.keepfrds.com:443/announce
 https://tracker.midnightprogrammer.net:443/announce
 https://tracker.moviesdb.top:443/announce
 https://tracker.nekomi.cn:443/announce
-https://tracker.pmman.tech:443/announce
 https://tracker.zhuqiy.com:443/announce
 udp://109.201.134.183:80/announce
 udp://118.196.100.63:6969/announce
