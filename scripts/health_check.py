@@ -107,6 +107,7 @@ CONSISTENCY_MAP = {
 MAX_ALIVE = 20
 MIN_ALIVE_WARN = 5    # 存活数低于该值告警（可能源大面积失效）
 MIN_MERGED_WARN = 30  # 合并数低于该值告警（可能源异常或去重过度）
+STALE_SOURCE_DAYS = 7  # 源内容连续不变超过该天数告警（源可能已停止更新）
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 HEALTH_FILE = os.path.join(REPORTS_DIR, "health.json")
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
@@ -379,6 +380,27 @@ def check_minimum_counts(results):
         results.append(("WARN", "Minimum merged count", f"{merged} < {MIN_MERGED_WARN}"))
 
 
+def check_source_freshness(results):
+    """源新鲜度检测：内容指纹连续不变超过 STALE_SOURCE_DAYS 天的源告警。"""
+    path = os.path.join(REPORTS_DIR, "source_state.json")
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            state = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return
+    now = datetime.datetime.now(datetime.timezone.utc)
+    for name, info in state.items():
+        try:
+            first = datetime.datetime.fromisoformat(info["first_seen"])
+        except (KeyError, ValueError, TypeError):
+            continue
+        days = (now - first).days
+        if days >= STALE_SOURCE_DAYS:
+            results.append(("WARN", "Source freshness", f"{name} unchanged {days}d"))
+
+
 def run_single_check(round_num, skip_net=False):
     results = []
     check_local_files(results)
@@ -392,6 +414,8 @@ def run_single_check(round_num, skip_net=False):
         check_pages_links(results)
         check_worker_links(results)
     check_minimum_counts(results)
+    if HAS_SOURCES:
+        check_source_freshness(results)
 
     # 未配置订阅源时数据文件必然缺失：FAIL 降级为 WARN，避免误报
     if not HAS_SOURCES:

@@ -384,7 +384,14 @@ def test_one(tracker, timeout):
         if scheme == 'udp':
             if port is None:
                 return tracker, 'dead', 'missing port', 0.0
-            ok, elapsed, detail = test_udp(host, port, timeout)
+            # DNS 重绑定防护：UDP 连接固定使用 is_safe_tracker 已校验并缓存的解析 IP，
+            # 避免发送时被 OS 重新解析到不同（可能是内网）地址
+            try:
+                infos = cached_getaddrinfo(host, None)  # 复用校验过的缓存条目
+                resolved_ip = infos[0][4][0]
+            except Exception:
+                resolved_ip = host
+            ok, elapsed, detail = test_udp(resolved_ip, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
 
         if scheme == 'wss':

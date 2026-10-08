@@ -30,6 +30,7 @@ import tempfile
 import time
 import html
 import json
+import hashlib
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -78,6 +79,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "trackers")
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 RUN_SUMMARY_FILE = os.path.join(REPORTS_DIR, "run_summary.json")
+SOURCE_STATE_FILE = os.path.join(REPORTS_DIR, "source_state.json")
 BACKUP_DIR = os.path.join(OUTPUT_DIR, "backup")
 INVALID_LINES_LOG = os.path.join(PROJECT_ROOT, "invalid_lines.log")
 PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
@@ -181,6 +183,31 @@ def load_url_blacklist():
             if line and not line.startswith("#"):
                 urls.add(line)
     return urls
+
+
+def update_source_state(fingerprints):
+    """记录各源内容指纹与首次出现时间（检测订阅源是否停止更新）。
+
+    fingerprints: {short_name: sha1[:12]}。指纹不变则保留首次出现时间，
+    变化则重置为当前时间，供 health_check 检测「源长时间未更新」。
+    """
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    old = {}
+    if os.path.exists(SOURCE_STATE_FILE):
+        try:
+            with open(SOURCE_STATE_FILE, "r", encoding="utf-8") as f:
+                old = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            old = {}
+    state = {}
+    for name, fp in fingerprints.items():
+        prev = old.get(name, {})
+        if prev.get("hash") == fp:
+            state[name] = {"hash": fp, "first_seen": prev.get("first_seen", now)}
+        else:
+            state[name] = {"hash": fp, "first_seen": now}
+    atomic_write(SOURCE_STATE_FILE, json.dumps(state, ensure_ascii=False, indent=2) + NL)
 
 
 def write_run_summary(status, duration_sec, source_stats, merged_lines, failed_sources):
@@ -925,6 +952,7 @@ def main():
         per_source = []          # [(short_name, sorted_trackers), ...]
         results = []
         failures = []
+        fingerprints = {}        # {short_name: 内容指纹}，用于源新鲜度检测
 
         # 硬校验：SOURCES 中任何非白名单来源都是配置错误，立即失败
         rogue = [u for _, u, _ in SOURCES if u not in ALLOWED_SOURCE_URLS]
@@ -956,12 +984,16 @@ def main():
             _backup_file(filename)
             per_source.append((short_name, trackers))
             results.append((filename, len(trackers)))
+            fingerprints[short_name] = hashlib.sha1(NL.join(trackers).encode("utf-8")).hexdigest()[:12]
             print(f"[OK]   {len(trackers)} unique")
 
         if failures:
             print(f"{NL}[WARN] {len(failures)} source(s) failed:")
             for fn, sn, err in failures:
                 print(f"  - {sn}: {err}")
+
+        # 记录源内容指纹，供 health_check 检测「源长时间未更新」
+        update_source_state(fingerprints)
 
         # 两阶段合并：协议保底（稀有协议优先占位）+ 按源轮转填充，去重后取 MAX_ALL 条。
         # 目的：all 既保证各协议有席位（wss/ws 只要存在就保留、https/http/udp 保底），
