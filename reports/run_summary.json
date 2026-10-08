@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-08 02:02:57 UTC",
+  "timestamp": "2026-10-08 02:48:59 UTC",
   "status": "success",
-  "duration_sec": 0.8,
+  "duration_sec": 0.6,
   "sources": {
     "cf-best": {
       "http_code": 200,
@@ -30,6 +30,6 @@
     }
   },
   "merged_lines": 100,
-  "alive_lines": null,
+  "alive_lines": 20,
   "failed_sources": []
 }
