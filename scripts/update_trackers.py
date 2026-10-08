@@ -88,6 +88,7 @@ PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
 SHORT_LINKS_DIR = os.path.join(PAGES_DIR, "s")
 MERGED_FILE = "trackers_merged.txt"
 ALIVE_FILE = "trackers_alive.txt"
+ALL_FILE = "trackers_all.txt"
 DEAD_FILE = "trackers_dead.txt"
 LOCK_FILE = os.path.join(PROJECT_ROOT, ".update.lock")
 
@@ -101,7 +102,6 @@ REMOVED_SOURCE_NAMES = [
 ]
 
 LEGACY_FILES = [
-    os.path.join(OUTPUT_DIR, "trackers_all.txt"),
     os.path.join(OUTPUT_DIR, "trackers_run.txt"),
     os.path.join(OUTPUT_DIR, "trackers_best.txt"),
     os.path.join(PAGES_DIR, "full.txt"),
@@ -600,13 +600,17 @@ def write_mirrors_file(repo):
         ("GitHub Raw", f"{raw_base}/trackers/trackers_alive.txt"),
         ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_alive.txt"),
     ])
-    lines += block("all 合并 (trackers_merged.txt)", [
+    lines += block("all 存活 (trackers_all.txt, 完整 announce 握手)", [
         ("短链接", f"{cf}/all.txt"),
         ("加速短链接 (jsDelivr)", f"{cf}/jsd/all.txt"),
-        ("兼容短链接", f"{cf}/merged.txt"),
-        ("Pages 短跳", f"{pages}/s/all"),
+        ("Pages 直链", f"{pages}/all.txt"),
+        ("Cloudflare Pages 直链", f"{cf_pages}/all.txt"),
+        ("GitHub Raw", f"{raw_base}/trackers/trackers_all.txt"),
+        ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_all.txt"),
+    ])
+    lines += block("merged 原始候选池 (trackers_merged.txt)", [
+        ("短链接", f"{cf}/merged.txt"),
         ("Pages 直链", f"{pages}/merged.txt"),
-        ("Cloudflare Pages 直链", f"{cf_pages}/merged.txt"),
         ("GitHub Raw", f"{raw_base}/trackers/trackers_merged.txt"),
         ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_merged.txt"),
     ])
@@ -893,6 +897,7 @@ def generate_pages(repo, results):
 def sync_plain_text_files():
     mapping = {
         "trackers_alive.txt": "alive.txt",
+        "trackers_all.txt": "all.txt",
         "trackers_merged.txt": "merged.txt",
         "trackers_ngosang_best.txt": "ngosang_best.txt",
         "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",

@@ -66,6 +66,7 @@ TRACKER_FILES = [
     "trackers_ngosang_yggdrasil.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
+    "trackers_all.txt",
     "trackers_dead.txt",
 ]
 
@@ -76,7 +77,7 @@ SHORT_PAGES = [
 ]
 
 PLAIN_TEXT_FILES = [
-    "alive.txt", "merged.txt",
+    "alive.txt", "all.txt", "merged.txt",
     "ngosang_best.txt", "ngosang_best_ip.txt", "cf_best.txt", "adysec_best.txt",
     "gonghailink_best.txt", "pandamen_best.txt", "gspu_best.txt", "linuxjin_best.txt",
     "alphacatmeow_best.txt", "pexcn_best.txt", "ngosang_i2p.txt", "ngosang_yggdrasil.txt",
@@ -86,6 +87,7 @@ PLAIN_TEXT_FILES = [
 # trackers/ 到 docs/ 的映射
 CONSISTENCY_MAP = {
     "trackers_alive.txt": "alive.txt",
+    "trackers_all.txt": "all.txt",
     "trackers_merged.txt": "merged.txt",
     "trackers_ngosang_best.txt": "ngosang_best.txt",
     "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",

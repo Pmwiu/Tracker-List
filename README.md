@@ -19,7 +19,7 @@
 | 计划 | 条数 | 短链接 (txt) | 加速短链接 (txt) |
 |:---:|:---:|---|---|
 | **best** 精选 | 20 | `https://tracker.pmwiu.com/best.txt` | `https://tracker.pmwiu.com/jsd/best.txt` |
-| **all** 合并 | 100 | `https://tracker.pmwiu.com/all.txt` | `https://tracker.pmwiu.com/jsd/all.txt` |
+| **all** 存活 | 100 | `https://tracker.pmwiu.com/all.txt` | `https://tracker.pmwiu.com/jsd/all.txt` |
 
 > 短链接由 Cloudflare Worker 网关提供；加速短链接走 jsDelivr 全球 CDN。
 > qBittorrent、Aria2 等客户端直接粘贴短链接即可订阅。

@@ -4,7 +4,8 @@
 //
 // 短链接规范（全部 txt）:
 //   /best.txt  /alive.txt   → trackers_alive.txt   (best, 20 条, 协议多样性配额)
-//   /all.txt   /merged.txt  → trackers_merged.txt  (all, 100 条, 协议保底)
+//   /all.txt                → trackers_all.txt     (all, 存活去重, 完整 announce)
+//   /merged.txt             → trackers_merged.txt  (原始候选池)
 //   /p/{udp,http,https,wss,ws}.txt → 协议子列表
 //   /src/{<任意源短名>}.txt → 源列表（通用命名空间，随 SOURCES 自动扩展）
 //   /jsd/<上述任意路径>    → jsDelivr 加速镜像（失败回退 Raw）
@@ -27,8 +28,8 @@ const RATE_LIMIT = 120;
 const ALIASES = {
   "alive.txt": "trackers/trackers_alive.txt",
   "best.txt": "trackers/trackers_alive.txt",
+  "all.txt": "trackers/trackers_all.txt",
   "merged.txt": "trackers/trackers_merged.txt",
-  "all.txt": "trackers/trackers_merged.txt",
   "udp.txt": "trackers/trackers_udp.txt",
   "http.txt": "trackers/trackers_http.txt",
   "https.txt": "trackers/trackers_https.txt",

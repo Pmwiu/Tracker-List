@@ -2,6 +2,13 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - feat
+- all 列表同样改为「只含完整 announce 握手、返回有效响应」的存活 tracker：
+  新增 trackers_all.txt（全部存活去重、按评分降序、取前 MAX_ALL），
+  all.txt 短链接与 Pages/jsDelivr 直链改指向该存活列表；trackers_merged.txt
+  保留为原始候选池（供参考与下次重测）
+- 同步更新 Worker 别名、docs 同步、health_check 清单、MIRRORS.txt、月度检查清单
+
 ## [2026-10-08] - fix
 - 收紧判活标准（参照 ngosang/XIU2 只收录真正开放的 tracker，修复「订阅列表大部分
   不可用」问题）：

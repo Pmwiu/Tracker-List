@@ -28,11 +28,11 @@ CHECKS = [
     ("all 短链接 (Worker)", "https://tracker.pmwiu.com/all.txt", "all"),
     ("all 加速 (jsDelivr)", "https://tracker.pmwiu.com/jsd/all.txt", "all"),
     ("best Pages 直链", "https://pmwiu.github.io/Tracker-List/alive.txt", "best"),
-    ("all Pages 直链", "https://pmwiu.github.io/Tracker-List/merged.txt", "all"),
+    ("all Pages 直链", "https://pmwiu.github.io/Tracker-List/all.txt", "all"),
     ("best Raw", "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_alive.txt", "best"),
-    ("all Raw", "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt", "all"),
+    ("all Raw", "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt", "all"),
     ("best jsDelivr 直链", "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_alive.txt", "best"),
-    ("all jsDelivr 直链", "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_merged.txt", "all"),
+    ("all jsDelivr 直链", "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt", "all"),
 ]
 
 

@@ -966,6 +966,12 @@ def main():
         f'Trackers that PASSED liveness test, top {ut.MAX_TRACKERS} by composite score '
         f'(>= {ut.MIN_NON_UDP_TRACKERS} non-UDP by protocol quota)'
     )
+    # "all" = 全部存活（完成完整 announce 握手、返回有效响应），按综合评分降序，取前 MAX_ALL
+    all_alive_list = [t for t, _, _, _, _ in scored[:ut.MAX_ALL]]
+    write_result_file(
+        ut.ALL_FILE, all_alive_list,
+        'Trackers that PASSED full announce handshake (all alive, deduped)'
+    )
     write_result_file(
         ut.DEAD_FILE, dead_final,
         'Trackers that FAILED, were unsafe, were low-speed, were same-IP duplicates, or were capped by score limit'
