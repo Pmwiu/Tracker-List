@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-10-08 05:20:58 UTC",
-  "status": "failure",
-  "duration_sec": 149.7,
+  "timestamp": "2026-10-08 05:21:34 UTC",
+  "status": "success",
+  "duration_sec": 0.3,
   "sources": {
     "ngosang-best": {
-      "http_code": 0,
-      "lines": 0,
-      "ok": false
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
     },
     "cf-best": {
       "http_code": 200,
@@ -14,45 +14,37 @@
       "ok": true
     },
     "gonghailink-best": {
-      "http_code": 0,
-      "lines": 0,
-      "ok": false
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
     },
     "pandamen-best": {
-      "http_code": 0,
-      "lines": 0,
-      "ok": false
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
     },
     "gspu-best": {
-      "http_code": 0,
-      "lines": 0,
-      "ok": false
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
     },
     "linuxjin-best": {
-      "http_code": 0,
-      "lines": 0,
-      "ok": false
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
     },
     "alphacatmeow-best": {
-      "http_code": 0,
-      "lines": 0,
-      "ok": false
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
     },
     "pexcn-best": {
-      "http_code": 0,
-      "lines": 0,
-      "ok": false
+      "http_code": 200,
+      "lines": 73,
+      "ok": true
     }
   },
-  "merged_lines": 71,
-  "alive_lines": null,
-  "failed_sources": [
-    "ngosang-best",
-    "gonghailink-best",
-    "pandamen-best",
-    "gspu-best",
-    "linuxjin-best",
-    "alphacatmeow-best",
-    "pexcn-best"
-  ]
+  "merged_lines": 95,
+  "alive_lines": 20,
+  "failed_sources": []
 }
