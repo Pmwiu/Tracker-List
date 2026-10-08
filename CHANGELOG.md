@@ -3,6 +3,12 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- best 列表增加协议多样性配额：保底 4 条非 UDP（http/https/wss/ws）。
+  UDP 握手往返天然快于 HTTP announce，纯速度排序会让 best 变成单一协议，
+  一旦订阅者网络封 UDP 整份订阅即失效；配额后其余 16 条仍按综合评分
+  （速度 70% + 稳定性 30%）填充，非 UDP 不足 4 条时有多少取多少
+
+## [2026-10-08] - feat
 - 订阅源重新配置为 5 个精选源（cf best / trackers.run best / ngosang best + best_ip /
   OpenTracker），顺序即优先级；下线源文件由 REMOVED_SOURCE_NAMES 自动清理
 - 新增镜像回退：原始地址不可达时按 raw.pmwiu.com → jsDelivr → gh.pmwiu.com 顺序重试；

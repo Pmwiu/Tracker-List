@@ -55,6 +55,7 @@ ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
 
 MAX_TRACKERS = 20   # best 存活，正好 20 条
 MAX_ALL = 100       # all 合并，正好 100 条
+MIN_NON_UDP_TRACKERS = 4  # best 列表保底非 UDP（http/https/wss/ws）条数，防止单一协议失效时订阅整体不可用
 
 SHORT_LINKS = [
     ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",

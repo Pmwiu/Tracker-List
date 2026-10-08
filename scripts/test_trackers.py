@@ -509,6 +509,33 @@ def compute_score(elapsed_ms, uptime):
     return speed_score * 0.7 + stability_score * 0.3
 
 
+def select_top_with_protocol_quota(scored, max_total, min_non_udp):
+    """按综合评分选取前 max_total 个，同时保底 min_non_udp 条非 UDP（协议多样性配额）。
+
+    scored 元素为 (tracker, score, speed, uptime, detail)，已按评分降序。
+    UDP 握手往返天然快于 HTTP announce，纯速度排序会让 best 列表变成单一协议——
+    一旦订阅者网络封 UDP，整份订阅即失效。配额保证 http/https/wss/ws 保底占位，
+    其余仍按评分从高到低填充；非 UDP 不足配额时有多少取多少。
+    返回 (selected, capped)，selected 仍按评分降序。
+    """
+    non_udp = [e for e in scored if not e[0].startswith('udp://')]
+    udp = [e for e in scored if e[0].startswith('udp://')]
+
+    take_non_udp = min(min_non_udp, len(non_udp), max_total)
+    selected = non_udp[:take_non_udp] + udp[:max_total - take_non_udp]
+
+    # 边缘情况：UDP 不足以填满时，用剩余评分最高的条目补齐
+    if len(selected) < max_total:
+        chosen = {e[0] for e in selected}
+        remaining = [e for e in scored if e[0] not in chosen]
+        selected += remaining[:max_total - len(selected)]
+
+    selected.sort(key=lambda x: (-x[1], x[2]))
+    chosen = {e[0] for e in selected}
+    capped = [e for e in scored if e[0] not in chosen]
+    return selected, capped
+
+
 def dedup_same_ip(entries):
     """同 IP 去重：解析到同一 IP 的多个 tracker 只保留响应最快的。
 
@@ -598,6 +625,8 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
         f'- 同 IP 去重 (kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
+        f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
+        f'实际保留 {sum(1 for t, *_ in alive_final if not t.startswith("udp://"))} 条',
         f'- 耗时: {elapsed:.1f} 秒',
         '',
         '## 协议分布',
@@ -815,9 +844,13 @@ def main():
     # 按综合评分降序，分数相同按速度升序
     scored.sort(key=lambda x: (-x[1], x[2]))
 
-    alive_final_list = [t for t, _, _, _, _ in scored[:ut.MAX_TRACKERS]]
-    alive_final_detail = [(t, score, speed, up) for t, score, speed, up, _ in scored[:ut.MAX_TRACKERS]]
-    capped = scored[ut.MAX_TRACKERS:]
+    # 协议多样性配额：保底 MIN_NON_UDP_TRACKERS 条非 UDP，其余按评分填充
+    selected, capped = select_top_with_protocol_quota(
+        scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS
+    )
+    alive_final_list = [t for t, _, _, _, _ in selected]
+    alive_final_detail = [(t, score, speed, up) for t, score, speed, up, _ in selected]
+    n_non_udp_kept = sum(1 for t in alive_final_list if not t.startswith('udp://'))
 
     # 失效 = dead + unsafe + 低速 + 同IP重复 + 被淘汰的
     dead_final = sorted(
@@ -829,7 +862,8 @@ def main():
 
     write_result_file(
         ut.ALIVE_FILE, alive_final_list,
-        f'Trackers that PASSED liveness test, top {ut.MAX_TRACKERS} by composite score'
+        f'Trackers that PASSED liveness test, top {ut.MAX_TRACKERS} by composite score '
+        f'(>= {ut.MIN_NON_UDP_TRACKERS} non-UDP by protocol quota)'
     )
     write_result_file(
         ut.DEAD_FILE, dead_final,
@@ -850,6 +884,7 @@ def main():
     print(f'  Total tested:   {len(trackers)}')
     print(f'  Alive (raw):    {len(alive_with_speed)}')
     print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by composite score)')
+    print(f'  Non-UDP kept:   {n_non_udp_kept} (quota >= {ut.MIN_NON_UDP_TRACKERS})')
     print(f'  Score-capped:   {n_capped}')
     print(f'  Unsafe filtered:{n_unsafe}')
     print(f'  Low-speed:      {len(low_speed)} (>5s excluded)')
