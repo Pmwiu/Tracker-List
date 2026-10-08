@@ -2,6 +2,14 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - chore
+- 清空全部订阅源（SOURCES = []）及订阅数据内容（trackers/、docs/ 生成物、reports/），
+  等待重新提供订阅源配置；仓库框架、脚本与工作流保持不变
+- 零订阅源状态下优雅跳过：update_trackers.py / test_trackers.py 直接退出（不做无效下载、
+  不写失败摘要、不触发告警），health_check.py 将数据文件缺失降级为 WARN
+- workflow 新增 "Check subscription sources" 步骤，未配置源时跳过抓取/测试/健康检查，
+  仅保留心跳提交；诊断步骤的源列表改为从 SOURCES 动态生成
+
 ## [2026-10-07] - feat
 - 存活率历史加权评分：稳定性从「连续存活天数」升级为「存活率 EMA（指数滑动平均）」
   （偶发失效不会直接清零稳定性）；test_state.json 记录 uptime_ema

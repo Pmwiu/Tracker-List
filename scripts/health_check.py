@@ -3,7 +3,8 @@
 健康检查脚本 v3.0：验证本地文件、云端仓库与短链接的可用性。
 
 检查项:
-  1. 本地 Tracker 文件完整性（3个订阅源 + 合并/存活/失效列表）
+  1. 本地 Tracker 文件完整性（各订阅源文件 + 合并/存活/失效列表）
+     —— 未配置订阅源（SOURCES 为空）时，数据文件缺失按 WARN 处理
   2. 本地 GitHub Pages 文件完整性（主页 + 短链接页面 + 纯文本文件）
   3. alive.txt 数量校验（0 <= count <= MAX_ALIVE）
   4. merged.txt 去重校验（无重复）
@@ -26,6 +27,15 @@ import json
 import urllib.request
 import urllib.error
 import datetime
+
+# 与 update_trackers.py 共享订阅源配置：SOURCES 为空时数据文件缺失属预期状态
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import update_trackers as ut
+    HAS_SOURCES = bool(ut.SOURCES)
+except Exception:
+    ut = None
+    HAS_SOURCES = True
 
 REPO = "Pmwiu/Tracker-List"
 OWNER = REPO.split("/")[0]
@@ -329,6 +339,12 @@ def run_single_check(round_num, skip_net=False):
         check_raw_mirrors(results)
         check_pages_links(results)
 
+    # 未配置订阅源时数据文件必然缺失：FAIL 降级为 WARN，避免误报
+    if not HAS_SOURCES:
+        results = [("WARN", item, f"{detail} (no sources configured - expected)")
+                   if status == "FAIL" else (status, item, detail)
+                   for status, item, detail in results]
+
     passes = sum(1 for s, _, _ in results if s == "PASS")
     warns = sum(1 for s, _, _ in results if s == "WARN")
     fails = sum(1 for s, _, _ in results if s == "FAIL")
@@ -377,6 +393,10 @@ def main():
     total_warns = 0
     total_fails = 0
     all_had_fail = False
+
+    if not HAS_SOURCES:
+        print("[INFO] SOURCES is empty - no subscription sources configured; "
+              "missing data files are reported as warnings.")
 
     for r in range(1, args.rounds + 1):
         p, w, f, _ = run_single_check(r, skip_net=args.skip_net)

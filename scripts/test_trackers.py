@@ -679,6 +679,15 @@ def main():
                         help='每次熔断暂停秒数（默认60）')
     args = parser.parse_args()
 
+    if not ut.SOURCES:
+        print('[INFO] SOURCES is empty - no subscription sources configured, nothing to test.')
+        return
+
+    merged_path = os.path.join(ut.OUTPUT_DIR, ut.MERGED_FILE)
+    if not os.path.exists(merged_path):
+        print(f'[INFO] {os.path.relpath(merged_path, ut.PROJECT_ROOT)} not found - nothing to test.')
+        return
+
     total_available = len(read_merged())
     trackers = read_candidates(args.max_candidates)
     print(f'[INFO] Testing {len(trackers)} candidates '

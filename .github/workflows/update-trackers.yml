@@ -42,8 +42,20 @@ jobs:
           # 当前无外部依赖，预留位置
           echo "No external dependencies required"
 
-      # 诊断：环境、锁、各源连通性，结果写入 diag.log
+      # 订阅源未配置时跳过抓取/测试流程（仅保留心跳与诊断），避免无意义告警
+      - name: Check subscription sources
+        id: sources
+        run: |
+          if python -c "import sys; sys.path.insert(0, 'scripts'); import update_trackers as ut; sys.exit(0 if ut.SOURCES else 1)"; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::SOURCES is empty - skipping download/test/health steps."
+          fi
+
+      # 诊断：环境、锁、各源连通性（源列表由 SOURCES 动态生成），结果写入 diag.log
       - name: Diagnose environment and source connectivity
+        if: steps.sources.outputs.enabled == 'true'
         continue-on-error: true
         run: |
           : > diag.log
@@ -54,7 +66,7 @@ jobs:
             echo "--- Test file lock (fcntl) ---"
             python -c "import fcntl; f=open('.update.lock','w'); fcntl.flock(f, fcntl.LOCK_EX|fcntl.LOCK_NB); print('lock OK')"
             echo "--- Test source connectivity ---"
-            for u in "https://cf.trackerslist.com/best.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt" "https://tracker.adysec.com/trackers_best.txt" "https://tracker.adysec.com/trackers_best_http.txt" "https://tracker.adysec.com/trackers_best_https.txt" "https://tracker.adysec.com/trackers_best_udp.txt" "https://tracker.adysec.com/trackers_best_wss.txt" "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best.txt" "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best_ip.txt" "https://raw.githubusercontent.com/kris3713/UltimateBTTrackersList/refs/heads/master/ultimate_trackers.txt" "https://raw.githubusercontent.com/1265578519/OpenTracker/master/tracker.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_i2p.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ip.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil_ip.txt" "https://raw.githubusercontent.com/pkgforge-security/Trackers/refs/heads/main/trackers_all.txt" "https://raw.githubusercontent.com/pkgforge-security/Trackers/refs/heads/main/trackers_all_general.txt" "https://raw.githubusercontent.com/adysec/tracker/refs/heads/main/trackers_all.txt" "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt" "https://cf.trackerslist.com/all.txt"; do
+            for u in $(python -c "import sys; sys.path.insert(0, 'scripts'); import update_trackers as ut; print(' '.join(u for _, u, _ in ut.SOURCES))"); do
               echo ">>> $u"
               curl -sS -o /dev/null -w "  HTTP %{http_code}, total %{time_total}s\n" --connect-timeout 8 --max-time 20 "$u" || echo "  curl exit: $?"
             done
@@ -70,6 +82,7 @@ jobs:
       # 步骤 1：下载源列表、合并去重
       - name: Download, merge and deduplicate trackers
         id: download
+        if: steps.sources.outputs.enabled == 'true'
         run: |
           set +e
           python scripts/update_trackers.py 2>&1 | tee -a diag.log
@@ -82,9 +95,10 @@ jobs:
           fi
 
       # 步骤 2：协议级活性测试 + 综合评分排序
-      # 精选源优先，最多测试 500 个候选，避免对数千 tracker 全量测试而超时
+      # 精选源优先（all 合并列表按源优先级取前 MAX_ALL 条），最多测试 1000 个候选
       - name: Test tracker liveness and score ranking
         id: test
+        if: steps.sources.outputs.enabled == 'true'
         run: |
           set +e
           python scripts/test_trackers.py --timeout 10 --workers 30 --max-candidates 1000 2>&1 | tee -a diag.log
@@ -98,6 +112,7 @@ jobs:
 
       # 步骤 3：本地健康检查（跳过网络）
       - name: Local health check
+        if: steps.sources.outputs.enabled == 'true'
         run: python scripts/health_check.py --rounds 1 --skip-net 2>&1 | tee -a diag.log
 
       # 步骤 4：检测变更
@@ -137,7 +152,7 @@ jobs:
 
       # 步骤 6：推送后网络健康检查（3轮）
       - name: Post-push health check
-        if: steps.git-check.outputs.changed == 'true'
+        if: steps.sources.outputs.enabled == 'true' && steps.git-check.outputs.changed == 'true'
         run: |
           sleep 5
           python scripts/health_check.py --rounds 3 --interval 5 2>&1 | tee -a diag.log
@@ -161,9 +176,9 @@ jobs:
             sleep 3
           done
 
-      # 失败告警：自动创建 Issue
+      # 失败告警：自动创建 Issue（仅在订阅源已配置、流程实际执行时）
       - name: Create failure issue
-        if: failure()
+        if: failure() && steps.sources.outputs.enabled == 'true'
         continue-on-error: true
         uses: actions/github-script@v7
         with:
@@ -202,9 +217,9 @@ jobs:
               console.log('Create issue failed:', err.message);
             }
 
-      # 成功后关闭历史告警 Issue
+      # 成功且实际执行了抓取流程后，关闭历史告警 Issue
       - name: Close stale alert issues
-        if: success()
+        if: success() && steps.sources.outputs.enabled == 'true'
         continue-on-error: true
         uses: actions/github-script@v7
         with:

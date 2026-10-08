@@ -3,11 +3,9 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源（9 个 best 精选源）:
-  - cf.trackerslist.com/best.txt
-  - ngosang/trackerslist trackers_best_ip.txt
-  - tracker.adysec.com/trackers_best*.txt（全量/http/https/udp/wss）
-  - DeSireFire/animeTrackerList ATline_best*.txt（全量/ip）
+订阅源: 当前为空（SOURCES = []），等待重新配置。
+  在下方 SOURCES 中填入 (输出文件名, 源 URL, 短名) 三元组即可启用；
+  白名单 ALLOWED_SOURCE_URLS 与下游脚本会自动同步，无需其它改动。
 
 特性:
   - 多源合并去重（URL 规范化后去重）
@@ -37,29 +35,9 @@ try:
 except ImportError:
     _HAS_FCNTL = False
 
-SOURCES = [
-    ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
-    ("trackers_ngosang_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt", "ngosang-ip"),
-    ("trackers_adysec_best.txt", "https://tracker.adysec.com/trackers_best.txt", "adysec-best"),
-    ("trackers_adysec_http.txt", "https://tracker.adysec.com/trackers_best_http.txt", "adysec-http"),
-    ("trackers_adysec_https.txt", "https://tracker.adysec.com/trackers_best_https.txt", "adysec-https"),
-    ("trackers_adysec_udp.txt", "https://tracker.adysec.com/trackers_best_udp.txt", "adysec-udp"),
-    ("trackers_adysec_wss.txt", "https://tracker.adysec.com/trackers_best_wss.txt", "adysec-wss"),
-    ("trackers_anime_best.txt", "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best.txt", "anime-best"),
-    ("trackers_anime_ip.txt", "https://raw.githubusercontent.com/DeSireFire/animeTrackerList/refs/heads/master/ATline_best_ip.txt", "anime-ip"),
-    ("trackers_ultimate.txt", "https://raw.githubusercontent.com/kris3713/UltimateBTTrackersList/refs/heads/master/ultimate_trackers.txt", "ultimate"),
-    ("trackers_opentracker.txt", "https://raw.githubusercontent.com/1265578519/OpenTracker/master/tracker.txt", "opentracker"),
-    ("trackers_ngosang_best.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt", "ngosang-best"),
-    ("trackers_ngosang_i2p.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_i2p.txt", "ngosang-i2p"),
-    ("trackers_ngosang_ygg.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil.txt", "ngosang-ygg"),
-    ("trackers_ngosang_all_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ip.txt", "ngosang-all-ip"),
-    ("trackers_ngosang_ygg_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil_ip.txt", "ngosang-ygg-ip"),
-    ("trackers_pkgforge_all.txt", "https://raw.githubusercontent.com/pkgforge-security/Trackers/refs/heads/main/trackers_all.txt", "pkgforge-all"),
-    ("trackers_pkgforge_general.txt", "https://raw.githubusercontent.com/pkgforge-security/Trackers/refs/heads/main/trackers_all_general.txt", "pkgforge-general"),
-    ("trackers_adysec_all.txt", "https://raw.githubusercontent.com/adysec/tracker/refs/heads/main/trackers_all.txt", "adysec-all"),
-    ("trackers_ngosang_all.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/refs/heads/master/trackers_all.txt", "ngosang-all"),
-    ("trackers_cf_all.txt", "https://cf.trackerslist.com/all.txt", "cf-all"),
-]
+# 订阅源清单：每条为 (输出文件名, 源 URL, 短名)。
+# 当前为空 —— 等待重新提供订阅源配置；填入后自动生效（白名单同步更新）。
+SOURCES = []
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
@@ -758,6 +736,13 @@ def count_trackers_in_text(text):
 
 
 def main():
+    # 无订阅源时优雅退出：不写运行摘要、不触发失败告警，等待配置新源后自动恢复
+    if not SOURCES:
+        print("[INFO] SOURCES is empty - no subscription sources configured.")
+        print("[INFO] Add (filename, url, short_name) entries to SOURCES in "
+              "scripts/update_trackers.py to enable updates.")
+        return
+
     lock_fd = acquire_lock()
     start_time = time.time()
     source_stats = {}
