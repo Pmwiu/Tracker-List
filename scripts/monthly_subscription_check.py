@@ -48,6 +48,10 @@ def count_trackers(text):
 
 
 def main():
+    if not ut.SOURCES:
+        print("订阅源为空（SOURCES = []），月度订阅地址清单校验跳过。")
+        return 0
+
     fails = 0
     print("=" * 60)
     print(" 月度订阅地址清单校验")

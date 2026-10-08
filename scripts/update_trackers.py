@@ -3,12 +3,8 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源（5 个精选源，SOURCES 顺序即优先级）:
-  - cf.trackerslist.com/best.txt
-  - trackers.run/s/rw_up_hp_hs_v4_v6.txt
-  - ngosang/trackerslist trackers_best.txt + trackers_best_ip.txt
-  - 1265578519/OpenTracker tracker.txt
-  在下方 SOURCES 中增删 (输出文件名, 源 URL, 短名) 三元组即可调整；
+订阅源: 当前为空（SOURCES = []），等待重新配置。
+  在下方 SOURCES 中填入 (输出文件名, 源 URL, 短名) 三元组即可启用；
   白名单 ALLOWED_SOURCE_URLS 与下游脚本会自动同步，无需其它改动。
 
 特性:
@@ -41,14 +37,8 @@ except ImportError:
     _HAS_FCNTL = False
 
 # 订阅源清单：每条为 (输出文件名, 源 URL, 短名)。
-# 顺序即优先级：靠前的源在合并 all 列表时优先入选。
-SOURCES = [
-    ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
-    ("trackers_run_best.txt", "https://trackers.run/s/rw_up_hp_hs_v4_v6.txt", "trackersrun-best"),
-    ("trackers_ngosang_best.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt", "ngosang-best"),
-    ("trackers_ngosang_best_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt", "ngosang-best-ip"),
-    ("trackers_opentracker.txt", "https://raw.githubusercontent.com/1265578519/OpenTracker/refs/heads/master/tracker.txt", "opentracker"),
-]
+# 当前为空 —— 等待重新提供订阅源配置；填入后自动生效（白名单同步更新）。
+SOURCES = []
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}

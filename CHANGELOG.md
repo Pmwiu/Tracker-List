@@ -2,6 +2,14 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - chore
+- 清空全部订阅源（SOURCES = []）与订阅数据内容（trackers/ 生成物、docs/ 镜像与主页、
+  reports/ 摘要、backup/），等待重新提供订阅源配置
+- 仓库框架与结构保持不变：三个核心脚本、Cloudflare Worker 源码、双托管配置、
+  GitHub Actions（定时/月度/告警）全部保留
+- 零订阅源优雅降级：update/test 直接退出、health_check 数据缺失降级为 WARN、
+  monthly_subscription_check 跳过、workflow 仅保留心跳提交
+
 ## [2026-10-08] - feat
 - all 列表增加协议保底配额（ALL_PROTOCOL_FLOORS）：wss/ws 只要存在就保留，
   https/http/udp 保底 15/15/20 条，其余由按源轮转填充；all 现覆盖 4 种协议
