@@ -6,7 +6,7 @@
 //   /best.txt  /alive.txt   → trackers_alive.txt   (best, 20 条, 协议多样性配额)
 //   /all.txt   /merged.txt  → trackers_merged.txt  (all, 100 条, 协议保底)
 //   /p/{udp,http,https,wss,ws}.txt → 协议子列表
-//   /src/{cf_best,run_best,ngosang_best,ngosang_best_ip,opentracker}.txt → 源列表
+//   /src/{<任意源短名>}.txt → 源列表（通用命名空间，随 SOURCES 自动扩展）
 //   /jsd/<上述任意路径>    → jsDelivr 加速镜像（失败回退 Raw）
 //   / 或 /index.html        → 订阅主页(HTML)
 //   /s/alive  /s/all        → Pages 短跳(HTML)
@@ -35,10 +35,7 @@ const ALIASES = {
   "wss.txt": "trackers/trackers_wss.txt",
   "ws.txt": "trackers/trackers_ws.txt",
   "cf_best.txt": "trackers/trackers_cf_best.txt",
-  "run_best.txt": "trackers/trackers_run_best.txt",
   "ngosang_best.txt": "trackers/trackers_ngosang_best.txt",
-  "ngosang_best_ip.txt": "trackers/trackers_ngosang_best_ip.txt",
-  "opentracker.txt": "trackers/trackers_opentracker.txt",
   "mirrors.txt": "trackers/MIRRORS.txt",
   "index.html": "docs/index.html",
   "s/alive": "docs/s/alive.html",

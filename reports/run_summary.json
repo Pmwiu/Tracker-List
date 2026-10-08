@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-10-08 05:20:58 UTC",
+  "status": "failure",
+  "duration_sec": 149.7,
+  "sources": {
+    "ngosang-best": {
+      "http_code": 0,
+      "lines": 0,
+      "ok": false
+    },
+    "cf-best": {
+      "http_code": 200,
+      "lines": 71,
+      "ok": true
+    },
+    "gonghailink-best": {
+      "http_code": 0,
+      "lines": 0,
+      "ok": false
+    },
+    "pandamen-best": {
+      "http_code": 0,
+      "lines": 0,
+      "ok": false
+    },
+    "gspu-best": {
+      "http_code": 0,
+      "lines": 0,
+      "ok": false
+    },
+    "linuxjin-best": {
+      "http_code": 0,
+      "lines": 0,
+      "ok": false
+    },
+    "alphacatmeow-best": {
+      "http_code": 0,
+      "lines": 0,
+      "ok": false
+    },
+    "pexcn-best": {
+      "http_code": 0,
+      "lines": 0,
+      "ok": false
+    }
+  },
+  "merged_lines": 71,
+  "alive_lines": null,
+  "failed_sources": [
+    "ngosang-best",
+    "gonghailink-best",
+    "pandamen-best",
+    "gspu-best",
+    "linuxjin-best",
+    "alphacatmeow-best",
+    "pexcn-best"
+  ]
+}

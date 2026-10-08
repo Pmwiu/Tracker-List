@@ -52,11 +52,14 @@ SHORT_DIR = os.path.join(PAGES_DIR, "s")
 TIMEOUT = 15
 
 TRACKER_FILES = [
-    "trackers_cf_best.txt",
-    "trackers_run_best.txt",
     "trackers_ngosang_best.txt",
-    "trackers_ngosang_best_ip.txt",
-    "trackers_opentracker.txt",
+    "trackers_cf_best.txt",
+    "trackers_gonghailink_best.txt",
+    "trackers_pandamen_best.txt",
+    "trackers_gspu_best.txt",
+    "trackers_linuxjin_best.txt",
+    "trackers_alphacatmeow_best.txt",
+    "trackers_pexcn_best.txt",
     "trackers_merged.txt",
     "trackers_alive.txt",
     "trackers_dead.txt",
@@ -70,8 +73,8 @@ SHORT_PAGES = [
 
 PLAIN_TEXT_FILES = [
     "alive.txt", "merged.txt",
-    "cf_best.txt", "run_best.txt", "ngosang_best.txt", "ngosang_best_ip.txt",
-    "opentracker.txt",
+    "ngosang_best.txt", "cf_best.txt", "gonghailink_best.txt", "pandamen_best.txt",
+    "gspu_best.txt", "linuxjin_best.txt", "alphacatmeow_best.txt", "pexcn_best.txt",
     "udp.txt", "http.txt", "https.txt", "wss.txt", "ws.txt",
 ]
 
@@ -79,11 +82,14 @@ PLAIN_TEXT_FILES = [
 CONSISTENCY_MAP = {
     "trackers_alive.txt": "alive.txt",
     "trackers_merged.txt": "merged.txt",
-    "trackers_cf_best.txt": "cf_best.txt",
-    "trackers_run_best.txt": "run_best.txt",
     "trackers_ngosang_best.txt": "ngosang_best.txt",
-    "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",
-    "trackers_opentracker.txt": "opentracker.txt",
+    "trackers_cf_best.txt": "cf_best.txt",
+    "trackers_gonghailink_best.txt": "gonghailink_best.txt",
+    "trackers_pandamen_best.txt": "pandamen_best.txt",
+    "trackers_gspu_best.txt": "gspu_best.txt",
+    "trackers_linuxjin_best.txt": "linuxjin_best.txt",
+    "trackers_alphacatmeow_best.txt": "alphacatmeow_best.txt",
+    "trackers_pexcn_best.txt": "pexcn_best.txt",
     "trackers_udp.txt": "udp.txt",
     "trackers_http.txt": "http.txt",
     "trackers_https.txt": "https.txt",

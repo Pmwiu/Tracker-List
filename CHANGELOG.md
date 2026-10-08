@@ -2,6 +2,12 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - feat
+- 订阅源替换为 8 个 best 精选源：ngosang（jsDelivr 加速）、cf、以及
+  gonghailink / panda-men / gspu / linux-jin / AlphaCatMeow / pexcn 的
+  trackers_best 派生源；同步更新白名单、docs 镜像、健康检查清单、Worker
+  /src 命名空间与 README 订阅表
+
 ## [2026-10-08] - chore
 - 清空全部订阅源（SOURCES = []）与订阅数据内容（trackers/ 生成物、docs/ 镜像与主页、
   reports/ 摘要、backup/），等待重新提供订阅源配置

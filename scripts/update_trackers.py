@@ -3,8 +3,12 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源: 当前为空（SOURCES = []），等待重新配置。
-  在下方 SOURCES 中填入 (输出文件名, 源 URL, 短名) 三元组即可启用；
+订阅源（8 个 best 精选源，SOURCES 顺序即优先级）:
+  - ngosang/trackerslist trackers_best.txt（经 jsDelivr 加速）
+  - cf.trackerslist.com/best.txt
+  - gonghailink / panda-men / gspu / linux-jin / AlphaCatMeow（ngosang 各 fork 的 trackers_best.txt）
+  - pexcn/daily trackerlist-best.txt
+  在下方 SOURCES 中增删 (输出文件名, 源 URL, 短名) 三元组即可调整；
   白名单 ALLOWED_SOURCE_URLS 与下游脚本会自动同步，无需其它改动。
 
 特性:
@@ -37,8 +41,17 @@ except ImportError:
     _HAS_FCNTL = False
 
 # 订阅源清单：每条为 (输出文件名, 源 URL, 短名)。
-# 当前为空 —— 等待重新提供订阅源配置；填入后自动生效（白名单同步更新）。
-SOURCES = []
+# 顺序即优先级：靠前的源在合并 all 列表时优先入选。
+SOURCES = [
+    ("trackers_ngosang_best.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best.txt", "ngosang-best"),
+    ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
+    ("trackers_gonghailink_best.txt", "https://raw.githubusercontent.com/gonghailink/trackerslist/master/trackers_best.txt", "gonghailink-best"),
+    ("trackers_pandamen_best.txt", "https://raw.githubusercontent.com/panda-men/trackerslist/master/trackers_best.txt", "pandamen-best"),
+    ("trackers_gspu_best.txt", "https://raw.githubusercontent.com/gspu/trackerslist/master/trackers_best.txt", "gspu-best"),
+    ("trackers_linuxjin_best.txt", "https://raw.githubusercontent.com/linux-jin/trackerslist/master/trackers_best.txt", "linuxjin-best"),
+    ("trackers_alphacatmeow_best.txt", "https://raw.githubusercontent.com/AlphaCatMeow/trackerslist/master/trackers_best.txt", "alphacatmeow-best"),
+    ("trackers_pexcn_best.txt", "https://raw.githubusercontent.com/pexcn/daily/gh-pages/trackerlist/trackerlist-best.txt", "pexcn-best"),
+]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
@@ -76,6 +89,7 @@ REMOVED_SOURCE_NAMES = [
     "adysec_all", "anime_best", "anime_ip", "ultimate", "ngosang_ip",
     "ngosang_i2p", "ngosang_ygg", "ngosang_all_ip", "ngosang_ygg_ip",
     "ngosang_all", "pkgforge_all", "pkgforge_general", "cf_all",
+    "run_best", "ngosang_best_ip", "opentracker",
 ]
 
 LEGACY_FILES = [
@@ -629,11 +643,14 @@ def generate_redirect_page(target_url, description=""):
 def generate_source_links():
     """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
-        "cf-best": "trackerslist/best",
-        "trackersrun-best": "trackers.run/best",
         "ngosang-best": "ngosang/best",
-        "ngosang-best-ip": "ngosang/best-ip",
-        "opentracker": "OpenTracker",
+        "cf-best": "trackerslist/best",
+        "gonghailink-best": "gonghailink/best",
+        "pandamen-best": "panda-men/best",
+        "gspu-best": "gspu/best",
+        "linuxjin-best": "linux-jin/best",
+        "alphacatmeow-best": "AlphaCatMeow/best",
+        "pexcn-best": "pexcn/daily",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -853,11 +870,14 @@ def sync_plain_text_files():
     mapping = {
         "trackers_alive.txt": "alive.txt",
         "trackers_merged.txt": "merged.txt",
-        "trackers_cf_best.txt": "cf_best.txt",
-        "trackers_run_best.txt": "run_best.txt",
         "trackers_ngosang_best.txt": "ngosang_best.txt",
-        "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",
-        "trackers_opentracker.txt": "opentracker.txt",
+        "trackers_cf_best.txt": "cf_best.txt",
+        "trackers_gonghailink_best.txt": "gonghailink_best.txt",
+        "trackers_pandamen_best.txt": "pandamen_best.txt",
+        "trackers_gspu_best.txt": "gspu_best.txt",
+        "trackers_linuxjin_best.txt": "linuxjin_best.txt",
+        "trackers_alphacatmeow_best.txt": "alphacatmeow_best.txt",
+        "trackers_pexcn_best.txt": "pexcn_best.txt",
         "trackers_udp.txt": "udp.txt",
         "trackers_http.txt": "http.txt",
         "trackers_https.txt": "https.txt",
