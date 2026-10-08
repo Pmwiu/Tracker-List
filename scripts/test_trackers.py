@@ -862,6 +862,17 @@ def main():
     print(f'  总计: {sum(protocol_stats.values())} 个（存活）')
     print('=========================')
 
+    # 回填 run_summary.json 的 alive_lines（update_trackers.py 先于测试运行，恒为 null）
+    try:
+        if os.path.exists(ut.RUN_SUMMARY_FILE):
+            with open(ut.RUN_SUMMARY_FILE, 'r', encoding='utf-8') as fh:
+                summary = json.load(fh)
+            summary['alive_lines'] = n_alive
+            ut.atomic_write(ut.RUN_SUMMARY_FILE,
+                            json.dumps(summary, ensure_ascii=False, indent=2) + ut.NL)
+    except Exception as e:
+        print(f'[WARN] Could not backfill alive_lines into run_summary.json: {e}')
+
     daily_backup_alive()
 
     # 重新生成主页
