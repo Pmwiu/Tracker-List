@@ -85,11 +85,9 @@ REMOVED_SOURCE_NAMES = [
 ]
 
 LEGACY_FILES = [
-    os.path.join(OUTPUT_DIR, "trackers_http.txt"),
     os.path.join(OUTPUT_DIR, "trackers_all.txt"),
     os.path.join(OUTPUT_DIR, "trackers_run.txt"),
     os.path.join(OUTPUT_DIR, "trackers_best.txt"),
-    os.path.join(PAGES_DIR, "http.txt"),
     os.path.join(PAGES_DIR, "full.txt"),
     os.path.join(PAGES_DIR, "best.txt"),
     os.path.join(SHORT_LINKS_DIR, "http.html"),
