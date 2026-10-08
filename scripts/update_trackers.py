@@ -159,6 +159,12 @@ def get_repo():
 
 BLACKLIST_FILE = os.path.join(PROJECT_ROOT, "blacklist.txt")
 
+# 知名热门 Tracker 黑名单项目仓库源（拉取域名黑名单并合并，增强屏蔽拦截）
+BLACKLIST_SOURCES = [
+    "https://raw.githubusercontent.com/ngosang/trackerslist/master/blacklist.txt",
+    "https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/blacklist.txt",
+]
+
 
 def load_blacklist():
     """读取 blacklist.txt，返回需排除的域名集合（小写，精确匹配主机名）。"""
@@ -171,6 +177,35 @@ def load_blacklist():
             if entry and not entry.startswith("#"):
                 blacklist.add(entry)
     return blacklist
+
+
+def fetch_remote_blacklist():
+    """从知名项目仓库拉取 tracker URL 黑名单（含镜像回退），返回规范化 URL 集合。
+
+    这些黑名单为 URL 级（精确匹配，避免按域名误伤同域名的经典/正常 tracker，
+    例如 XIU2 黑名单中的 `udp://explodie.org:6969` 无 /announce 路径，不影响
+    `udp://explodie.org:6969/announce`）。拉取失败仅告警不中断。
+    """
+    urls = set()
+    for url in BLACKLIST_SOURCES:
+        for candidate in [url] + mirror_urls(url):
+            try:
+                raw = _fetch(candidate)
+                count = 0
+                for line in raw.splitlines():
+                    # 去掉行内注释（"URL # 原因"）
+                    line = line.split("#", 1)[0].strip()
+                    normalized = normalize_tracker(line)
+                    if normalized and is_valid_tracker(normalized):
+                        urls.add(normalized)
+                        count += 1
+                print(f"[INFO] Blacklist source loaded: {candidate} ({count} URLs)")
+                break
+            except Exception:
+                continue
+        else:
+            print(f"[WARN] Blacklist source failed: {url}")
+    return urls
 
 
 def load_url_blacklist():
@@ -953,9 +988,9 @@ def main():
         blacklist = load_blacklist()
         if blacklist:
             print(f"[INFO] Blacklist: {len(blacklist)} domains")
-        url_blacklist = load_url_blacklist()
+        url_blacklist = load_url_blacklist() | fetch_remote_blacklist()
         if url_blacklist:
-            print(f"[INFO] Dynamic blacklist: {len(url_blacklist)} URLs")
+            print(f"[INFO] URL blacklist: {len(url_blacklist)} URLs (dynamic + remote sources)")
 
         all_merged = []          # 轮转合并结果（见下方），去重后取前 MAX_ALL 条
         per_source = []          # [(short_name, sorted_trackers), ...]

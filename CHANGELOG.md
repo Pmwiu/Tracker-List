@@ -3,6 +3,13 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- 冷门/死种/老种子优化：best 新增「经典高可用」保底配额（≥4 条），经典 tracker
+  长期稳定、拥有深厚 peer 数据库、真正开放，对老资源加速显著；all 天然含全部存活经典
+- 补充知名热门黑名单项目源：ngosang、XIU2 的 blacklist.txt 拉取并合并（精确 URL 级
+  匹配，避免误伤同域名的经典/正常 tracker），增强对黑名单 tracker 的屏蔽拦截，
+  严厉禁止入选 best/all
+
+## [2026-10-08] - feat
 - all 列表同样改为「只含完整 announce 握手、返回有效响应」的存活 tracker：
   新增 trackers_all.txt（全部存活去重、按评分降序、取前 MAX_ALL），
   all.txt 短链接与 Pages/jsDelivr 直链改指向该存活列表；trackers_merged.txt

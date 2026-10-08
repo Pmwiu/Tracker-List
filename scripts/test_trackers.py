@@ -10,7 +10,8 @@ Tracker 活性自动测试 + 测速排序脚本（v3.0 优化版）。
      - wss/ws     : TCP + TLS 连通性检查
   3. 第二轮精测：对第一轮存活的前 100 个再次测速，取较优值
   4. 历史加权：读取上一次 alive 列表，连续存活的 tracker 获得稳定性加分
-  5. 综合评分排序：速度(60%, 自适应标度) + 历史稳定性(25%) + 响应质量(15%) + 经典高可用加分
+  5. 综合评分排序：速度(60%, 自适应标度) + 历史稳定性(25%) + 响应质量(15%) + 经典高可用加分，
+     并保底 MIN_CLASSIC_TRACKERS 条经典（冷门/老种子优化）
   6. 取前 MAX_TRACKERS 个写入 alive.txt
 
 输出:
@@ -530,6 +531,7 @@ def quality_score(detail):
 
 # 经典高可用加分：长期稳定、广泛使用的公共 tracker 主机名（仅对存活 tracker 生效）
 CLASSIC_BONUS = 6.0
+MIN_CLASSIC_TRACKERS = 4  # best 保底经典高可用条数（冷门/死种/老种子加速优化）
 CLASSIC_HOSTS = {
     "tracker.opentrackr.org",
     "open.stealth.si",
@@ -600,31 +602,50 @@ def compute_score(tracker, speed, uptime, detail):
             + classic_bonus(tracker))
 
 
-def select_top_with_protocol_quota(scored, max_total, min_non_udp):
-    """按综合评分选取前 max_total 个，同时保底 min_non_udp 条非 UDP（协议多样性配额）。
-
-    scored 元素为 (tracker, score, speed, uptime, detail)，已按评分降序。
-    UDP 握手往返天然快于 HTTP announce，纯速度排序会让 best 列表变成单一协议——
-    一旦订阅者网络封 UDP，整份订阅即失效。配额保证 http/https/wss/ws 保底占位，
-    其余仍按评分从高到低填充；非 UDP 不足配额时有多少取多少。
+def select_top_with_quotas(scored, max_total, min_non_udp, min_classic):
+    """按综合评分选取前 max_total 个，同时满足两项保底配额：
+    - min_non_udp 条非 UDP（协议多样性）
+    - min_classic 条经典高可用 tracker（冷门/死种/老种子优化：经典 tracker 长期稳定、
+      拥有深厚 peer 数据库、真正开放，对老资源加速显著）
+    按「经典保底 → 非 UDP 保底 → 评分填充」三阶段选取；不足配额时有多少取多少。
     返回 (selected, capped)，selected 仍按评分降序。
     """
-    non_udp = [e for e in scored if not e[0].startswith('udp://')]
-    udp = [e for e in scored if e[0].startswith('udp://')]
+    picked = []
+    seen = set()
 
-    take_non_udp = min(min_non_udp, len(non_udp), max_total)
-    selected = non_udp[:take_non_udp] + udp[:max_total - take_non_udp]
+    def _pick(e):
+        if e[0] in seen:
+            return False
+        seen.add(e[0])
+        picked.append(e)
+        return True
 
-    # 边缘情况：UDP 不足以填满时，用剩余评分最高的条目补齐
-    if len(selected) < max_total:
-        chosen = {e[0] for e in selected}
-        remaining = [e for e in scored if e[0] not in chosen]
-        selected += remaining[:max_total - len(selected)]
+    # Stage 1：经典高可用保底（冷门/老种子）
+    classic_count = 0
+    for e in scored:
+        if classic_count >= min_classic:
+            break
+        if classic_bonus(e[0]) > 0 and _pick(e):
+            classic_count += 1
 
-    selected.sort(key=lambda x: (-x[1], x[2]))
-    chosen = {e[0] for e in selected}
+    # Stage 2：非 UDP 保底（协议多样性）
+    non_udp_count = sum(1 for e in picked if not e[0].startswith('udp://'))
+    for e in scored:
+        if non_udp_count >= min_non_udp:
+            break
+        if not e[0].startswith('udp://') and _pick(e):
+            non_udp_count += 1
+
+    # Stage 3：按评分填充至 max_total
+    for e in scored:
+        if len(picked) >= max_total:
+            break
+        _pick(e)
+
+    picked.sort(key=lambda x: (-x[1], x[2]))
+    chosen = {e[0] for e in picked}
     capped = [e for e in scored if e[0] not in chosen]
-    return selected, capped
+    return picked, capped
 
 
 def dedup_same_ip(entries):
@@ -722,6 +743,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 同网段去重 (/24, kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
         f'- 评分维度: 速度 60% + 历史稳定性 25% + 响应质量 15%（速度标度自适应 + 经典高可用加分）',
+        f'- 配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP + 保底 {MIN_CLASSIC_TRACKERS} 条经典高可用',
         f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
         f'实际保留 {sum(1 for t, *_ in alive_final if not t.startswith("udp://"))} 条',
         f'- 耗时: {elapsed:.1f} 秒',
@@ -944,9 +966,9 @@ def main():
     # 按综合评分降序，分数相同按速度升序
     scored.sort(key=lambda x: (-x[1], x[2]))
 
-    # 协议多样性配额：保底 MIN_NON_UDP_TRACKERS 条非 UDP，其余按评分填充
-    selected, capped = select_top_with_protocol_quota(
-        scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS
+    # 协议多样性 + 经典高可用配额：保底非 UDP 与经典 tracker，其余按评分填充
+    selected, capped = select_top_with_quotas(
+        scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS, MIN_CLASSIC_TRACKERS
     )
     alive_final_list = [t for t, _, _, _, _ in selected]
     alive_final_detail = [(t, score, speed, up, quality_score(d), classic_bonus(t))
@@ -964,7 +986,7 @@ def main():
     write_result_file(
         ut.ALIVE_FILE, alive_final_list,
         f'Trackers that PASSED liveness test, top {ut.MAX_TRACKERS} by composite score '
-        f'(>= {ut.MIN_NON_UDP_TRACKERS} non-UDP by protocol quota)'
+        f'(>= {ut.MIN_NON_UDP_TRACKERS} non-UDP, >= {MIN_CLASSIC_TRACKERS} classic)'
     )
     # "all" = 全部存活（完成完整 announce 握手、返回有效响应），按综合评分降序，取前 MAX_ALL
     all_alive_list = [t for t, _, _, _, _ in scored[:ut.MAX_ALL]]
@@ -998,6 +1020,7 @@ def main():
     print(f'  Alive (raw):    {len(alive_with_speed)}')
     print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by composite score)')
     print(f'  Non-UDP kept:   {n_non_udp_kept} (quota >= {ut.MIN_NON_UDP_TRACKERS})')
+    print(f'  Classic kept:   {sum(1 for t in alive_final_list if classic_bonus(t) > 0)} (quota >= {MIN_CLASSIC_TRACKERS})')
     print(f'  Score-capped:   {n_capped}')
     print(f'  Unsafe filtered:{n_unsafe}')
     print(f'  Low-speed:      {len(low_speed)} (>5s excluded)')
