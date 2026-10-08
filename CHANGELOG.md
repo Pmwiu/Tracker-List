@@ -3,6 +3,10 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- 补充订阅源 tracker.adysec.com/trackers_best.txt（adysec 成熟 Rust 聚合项目），
+  同步更新白名单、docs 镜像、健康检查清单与 README（源数 11→12）
+
+## [2026-10-08] - feat
 - UDP 探活 DNS 重绑定防护：连接固定使用 is_safe_tracker 已校验并缓存的解析 IP，
   避免发送时被 OS 重新解析到不同（可能是内网）地址
 - 源内容新鲜度检测：update_trackers 记录各源内容指纹与首次出现时间

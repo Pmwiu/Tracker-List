@@ -3,9 +3,10 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源（11 个，SOURCES 顺序即优先级）:
+订阅源（12 个，SOURCES 顺序即优先级）:
   - ngosang/trackerslist trackers_best.txt + trackers_best_ip.txt（经 jsDelivr 加速）
   - cf.trackerslist.com/best.txt
+  - tracker.adysec.com/trackers_best.txt
   - gonghailink / panda-men / gspu / linux-jin / AlphaCatMeow（ngosang 各 fork 的 trackers_best.txt）
   - pexcn/daily trackerlist-best.txt
   - ngosang trackers_all_i2p.txt + trackers_all_yggdrasil.txt（特殊网络，仅入 all 不计 best）
@@ -48,6 +49,7 @@ SOURCES = [
     ("trackers_ngosang_best.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best.txt", "ngosang-best"),
     ("trackers_ngosang_best_ip.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best_ip.txt", "ngosang-best-ip"),
     ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
+    ("trackers_adysec_best.txt", "https://tracker.adysec.com/trackers_best.txt", "adysec-best"),
     ("trackers_gonghailink_best.txt", "https://raw.githubusercontent.com/gonghailink/trackerslist/master/trackers_best.txt", "gonghailink-best"),
     ("trackers_pandamen_best.txt", "https://raw.githubusercontent.com/panda-men/trackerslist/master/trackers_best.txt", "pandamen-best"),
     ("trackers_gspu_best.txt", "https://raw.githubusercontent.com/gspu/trackerslist/master/trackers_best.txt", "gspu-best"),
@@ -91,7 +93,7 @@ LOCK_FILE = os.path.join(PROJECT_ROOT, ".update.lock")
 
 # 已下线的订阅源短名（用于主动清理其残留文件）
 REMOVED_SOURCE_NAMES = [
-    "adysec_best", "adysec_http", "adysec_https", "adysec_udp", "adysec_wss",
+    "adysec_http", "adysec_https", "adysec_udp", "adysec_wss",
     "adysec_all", "anime_best", "anime_ip", "ultimate", "ngosang_ip",
     "ngosang_ygg", "ngosang_all_ip", "ngosang_ygg_ip",
     "ngosang_all", "pkgforge_all", "pkgforge_general", "cf_all",
@@ -664,6 +666,7 @@ def generate_source_links():
         "ngosang-best": "ngosang/best",
         "ngosang-best-ip": "ngosang/best-ip",
         "cf-best": "trackerslist/best",
+        "adysec-best": "adysec/best",
         "gonghailink-best": "gonghailink/best",
         "pandamen-best": "panda-men/best",
         "gspu-best": "gspu/best",
@@ -894,6 +897,7 @@ def sync_plain_text_files():
         "trackers_ngosang_best.txt": "ngosang_best.txt",
         "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",
         "trackers_cf_best.txt": "cf_best.txt",
+        "trackers_adysec_best.txt": "adysec_best.txt",
         "trackers_gonghailink_best.txt": "gonghailink_best.txt",
         "trackers_pandamen_best.txt": "pandamen_best.txt",
         "trackers_gspu_best.txt": "gspu_best.txt",
