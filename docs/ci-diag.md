@@ -1,33 +1,37 @@
-=== Diagnostics Thu Oct  8 13:15:07 UTC 2026 ===
-Python: Python 3.12.14
+=== Diagnostics Thu Oct  8 13:37:29 UTC 2026 ===
+Python: Python 3.12.15
 PWD: /home/runner/work/Tracker-List/Tracker-List
 --- Test file lock (fcntl) ---
 lock OK
 --- Test source connectivity ---
 >>> https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best.txt
-  HTTP 200, total 0.057244s
+  HTTP 200, total 0.045471s
 >>> https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best_ip.txt
-  HTTP 200, total 0.051768s
+  HTTP 200, total 0.777057s
 >>> https://cf.trackerslist.com/best.txt
-  HTTP 200, total 0.126928s
+  HTTP 200, total 0.099443s
 >>> https://tracker.adysec.com/trackers_best.txt
-  HTTP 200, total 0.111957s
+  HTTP 200, total 0.124254s
 >>> https://raw.githubusercontent.com/gonghailink/trackerslist/master/trackers_best.txt
-  HTTP 200, total 0.129449s
+  HTTP 200, total 0.162240s
 >>> https://raw.githubusercontent.com/panda-men/trackerslist/master/trackers_best.txt
-  HTTP 200, total 0.126857s
+  HTTP 200, total 0.218246s
 >>> https://raw.githubusercontent.com/gspu/trackerslist/master/trackers_best.txt
-  HTTP 200, total 0.121481s
+  HTTP 200, total 0.141927s
 >>> https://raw.githubusercontent.com/linux-jin/trackerslist/master/trackers_best.txt
-  HTTP 200, total 0.115386s
+  HTTP 200, total 0.196225s
 >>> https://raw.githubusercontent.com/AlphaCatMeow/trackerslist/master/trackers_best.txt
-  HTTP 200, total 0.283896s
+  HTTP 200, total 0.126325s
 >>> https://raw.githubusercontent.com/pexcn/daily/gh-pages/trackerlist/trackerlist-best.txt
-  HTTP 200, total 0.112799s
+  HTTP 200, total 0.130057s
+>>> https://raw.githubusercontent.com/1265578519/OpenTracker/refs/heads/master/tracker.txt
+  HTTP 200, total 0.148160s
+>>> https://trackers.run/s/rw_ws_up_hp_hs_v4_v6.txt
+  HTTP 200, total 0.633181s
 >>> https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_i2p.txt
-  HTTP 200, total 0.045970s
+  HTTP 200, total 0.304349s
 >>> https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_yggdrasil.txt
-  HTTP 200, total 0.047529s
+  HTTP 200, total 0.325243s
 [INFO] Repo: Pmwiu/Tracker-List, Max: 20
 [INFO] Blacklist source loaded: https://raw.githubusercontent.com/ngosang/trackerslist/master/blacklist.txt (391 URLs)
 [INFO] Blacklist source loaded: https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/blacklist.txt (20 URLs)
@@ -70,14 +74,22 @@ lock OK
   [INFO] Skipped 9 dynamic-blacklisted lines
 [OK]   64 unique
 
+[INFO] trackers_opentracker.txt (opentracker)
+  [INFO] Skipped 8 dynamic-blacklisted lines
+[OK]   30 unique
+
+[INFO] trackers_run_ws.txt (trackersrun-ws)
+  [INFO] Skipped 4 dynamic-blacklisted lines
+[OK]   46 unique
+
 [INFO] trackers_ngosang_i2p.txt (ngosang-i2p)
 [OK]   17 unique
 
 [INFO] trackers_ngosang_yggdrasil.txt (ngosang-yggdrasil)
 [OK]   1 unique
 
-[INFO] all 合并贡献: ngosang-best=20, ngosang-best-ip=15, cf-best=19, adysec-best=15, gonghailink-best=7, pandamen-best=4, gspu-best=2, linuxjin-best=1, alphacatmeow-best=2, pexcn-best=0, ngosang-i2p=14, ngosang-yggdrasil=1
-[INFO] all 协议分布: http=38, https=18, udp=43, wss=1, ws=0
+[INFO] all 合并贡献: ngosang-best=20, ngosang-best-ip=11, cf-best=19, adysec-best=10, gonghailink-best=5, pandamen-best=4, gspu-best=2, linuxjin-best=0, alphacatmeow-best=2, pexcn-best=0, opentracker=8, trackersrun-ws=8, ngosang-i2p=10, ngosang-yggdrasil=1
+[INFO] all 协议分布: http=46, https=18, udp=35, wss=1, ws=0
 
 [OK]   merged: 100
 [OK]   MIRRORS.txt
@@ -97,6 +109,8 @@ lock OK
 [OK]   docs/linuxjin_best.txt
 [OK]   docs/alphacatmeow_best.txt
 [OK]   docs/pexcn_best.txt
+[OK]   docs/opentracker.txt
+[OK]   docs/run_ws.txt
 [OK]   docs/ngosang_i2p.txt
 [OK]   docs/ngosang_yggdrasil.txt
 [OK]   docs/udp.txt
@@ -116,6 +130,8 @@ lock OK
   trackers_linuxjin_best.txt: 20
   trackers_alphacatmeow_best.txt: 15
   trackers_pexcn_best.txt: 64
+  trackers_opentracker.txt: 30
+  trackers_run_ws.txt: 46
   trackers_ngosang_i2p.txt: 17
   trackers_ngosang_yggdrasil.txt: 1
   trackers_merged.txt: 100
@@ -123,100 +139,101 @@ lock OK
 ===================
 [INFO] Testing 100 candidates (all-pool=100, timeout=10s, workers=30)
 [INFO] Max alive trackers after scoring: 20
-  [ALIVE] (1/100) http://207.241.226.111:6969/announce 55ms — announce with peers
-  [ALIVE] (2/100) http://207.241.231.226:6969/announce 56ms — announce with peers
-  [ALIVE] (3/100) http://140.235.237.23:6969/announce 178ms — announce with peers
-  [ALIVE] (4/100) http://004430.xyz:80/announce 86ms — announce with peers
-  [ALIVE] (5/100) http://tracker.dhitechnical.com:6969/announce 182ms — announce with peers
-  [ALIVE] (6/100) http://211.75.205.188:6969/announce 263ms — announce with peers
-  [ALIVE] (7/100) http://211.75.205.187:6969/announce 266ms — announce with peers
-  [ALIVE] (8/100) http://211.75.205.188:80/announce 263ms — announce with peers
-  [ALIVE] (9/100) http://211.75.205.187:80/announce 266ms — announce with peers
-  [ALIVE] (10/100) http://135.125.198.235:2710/announce 307ms — announce with peers
-  [ALIVE] (11/100) http://185.126.65.92:6969/announce 309ms — announce with peers
-  [ALIVE] (12/100) http://135.125.198.235:80/announce 318ms — announce with peers
-  [ALIVE] (13/100) http://138.186.10.167:1337/announce 320ms — announce without peers
-  [ALIVE] (14/100) http://ipv4announce.sktorrent.eu:6969/announce 279ms — announce with peers
-  [ALIVE] (15/100) http://tracker.dler.com:6969/announce 271ms — announce with peers
-  [ALIVE] (16/100) http://152.249.214.196:6969/announce 356ms — announce with peers
-  [ALIVE] (17/100) https://004430.xyz:443/announce 98ms — announce with peers
-  [ALIVE] (18/100) https://t.213891.xyz:443/announce 34ms — announce with peers
-  [ALIVE] (19/100) http://1337.abcvg.info:80/announce 313ms — announce with peers
-  [ALIVE] (20/100) https://2.tracker.eu.org:443/announce 37ms — announce with peers
-  [ALIVE] (21/100) https://3.tracker.eu.org:443/announce 33ms — announce with peers
-  [ALIVE] (22/100) http://tracker.renfei.net:8080/announce 130ms — announce with peers
-  [ALIVE] (23/100) https://1.tracker.eu.org:443/announce 34ms — announce with peers
-  [ALIVE] (25/100) https://tracker.7471.top:443/announce 182ms — announce with peers
-  [ALIVE] (26/100) http://tracker.dler.org:6969/announce 524ms — announce with peers
-  [ALIVE] (28/100) https://tracker.foreverpirates.co:443/announce 237ms — announce with peers
-  [ALIVE] (29/100) http://tracker.opentrackr.org:1337/announce 458ms — announce with peers
-  [ALIVE] (30/100) http://tracker.mywaifu.best:6969/announce 723ms — announce with peers
-  [ALIVE] (32/100) https://tracker.midnightprogrammer.net:443/announce 317ms — announce with peers
-  [ALIVE] (34/100) udp://209.141.59.25:6969/announce 39ms — valid connect + announce
-  [ALIVE] (35/100) udp://109.201.134.183:80/announce 138ms — valid connect + announce
-  [ALIVE] (36/100) https://337hhh.xyz:443/announce 474ms — announce with peers
-  [ALIVE] (37/100) udp://135.125.198.235:1984/announce 156ms — valid connect + announce
-  [ALIVE] (38/100) https://tracker.nekomi.cn:443/announce 97ms — announce with peers
-  [ALIVE] (39/100) udp://34.66.57.33:1337/announce 52ms — valid connect + announce
-  [ALIVE] (40/100) udp://23.157.120.14:6969/announce 70ms — valid connect + announce
-  [ALIVE] (41/100) https://tracker.zhuqiy.com:443/announce 338ms — announce with peers
-  [ALIVE] (42/100) udp://185.121.168.96:1337/announce 135ms — valid connect + announce
-  [ALIVE] (43/100) udp://151.242.104.187:80/announce 148ms — valid connect + announce
-  [ALIVE] (44/100) udp://34.66.57.33:80/announce 54ms — valid connect + announce
-  [ALIVE] (45/100) udp://211.75.205.188:6969/announce 131ms — valid connect + announce
-  [ALIVE] (46/100) udp://211.75.205.188:80/announce 131ms — valid connect + announce
-  [ALIVE] (48/100) udp://31.56.179.159:6969/announce 177ms — valid connect + announce
-  [ALIVE] (49/100) udp://exodus.desync.com:6969/announce 31ms — valid connect + announce
-  [ALIVE] (50/100) udp://45.137.199.107:6969/announce 139ms — valid connect + announce
-  [ALIVE] (51/100) udp://43.250.54.126:6969/announce 151ms — valid connect + announce
-  [ALIVE] (52/100) udp://65.109.28.17:6969/announce 172ms — valid connect + announce
-  [ALIVE] (53/100) udp://open.demonii.com:1337/announce 135ms — valid connect + announce
-  [ALIVE] (54/100) http://tracker.waaa.moe:6969/announce 1179ms — announce with peers
-  [ALIVE] (55/100) udp://open.stealth.si:80/announce 151ms — valid connect + announce
-  [ALIVE] (56/100) udp://tracker.bittor.pw:1337/announce 51ms — valid connect + announce
-  [ALIVE] (57/100) udp://tracker.004430.xyz:1337/announce 31ms — valid connect + announce
-  [ALIVE] (58/100) udp://tracker-udp.gbitt.info:80/announce 149ms — valid connect + announce
-  [ALIVE] (64/100) udp://t.overflow.biz:6969/announce 176ms — valid connect + announce
-  [ALIVE] (72/100) udp://tracker.corpscorp.online:80/announce 51ms — valid connect + announce
-  [ALIVE] (74/100) udp://retracker01-msk-virt.corbina.net:80/announce 194ms — valid connect + announce
-  [ALIVE] (75/100) wss://tracker.openwebtorrent.com:443/announce 15ms — TLS reachable
-  [ALIVE] (76/100) udp://tracker.dler.org:6969/announce 131ms — valid connect + announce
-  [ALIVE] (79/100) udp://tracker.filemail.com:6969/announce 147ms — valid connect + announce
-  [ALIVE] (80/100) udp://tracker.opentrackr.org:1337/announce 154ms — valid connect + announce
-  [ALIVE] (81/100) udp://tracker.gmi.gd:6969/announce 39ms — valid connect + announce
-  [ALIVE] (82/100) udp://tracker.farted.net:6969/announce 171ms — valid connect + announce
-  [ALIVE] (83/100) udp://tracker.ducks.party:1984/announce 152ms — valid connect + announce
-  [ALIVE] (84/100) udp://tracker.nyaa.vc:6969/announce 139ms — valid connect + announce
-  [ALIVE] (85/100) udp://tracker2.dler.org:80/announce 131ms — valid connect + announce
-  [ALIVE] (86/100) udp://tracker.qu.ax:6969/announce 147ms — valid connect + announce
-  [ALIVE] (87/100) udp://tracker.skynetcloud.site:6969/announce 151ms — valid connect + announce
-  [ALIVE] (88/100) udp://tracker.peerfect.org:6969/announce 176ms — valid connect + announce
-  [ALIVE] (89/100) udp://tracker.tryhackx.org:6969/announce 216ms — valid connect + announce
-  [ALIVE] (90/100) udp://tracker.torrent.eu.org:451/announce 159ms — valid connect + announce
-  [ALIVE] (91/100) udp://explodie.org:6969/announce 70ms — valid connect + announce
-  [DEAD]  (100/100) udp://6ahddutb1ucc3cp.ru:6969/announce — no connect response
+  [ALIVE] (3/100) http://207.241.226.111:6969/announce 35ms — announce with peers
+  [ALIVE] (4/100) http://207.241.231.226:6969/announce 37ms — announce with peers
+  [ALIVE] (5/100) http://004430.xyz:80/announce 25ms — announce with peers
+  [ALIVE] (6/100) http://140.235.237.23:6969/announce 176ms — announce with peers
+  [ALIVE] (8/100) http://138.186.10.167:1337/announce 271ms — announce without peers
+  [ALIVE] (9/100) http://211.75.205.187:6969/announce 280ms — announce with peers
+  [ALIVE] (10/100) http://1337.abcvg.info:80/announce 260ms — announce with peers
+  [ALIVE] (11/100) http://211.75.205.188:80/announce 281ms — announce with peers
+  [ALIVE] (12/100) http://211.75.210.221:80/announce 280ms — announce with peers
+  [ALIVE] (13/100) http://94.23.207.177:6969/announce 287ms — announce with peers
+  [ALIVE] (14/100) http://185.126.65.92:6969/announce 289ms — announce with peers
+  [ALIVE] (15/100) http://211.75.210.221:6969/announce 293ms — announce with peers
+  [ALIVE] (16/100) http://135.125.198.235:2710/announce 300ms — announce with peers
+  [ALIVE] (17/100) http://135.125.198.235:80/announce 307ms — announce with peers
+  [ALIVE] (18/100) http://152.249.214.196:6969/announce 310ms — announce with peers
+  [ALIVE] (19/100) http://107.189.2.131:1337/announce 316ms — announce with peers
+  [ALIVE] (20/100) http://announce.sktorrent.eu:6969/announce 311ms — announce with peers
+  [ALIVE] (21/100) https://004430.xyz:443/announce 42ms — announce with peers
+  [ALIVE] (22/100) http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce 309ms — announce with peers
+  [ALIVE] (23/100) http://ipv4announce.sktorrent.eu:6969/announce 287ms — announce with peers
+  [ALIVE] (25/100) https://t.213891.xyz:443/announce 39ms — announce with peers
+  [ALIVE] (26/100) http://tracker.dhitechnical.com:6969/announce 227ms — announce with peers
+  [ALIVE] (28/100) http://tracker.qu.ax:6969/announce 279ms — announce with peers
+  [ALIVE] (29/100) http://tracker.auctor.tv:6969/announce 285ms — announce with peers
+  [ALIVE] (30/100) http://tracker.dler.org:6969/announce 291ms — announce with peers
+  [ALIVE] (31/100) http://tracker.nyaa.vc:6969/announce 291ms — announce with peers
+  [ALIVE] (32/100) https://1.tracker.eu.org:443/announce 61ms — announce with peers
+  [ALIVE] (33/100) https://2.tracker.eu.org:443/announce 54ms — announce with peers
+  [ALIVE] (34/100) http://tracker.renfei.net:8080/announce 181ms — announce with peers
+  [ALIVE] (35/100) https://tracker.7471.top:443/announce 197ms — announce with peers
+  [ALIVE] (36/100) https://337hhh.xyz:443/announce 443ms — announce with peers
+  [ALIVE] (37/100) http://tracker.dler.com:6969/announce 300ms — announce with peers
+  [ALIVE] (38/100) https://tracker.foreverpirates.co:443/announce 218ms — announce with peers
+  [ALIVE] (41/100) udp://208.83.20.20:6969/announce 23ms — valid connect + announce
+  [ALIVE] (42/100) udp://209.141.59.25:6969/announce 12ms — valid connect + announce
+  [ALIVE] (43/100) http://retracker01-msk-virt.corbina.net:80/announce 615ms — announce with peers
+  [ALIVE] (44/100) https://tracker.midnightprogrammer.net:443/announce 294ms — announce with peers
+  [ALIVE] (45/100) http://tracker.mywaifu.best:6969/announce 496ms — announce with peers
+  [ALIVE] (46/100) udp://23.157.120.14:6969/announce 54ms — valid connect + announce
+  [ALIVE] (47/100) udp://109.201.134.183:80/announce 132ms — valid connect + announce
+  [ALIVE] (48/100) http://tracker.opentrackr.org:1337/announce 406ms — announce with peers
+  [ALIVE] (49/100) udp://185.121.168.96:1337/announce 131ms — valid connect + announce
+  [ALIVE] (50/100) udp://135.125.198.235:1984/announce 146ms — valid connect + announce
+  [ALIVE] (51/100) udp://151.242.104.187:80/announce 147ms — valid connect + announce
+  [ALIVE] (52/100) https://tracker.nekomi.cn:443/announce 40ms — announce with peers
+  [ALIVE] (54/100) http://tracker.waaa.moe:6969/announce 648ms — announce with peers
+  [ALIVE] (56/100) udp://exodus.desync.com:6969/announce 23ms — valid connect + announce
+  [ALIVE] (57/100) udp://211.75.210.221:80/announce 147ms — valid connect + announce
+  [ALIVE] (58/100) udp://31.56.179.159:6969/announce 155ms — valid connect + announce
+  [ALIVE] (59/100) https://tracker.zhuqiy.com:443/announce 376ms — announce with peers
+  [ALIVE] (60/100) udp://tracker.004430.xyz:1337/announce 8ms — valid connect + announce
+  [ALIVE] (61/100) udp://open.demonii.com:1337/announce 150ms — valid connect + announce
+  [ALIVE] (62/100) https://3.tracker.eu.org:443/announce 58ms — announce with peers
+  [ALIVE] (63/100) udp://tracker.bittor.pw:1337/announce 53ms — valid connect + announce
+  [ALIVE] (64/100) udp://retracker01-msk-virt.corbina.net:80/announce 177ms — valid connect + announce
+  [ALIVE] (65/100) udp://tracker.dler.org:6969/announce 140ms — valid connect + announce
+  [ALIVE] (66/100) udp://tracker.gmi.gd:6969/announce 13ms — valid connect + announce
+  [ALIVE] (67/100) udp://open.stealth.si:80/announce 149ms — valid connect + announce
+  [ALIVE] (68/100) udp://t.overflow.biz:6969/announce 156ms — valid connect + announce
+  [ALIVE] (70/100) udp://tracker.opentrackr.org:1337/announce 136ms — valid connect + announce
+  [ALIVE] (71/100) udp://tracker.nyaa.vc:6969/announce 150ms — valid connect + announce
+  [ALIVE] (72/100) udp://tracker-udp.gbitt.info:80/announce 140ms — valid connect + announce
+  [ALIVE] (73/100) udp://tracker.qu.ax:6969/announce 135ms — valid connect + announce
+  [ALIVE] (74/100) wss://tracker.openwebtorrent.com:443/announce 22ms — TLS reachable
+  [SKIP]   (75/100) http://freetracker.i2p:7331/announce — I2P network required
+  [ALIVE] (78/100) udp://tracker2.dler.org:80/announce 140ms — valid connect + announce
+  [ALIVE] (80/100) udp://tracker.ducks.party:1984/announce 148ms — valid connect + announce
+  [ALIVE] (84/100) udp://tracker.corpscorp.online:80/announce 49ms — valid connect + announce
+  [ALIVE] (86/100) udp://tracker.skynetcloud.site:6969/announce 133ms — valid connect + announce
+  [ALIVE] (89/100) udp://tracker.torrent.eu.org:451/announce 145ms — valid connect + announce
+  [ALIVE] (90/100) udp://explodie.org:6969/announce 54ms — valid connect + announce
+  [ALIVE] (91/100) udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce 1537ms — valid connect + announce
+  [DEAD]  (100/100) https://tr.abir.ga:443/announce — URLError: <urlopen error _ssl.c:993: The handshake operation timed out>
 
-[INFO] First pass done in 11.8s
+[INFO] First pass done in 12.7s
 [INFO] Second pass: re-testing top 71 alive trackers...
-[INFO] Second pass done, refined 69 trackers
-[INFO] Same-subnet(/24) dedup removed 32 slower tracker(s)
+[INFO] Second pass done, refined 70 trackers
+[INFO] Same-subnet(/24) dedup removed 33 slower tracker(s)
 
 ===== Test Summary =====
   Total tested:   100
-  Alive (raw):    39
+  Alive (raw):    38
   Alive (final):  20 (top 20 by composite score)
-  Non-UDP kept:   6 (quota >= 4)
+  Non-UDP kept:   7 (quota >= 4)
   Classic kept:   5 (quota >= 4)
-  Score-capped:   19
+  Score-capped:   18
   Unsafe filtered:2
   Low-speed:      0 (>5s excluded)
-  Same-subnet dedup:  32 (kept faster)
-  Dead final:     66
-  Time:           19.9s
+  Same-subnet dedup:  33 (kept faster)
+  Dead final:     68
+  Time:           20.7s
 === 协议分布统计 ===
-  HTTP  : 22 个
+  HTTP  : 30 个
   HTTPS : 11 个
-  UDP   : 37 个
+  UDP   : 29 个
   WSS   : 1 个
   WS    : 0 个
   总计: 71 个（存活）
@@ -238,6 +255,8 @@ lock OK
 [OK]   docs/linuxjin_best.txt
 [OK]   docs/alphacatmeow_best.txt
 [OK]   docs/pexcn_best.txt
+[OK]   docs/opentracker.txt
+[OK]   docs/run_ws.txt
 [OK]   docs/ngosang_i2p.txt
 [OK]   docs/ngosang_yggdrasil.txt
 [OK]   docs/udp.txt
@@ -248,7 +267,7 @@ lock OK
 [OK] Plain-text files synced to docs/.
 
 ============================================================
- Round 1 - 2026-10-08 13:15:29
+ Round 1 - 2026-10-08 13:37:56
 ============================================================
   [PASS] Local tracker: trackers_ngosang_best.txt: 20 trackers
   [PASS] Local tracker: trackers_ngosang_best_ip.txt: 20 trackers
@@ -260,11 +279,13 @@ lock OK
   [PASS] Local tracker: trackers_linuxjin_best.txt: 20 trackers
   [PASS] Local tracker: trackers_alphacatmeow_best.txt: 15 trackers
   [PASS] Local tracker: trackers_pexcn_best.txt: 64 trackers
+  [PASS] Local tracker: trackers_opentracker.txt: 30 trackers
+  [PASS] Local tracker: trackers_run_ws.txt: 46 trackers
   [PASS] Local tracker: trackers_ngosang_i2p.txt: 17 trackers
   [PASS] Local tracker: trackers_ngosang_yggdrasil.txt: 1 trackers
   [PASS] Local tracker: trackers_merged.txt: 100 trackers
   [PASS] Local tracker: trackers_alive.txt: 20 trackers
-  [PASS] Local tracker: trackers_all.txt: 39 trackers
+  [PASS] Local tracker: trackers_all.txt: 38 trackers
   [PASS] Local tracker: trackers_dead.txt: exists
   [PASS] Local MIRRORS.txt: exists
   [PASS] Local test_report.md: exists
@@ -273,7 +294,7 @@ lock OK
   [PASS] Local short page: /s/alive: valid redirect
   [PASS] Local short page: /s/all: valid redirect
   [PASS] Plain text: /alive.txt: 20 trackers
-  [PASS] Plain text: /all.txt: 39 trackers
+  [PASS] Plain text: /all.txt: 38 trackers
   [PASS] Plain text: /merged.txt: 100 trackers
   [PASS] Plain text: /ngosang_best.txt: 20 trackers
   [PASS] Plain text: /ngosang_best_ip.txt: 20 trackers
@@ -285,10 +306,12 @@ lock OK
   [PASS] Plain text: /linuxjin_best.txt: 20 trackers
   [PASS] Plain text: /alphacatmeow_best.txt: 15 trackers
   [PASS] Plain text: /pexcn_best.txt: 64 trackers
+  [PASS] Plain text: /opentracker.txt: 30 trackers
+  [PASS] Plain text: /run_ws.txt: 46 trackers
   [PASS] Plain text: /ngosang_i2p.txt: 17 trackers
   [PASS] Plain text: /ngosang_yggdrasil.txt: 1 trackers
-  [PASS] Plain text: /udp.txt: 43 trackers
-  [PASS] Plain text: /http.txt: 38 trackers
+  [PASS] Plain text: /udp.txt: 35 trackers
+  [PASS] Plain text: /http.txt: 46 trackers
   [PASS] Plain text: /https.txt: 18 trackers
   [PASS] Plain text: /wss.txt: 1 trackers
   [PASS] Plain text: /ws.txt: 0 trackers
@@ -308,6 +331,8 @@ lock OK
   [PASS] Consistency: trackers_linuxjin_best.txt vs linuxjin_best.txt: identical
   [PASS] Consistency: trackers_alphacatmeow_best.txt vs alphacatmeow_best.txt: identical
   [PASS] Consistency: trackers_pexcn_best.txt vs pexcn_best.txt: identical
+  [PASS] Consistency: trackers_opentracker.txt vs opentracker.txt: identical
+  [PASS] Consistency: trackers_run_ws.txt vs run_ws.txt: identical
   [PASS] Consistency: trackers_ngosang_i2p.txt vs ngosang_i2p.txt: identical
   [PASS] Consistency: trackers_ngosang_yggdrasil.txt vs ngosang_yggdrasil.txt: identical
   [PASS] Consistency: trackers_udp.txt vs udp.txt: identical
@@ -317,19 +342,19 @@ lock OK
   [PASS] Consistency: trackers_ws.txt vs ws.txt: identical
   [PASS] URL format check: all 100 valid
 ------------------------------------------------------------
-  Result: 66 passed, 0 warnings, 0 failed
+  Result: 72 passed, 0 warnings, 0 failed
 ============================================================
 
 ############################################################
  FINAL REPORT: 1 rounds completed
-   Total PASS: 66
+   Total PASS: 72
    Total WARN: 0
    Total FAIL: 0
    STATUS: ALL ROUNDS HEALTHY (warnings may be network-related)
 ############################################################
 
 ============================================================
- Round 1 - 2026-10-08 13:15:38
+ Round 1 - 2026-10-08 13:38:04
 ============================================================
   [PASS] Local tracker: trackers_ngosang_best.txt: 20 trackers
   [PASS] Local tracker: trackers_ngosang_best_ip.txt: 20 trackers
@@ -341,11 +366,13 @@ lock OK
   [PASS] Local tracker: trackers_linuxjin_best.txt: 20 trackers
   [PASS] Local tracker: trackers_alphacatmeow_best.txt: 15 trackers
   [PASS] Local tracker: trackers_pexcn_best.txt: 64 trackers
+  [PASS] Local tracker: trackers_opentracker.txt: 30 trackers
+  [PASS] Local tracker: trackers_run_ws.txt: 46 trackers
   [PASS] Local tracker: trackers_ngosang_i2p.txt: 17 trackers
   [PASS] Local tracker: trackers_ngosang_yggdrasil.txt: 1 trackers
   [PASS] Local tracker: trackers_merged.txt: 100 trackers
   [PASS] Local tracker: trackers_alive.txt: 20 trackers
-  [PASS] Local tracker: trackers_all.txt: 39 trackers
+  [PASS] Local tracker: trackers_all.txt: 38 trackers
   [PASS] Local tracker: trackers_dead.txt: exists
   [PASS] Local MIRRORS.txt: exists
   [PASS] Local test_report.md: exists
@@ -354,7 +381,7 @@ lock OK
   [PASS] Local short page: /s/alive: valid redirect
   [PASS] Local short page: /s/all: valid redirect
   [PASS] Plain text: /alive.txt: 20 trackers
-  [PASS] Plain text: /all.txt: 39 trackers
+  [PASS] Plain text: /all.txt: 38 trackers
   [PASS] Plain text: /merged.txt: 100 trackers
   [PASS] Plain text: /ngosang_best.txt: 20 trackers
   [PASS] Plain text: /ngosang_best_ip.txt: 20 trackers
@@ -366,10 +393,12 @@ lock OK
   [PASS] Plain text: /linuxjin_best.txt: 20 trackers
   [PASS] Plain text: /alphacatmeow_best.txt: 15 trackers
   [PASS] Plain text: /pexcn_best.txt: 64 trackers
+  [PASS] Plain text: /opentracker.txt: 30 trackers
+  [PASS] Plain text: /run_ws.txt: 46 trackers
   [PASS] Plain text: /ngosang_i2p.txt: 17 trackers
   [PASS] Plain text: /ngosang_yggdrasil.txt: 1 trackers
-  [PASS] Plain text: /udp.txt: 43 trackers
-  [PASS] Plain text: /http.txt: 38 trackers
+  [PASS] Plain text: /udp.txt: 35 trackers
+  [PASS] Plain text: /http.txt: 46 trackers
   [PASS] Plain text: /https.txt: 18 trackers
   [PASS] Plain text: /wss.txt: 1 trackers
   [PASS] Plain text: /ws.txt: 0 trackers
@@ -389,6 +418,8 @@ lock OK
   [PASS] Consistency: trackers_linuxjin_best.txt vs linuxjin_best.txt: identical
   [PASS] Consistency: trackers_alphacatmeow_best.txt vs alphacatmeow_best.txt: identical
   [PASS] Consistency: trackers_pexcn_best.txt vs pexcn_best.txt: identical
+  [PASS] Consistency: trackers_opentracker.txt vs opentracker.txt: identical
+  [PASS] Consistency: trackers_run_ws.txt vs run_ws.txt: identical
   [PASS] Consistency: trackers_ngosang_i2p.txt vs ngosang_i2p.txt: identical
   [PASS] Consistency: trackers_ngosang_yggdrasil.txt vs ngosang_yggdrasil.txt: identical
   [PASS] Consistency: trackers_udp.txt vs udp.txt: identical
@@ -404,15 +435,15 @@ lock OK
   [PASS] Pages short: /s/alive: HTTP 200, redirect OK
   [PASS] Pages short: /s/all: HTTP 200, redirect OK
   [PASS] Worker best 短链: HTTP 200, 20 trackers
-  [PASS] Worker all 短链: HTTP 200, 39 trackers
+  [PASS] Worker all 短链: HTTP 200, 38 trackers
   [PASS] Worker best 加速: HTTP 200, 20 trackers
   [PASS] Worker all 加速: HTTP 200, 36 trackers
 ------------------------------------------------------------
-  Result: 76 passed, 0 warnings, 0 failed
+  Result: 82 passed, 0 warnings, 0 failed
 ============================================================
 
 ============================================================
- Round 2 - 2026-10-08 13:15:43
+ Round 2 - 2026-10-08 13:38:10
 ============================================================
   [PASS] Local tracker: trackers_ngosang_best.txt: 20 trackers
   [PASS] Local tracker: trackers_ngosang_best_ip.txt: 20 trackers
@@ -424,11 +455,13 @@ lock OK
   [PASS] Local tracker: trackers_linuxjin_best.txt: 20 trackers
   [PASS] Local tracker: trackers_alphacatmeow_best.txt: 15 trackers
   [PASS] Local tracker: trackers_pexcn_best.txt: 64 trackers
+  [PASS] Local tracker: trackers_opentracker.txt: 30 trackers
+  [PASS] Local tracker: trackers_run_ws.txt: 46 trackers
   [PASS] Local tracker: trackers_ngosang_i2p.txt: 17 trackers
   [PASS] Local tracker: trackers_ngosang_yggdrasil.txt: 1 trackers
   [PASS] Local tracker: trackers_merged.txt: 100 trackers
   [PASS] Local tracker: trackers_alive.txt: 20 trackers
-  [PASS] Local tracker: trackers_all.txt: 39 trackers
+  [PASS] Local tracker: trackers_all.txt: 38 trackers
   [PASS] Local tracker: trackers_dead.txt: exists
   [PASS] Local MIRRORS.txt: exists
   [PASS] Local test_report.md: exists
@@ -437,7 +470,7 @@ lock OK
   [PASS] Local short page: /s/alive: valid redirect
   [PASS] Local short page: /s/all: valid redirect
   [PASS] Plain text: /alive.txt: 20 trackers
-  [PASS] Plain text: /all.txt: 39 trackers
+  [PASS] Plain text: /all.txt: 38 trackers
   [PASS] Plain text: /merged.txt: 100 trackers
   [PASS] Plain text: /ngosang_best.txt: 20 trackers
   [PASS] Plain text: /ngosang_best_ip.txt: 20 trackers
@@ -449,10 +482,12 @@ lock OK
   [PASS] Plain text: /linuxjin_best.txt: 20 trackers
   [PASS] Plain text: /alphacatmeow_best.txt: 15 trackers
   [PASS] Plain text: /pexcn_best.txt: 64 trackers
+  [PASS] Plain text: /opentracker.txt: 30 trackers
+  [PASS] Plain text: /run_ws.txt: 46 trackers
   [PASS] Plain text: /ngosang_i2p.txt: 17 trackers
   [PASS] Plain text: /ngosang_yggdrasil.txt: 1 trackers
-  [PASS] Plain text: /udp.txt: 43 trackers
-  [PASS] Plain text: /http.txt: 38 trackers
+  [PASS] Plain text: /udp.txt: 35 trackers
+  [PASS] Plain text: /http.txt: 46 trackers
   [PASS] Plain text: /https.txt: 18 trackers
   [PASS] Plain text: /wss.txt: 1 trackers
   [PASS] Plain text: /ws.txt: 0 trackers
@@ -472,6 +507,8 @@ lock OK
   [PASS] Consistency: trackers_linuxjin_best.txt vs linuxjin_best.txt: identical
   [PASS] Consistency: trackers_alphacatmeow_best.txt vs alphacatmeow_best.txt: identical
   [PASS] Consistency: trackers_pexcn_best.txt vs pexcn_best.txt: identical
+  [PASS] Consistency: trackers_opentracker.txt vs opentracker.txt: identical
+  [PASS] Consistency: trackers_run_ws.txt vs run_ws.txt: identical
   [PASS] Consistency: trackers_ngosang_i2p.txt vs ngosang_i2p.txt: identical
   [PASS] Consistency: trackers_ngosang_yggdrasil.txt vs ngosang_yggdrasil.txt: identical
   [PASS] Consistency: trackers_udp.txt vs udp.txt: identical
@@ -487,15 +524,15 @@ lock OK
   [PASS] Pages short: /s/alive: HTTP 200, redirect OK
   [PASS] Pages short: /s/all: HTTP 200, redirect OK
   [PASS] Worker best 短链: HTTP 200, 20 trackers
-  [PASS] Worker all 短链: HTTP 200, 39 trackers
+  [PASS] Worker all 短链: HTTP 200, 38 trackers
   [PASS] Worker best 加速: HTTP 200, 20 trackers
   [PASS] Worker all 加速: HTTP 200, 36 trackers
 ------------------------------------------------------------
-  Result: 76 passed, 0 warnings, 0 failed
+  Result: 82 passed, 0 warnings, 0 failed
 ============================================================
 
 ============================================================
- Round 3 - 2026-10-08 13:15:49
+ Round 3 - 2026-10-08 13:38:15
 ============================================================
   [PASS] Local tracker: trackers_ngosang_best.txt: 20 trackers
   [PASS] Local tracker: trackers_ngosang_best_ip.txt: 20 trackers
@@ -507,11 +544,13 @@ lock OK
   [PASS] Local tracker: trackers_linuxjin_best.txt: 20 trackers
   [PASS] Local tracker: trackers_alphacatmeow_best.txt: 15 trackers
   [PASS] Local tracker: trackers_pexcn_best.txt: 64 trackers
+  [PASS] Local tracker: trackers_opentracker.txt: 30 trackers
+  [PASS] Local tracker: trackers_run_ws.txt: 46 trackers
   [PASS] Local tracker: trackers_ngosang_i2p.txt: 17 trackers
   [PASS] Local tracker: trackers_ngosang_yggdrasil.txt: 1 trackers
   [PASS] Local tracker: trackers_merged.txt: 100 trackers
   [PASS] Local tracker: trackers_alive.txt: 20 trackers
-  [PASS] Local tracker: trackers_all.txt: 39 trackers
+  [PASS] Local tracker: trackers_all.txt: 38 trackers
   [PASS] Local tracker: trackers_dead.txt: exists
   [PASS] Local MIRRORS.txt: exists
   [PASS] Local test_report.md: exists
@@ -520,7 +559,7 @@ lock OK
   [PASS] Local short page: /s/alive: valid redirect
   [PASS] Local short page: /s/all: valid redirect
   [PASS] Plain text: /alive.txt: 20 trackers
-  [PASS] Plain text: /all.txt: 39 trackers
+  [PASS] Plain text: /all.txt: 38 trackers
   [PASS] Plain text: /merged.txt: 100 trackers
   [PASS] Plain text: /ngosang_best.txt: 20 trackers
   [PASS] Plain text: /ngosang_best_ip.txt: 20 trackers
@@ -532,10 +571,12 @@ lock OK
   [PASS] Plain text: /linuxjin_best.txt: 20 trackers
   [PASS] Plain text: /alphacatmeow_best.txt: 15 trackers
   [PASS] Plain text: /pexcn_best.txt: 64 trackers
+  [PASS] Plain text: /opentracker.txt: 30 trackers
+  [PASS] Plain text: /run_ws.txt: 46 trackers
   [PASS] Plain text: /ngosang_i2p.txt: 17 trackers
   [PASS] Plain text: /ngosang_yggdrasil.txt: 1 trackers
-  [PASS] Plain text: /udp.txt: 43 trackers
-  [PASS] Plain text: /http.txt: 38 trackers
+  [PASS] Plain text: /udp.txt: 35 trackers
+  [PASS] Plain text: /http.txt: 46 trackers
   [PASS] Plain text: /https.txt: 18 trackers
   [PASS] Plain text: /wss.txt: 1 trackers
   [PASS] Plain text: /ws.txt: 0 trackers
@@ -555,6 +596,8 @@ lock OK
   [PASS] Consistency: trackers_linuxjin_best.txt vs linuxjin_best.txt: identical
   [PASS] Consistency: trackers_alphacatmeow_best.txt vs alphacatmeow_best.txt: identical
   [PASS] Consistency: trackers_pexcn_best.txt vs pexcn_best.txt: identical
+  [PASS] Consistency: trackers_opentracker.txt vs opentracker.txt: identical
+  [PASS] Consistency: trackers_run_ws.txt vs run_ws.txt: identical
   [PASS] Consistency: trackers_ngosang_i2p.txt vs ngosang_i2p.txt: identical
   [PASS] Consistency: trackers_ngosang_yggdrasil.txt vs ngosang_yggdrasil.txt: identical
   [PASS] Consistency: trackers_udp.txt vs udp.txt: identical
@@ -570,18 +613,18 @@ lock OK
   [PASS] Pages short: /s/alive: HTTP 200, redirect OK
   [PASS] Pages short: /s/all: HTTP 200, redirect OK
   [PASS] Worker best 短链: HTTP 200, 20 trackers
-  [PASS] Worker all 短链: HTTP 200, 39 trackers
+  [PASS] Worker all 短链: HTTP 200, 38 trackers
   [PASS] Worker best 加速: HTTP 200, 20 trackers
   [PASS] Worker all 加速: HTTP 200, 36 trackers
 ------------------------------------------------------------
-  Result: 76 passed, 0 warnings, 0 failed
+  Result: 82 passed, 0 warnings, 0 failed
 ============================================================
 
 ############################################################
  FINAL REPORT: 3 rounds completed
-   Total PASS: 228
+   Total PASS: 246
    Total WARN: 0
    Total FAIL: 0
    STATUS: ALL ROUNDS HEALTHY (warnings may be network-related)
 ############################################################
-=== End of diagnostics (Thu Oct  8 13:15:49 UTC 2026) ===
+=== End of diagnostics (Thu Oct  8 13:38:15 UTC 2026) ===
