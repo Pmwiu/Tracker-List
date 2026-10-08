@@ -668,12 +668,12 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
       <p class="card-desc">{desc}</p>
       <div class="link-row">
         <span class="link-label">短链接</span>
-        <code class="link-url">{short}</code>
+        <code class="link-url" title="{short}">{short}</code>
         <button class="copy" data-copy="{short}" type="button">复制</button>
       </div>
       <div class="link-row">
         <span class="link-label">加速短链接</span>
-        <code class="link-url">{accel}</code>
+        <code class="link-url" title="{accel}">{accel}</code>
         <button class="copy" data-copy="{accel}" type="button">复制</button>
       </div>
       <p class="card-note">{note}</p>
