@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-08 07:14:53 UTC",
+  "timestamp": "2026-10-08 08:20:15 UTC",
   "status": "success",
-  "duration_sec": 0.2,
+  "duration_sec": 2.1,
   "sources": {
     "ngosang-best": {
       "http_code": 200,
