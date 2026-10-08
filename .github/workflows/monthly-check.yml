@@ -20,5 +20,8 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Run subscription health check
+      # 订阅地址清单固化：验证 Worker 短链接 / jsDelivr 加速 / Pages / Raw / jsDelivr 直链
+      - name: Verify subscription address checklist
+        run: python scripts/monthly_subscription_check.py
+      - name: Full health check
         run: python scripts/health_check.py --rounds 1

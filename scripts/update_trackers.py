@@ -57,6 +57,9 @@ MAX_TRACKERS = 20   # best 存活，正好 20 条
 MAX_ALL = 100       # all 合并，正好 100 条
 MIN_NON_UDP_TRACKERS = 4  # best 列表保底非 UDP（http/https/wss/ws）条数，防止单一协议失效时订阅整体不可用
 
+# all 列表协议保底：稀有协议（wss/ws）只要存在就保留；常见协议保证最小席位，其余由轮转填充
+ALL_PROTOCOL_FLOORS = {"wss": 1, "ws": 1, "https": 15, "http": 15, "udp": 20}
+
 SHORT_LINKS = [
     ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",
      "https://pmwiu.github.io/{repo}/alive.txt"),
@@ -953,28 +956,52 @@ def main():
             for fn, sn, err in failures:
                 print(f"  - {sn}: {err}")
 
-        # 轮转合并：按 SOURCES 顺序逐源轮流取一条（去重），避免前面的源一次占满
-        # MAX_ALL 条，导致后面的精选源（如 ngosang best_ip / OpenTracker）完全无法入选。
+        # 两阶段合并：协议保底（稀有协议优先占位）+ 按源轮转填充，去重后取 MAX_ALL 条。
+        # 目的：all 既保证各协议有席位（wss/ws 只要存在就保留、https/http/udp 保底），
+        # 又保证每个精选源都能贡献（避免 cf/trackers.run 占满名额）。
         seen_merged = set()
         valid_prefixes = ("http://", "https://", "udp://", "wss://", "ws://")
         contribution = {}
-        max_len = max((len(ts) for _, ts in per_source), default=0)
-        for i in range(max_len):
+
+        def _pick(t, src):
+            if t in seen_merged or not t.startswith(valid_prefixes):
+                return False
+            seen_merged.add(t)
+            all_merged.append(t)
+            contribution[src] = contribution.get(src, 0) + 1
+            return True
+
+        # Phase A：协议保底（稀有协议在前，确保 wss/ws 不被常见协议挤掉）
+        for proto, floor in ALL_PROTOCOL_FLOORS.items():
+            got = 0
             for short_name, ts in per_source:
-                if i >= len(ts):
-                    continue
-                t = ts[i]
-                if t in seen_merged or not t.startswith(valid_prefixes):
-                    continue
-                seen_merged.add(t)
-                all_merged.append(t)
-                contribution[short_name] = contribution.get(short_name, 0) + 1
+                for t in ts:
+                    if got >= floor or len(all_merged) >= MAX_ALL:
+                        break
+                    if t.startswith(proto + "://") and _pick(t, short_name):
+                        got += 1
+                if got >= floor or len(all_merged) >= MAX_ALL:
+                    break
+
+        # Phase B：轮转填充剩余席位（按 SOURCES 顺序逐源轮流取一条）
+        if len(all_merged) < MAX_ALL:
+            max_len = max((len(ts) for _, ts in per_source), default=0)
+            for i in range(max_len):
+                for short_name, ts in per_source:
+                    if i < len(ts):
+                        if _pick(ts[i], short_name) and len(all_merged) >= MAX_ALL:
+                            break
                 if len(all_merged) >= MAX_ALL:
                     break
-            if len(all_merged) >= MAX_ALL:
-                break
+
+        proto_counts = {}
+        for t in all_merged:
+            p = t.split("://")[0].lower()
+            proto_counts[p] = proto_counts.get(p, 0) + 1
         print(f"{NL}[INFO] all 合并贡献: " +
               ", ".join(f"{sn}={contribution.get(sn, 0)}" for _, _, sn in SOURCES))
+        print(f"[INFO] all 协议分布: " +
+              ", ".join(f"{p}={proto_counts.get(p, 0)}" for p in ("http", "https", "udp", "wss", "ws")))
 
         if all_merged:
             merged = sorted(all_merged)  # 轮转合并 + 去重，取前 MAX_ALL 条

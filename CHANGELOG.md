@@ -2,6 +2,16 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - feat
+- all 列表增加协议保底配额（ALL_PROTOCOL_FLOORS）：wss/ws 只要存在就保留，
+  https/http/udp 保底 15/15/20 条，其余由按源轮转填充；all 现覆盖 4 种协议
+  （此前 wss 因 100 条上限被挤出）
+- Worker 增加简单限流（每 IP 每 60s 120 次，超限 429）与访问统计（/stats，
+  单 isolate 内存统计，含各路由计数与限流次数）；支持 HEAD/OPTIONS(CORS 预检)
+- 月度订阅地址清单固化为 scripts/monthly_subscription_check.py，并接入
+  monthly-check.yml：每月验证 Worker 短链接/jsDelivr 加速/Pages/Raw/jsDelivr 直链
+  共 10 个地址，best 校验 1..MAX_TRACKERS 条、all 校验 >0 条
+
 ## [2026-10-08] - fix
 - all 合并改为「按源轮转」：原顺序取满 100 条会让 cf/trackers.run 占满名额，
   ngosang best_ip（16 条）与 OpenTracker（24 条）的独有 tracker 永远进不了 all；

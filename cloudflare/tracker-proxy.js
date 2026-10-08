@@ -4,20 +4,25 @@
 //
 // 短链接规范（全部 txt）:
 //   /best.txt  /alive.txt   → trackers_alive.txt   (best, 20 条, 协议多样性配额)
-//   /all.txt   /merged.txt  → trackers_merged.txt  (all, 100 条)
+//   /all.txt   /merged.txt  → trackers_merged.txt  (all, 100 条, 协议保底)
 //   /p/{udp,http,https,wss,ws}.txt → 协议子列表
 //   /src/{cf_best,run_best,ngosang_best,ngosang_best_ip,opentracker}.txt → 源列表
 //   /jsd/<上述任意路径>    → jsDelivr 加速镜像（失败回退 Raw）
 //   / 或 /index.html        → 订阅主页(HTML)
 //   /s/alive  /s/all        → Pages 短跳(HTML)
 //   /mirrors.txt            → 全部订阅地址清单
+//   /stats                  → 访问统计(JSON, 单 isolate 内存, 冷启动重置)
 // 内容回退链: raw.githubusercontent → Cloudflare Pages → GitHub Pages
+// 简单限流: 每 IP 每 60s 最多 120 次, 超限返回 429
 // ==========================================================================
 
 const REPO_RAW = "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main";
 const CF_PAGES = "https://tracker-list-edj.pages.dev";
 const GH_PAGES = "https://pmwiu.github.io/Tracker-List";
 const JSD_BASE = "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main";
+
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT = 120;
 
 const ALIASES = {
   "alive.txt": "trackers/trackers_alive.txt",
@@ -40,6 +45,30 @@ const ALIASES = {
   "s/all": "docs/s/all.html",
   "health.json": "reports/health.json",
 };
+
+// ---- 简单限流与访问统计（单 isolate 内存，冷启动后重置）----
+const buckets = new Map(); // ip -> { windowStart, count }
+const stats = {
+  startedAt: 0, // 在首次请求时惰性初始化（模块顶层 Date.now() 在部分 isolate 上可能为 0）
+  requests: 0,
+  rateLimited: 0,
+  routes: {},
+};
+
+function clientIP(request) {
+  return request.headers.get("CF-Connecting-IP") || "unknown";
+}
+
+function rateLimited(ip) {
+  const now = Date.now();
+  let b = buckets.get(ip);
+  if (!b || now - b.windowStart >= RATE_WINDOW_MS) {
+    b = { windowStart: now, count: 0 };
+    buckets.set(ip, b);
+  }
+  b.count += 1;
+  return b.count > RATE_LIMIT;
+}
 
 function normalize(pathname) {
   let p = decodeURIComponent(pathname).replace(/^\/+|\/+$/g, "").toLowerCase();
@@ -67,19 +96,63 @@ async function tryFetch(url, ttl) {
   return resp.ok ? resp : null;
 }
 
-function respond(resp, repoPath, upstream) {
+function respond(resp, repoPath, upstream, isHead) {
   const headers = {
     "content-type": contentType(repoPath),
     "cache-control": "no-cache",
     "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET, HEAD, OPTIONS",
     "x-tracker-upstream": upstream,
   };
-  return new Response(resp.body, { status: 200, headers });
+  return new Response(isHead ? null : resp.body, { status: 200, headers });
 }
 
 async function handle(request) {
   const url = new URL(request.url);
+  const isHead = request.method === "HEAD";
+
+  // CORS 预检
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, HEAD, OPTIONS",
+        "access-control-max-age": "86400",
+      },
+    });
+  }
+
+  const ip = clientIP(request);
+  if (rateLimited(ip)) {
+    stats.rateLimited += 1;
+    return new Response("rate limited\n", {
+      status: 429,
+      headers: { "retry-after": "60", "access-control-allow-origin": "*" },
+    });
+  }
+  stats.requests += 1;
+  if (!stats.startedAt) stats.startedAt = Date.now();
+
   const p = normalize(url.pathname);
+
+  // ---- 访问统计 ----
+  if (p === "stats" || p === "stats.json") {
+    const body = JSON.stringify({
+      ...stats,
+      now: new Date().toISOString(),
+      uptimeSec: Math.round((Date.now() - stats.startedAt) / 1000),
+      rateWindowSec: RATE_WINDOW_MS / 1000,
+      rateLimitPerIP: RATE_LIMIT,
+      distinctClients: buckets.size,
+      routes: stats.routes,
+    }, null, 2) + "\n";
+    return new Response(body, {
+      headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" },
+    });
+  }
+
+  stats.routes[p] = (stats.routes[p] || 0) + 1;
 
   // ---- jsDelivr 加速镜像: /jsd/<任意短链接> ----
   if (p.startsWith("jsd/")) {
@@ -87,7 +160,7 @@ async function handle(request) {
     for (const t of [JSD_BASE + "/" + repoPath, REPO_RAW + "/" + repoPath]) {
       try {
         const resp = await tryFetch(t, 300);
-        if (resp) return respond(resp, repoPath, t);
+        if (resp) return respond(resp, repoPath, t, isHead);
       } catch (e) {}
     }
     return new Response("jsdelivr mirror unavailable\n", { status: 502 });
@@ -96,12 +169,12 @@ async function handle(request) {
   // ---- 常规短链接: raw → CF Pages → GH Pages ----
   const repoPath = resolveRepoPath(p);
   const ttl = repoPath.endsWith(".html") ? 60 : 300;
-  const pagesPath = repoPath.replace(/^docs\//, ""); // Pages 站点以 docs/ 为根
+  const pagesPath = repoPath.replace(/^docs\//, "");
   let notFound = false;
   for (const t of [REPO_RAW + "/" + repoPath, CF_PAGES + "/" + pagesPath, GH_PAGES + "/" + pagesPath]) {
     try {
       const resp = await tryFetch(t, ttl);
-      if (resp) return respond(resp, repoPath, t);
+      if (resp) return respond(resp, repoPath, t, isHead);
       notFound = true;
     } catch (e) {}
   }
