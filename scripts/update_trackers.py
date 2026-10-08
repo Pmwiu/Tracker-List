@@ -3,8 +3,12 @@
 自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
 并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
 
-订阅源: 当前为空（SOURCES = []），等待重新配置。
-  在下方 SOURCES 中填入 (输出文件名, 源 URL, 短名) 三元组即可启用；
+订阅源（5 个精选源，SOURCES 顺序即优先级）:
+  - cf.trackerslist.com/best.txt
+  - trackers.run/s/rw_up_hp_hs_v4_v6.txt
+  - ngosang/trackerslist trackers_best.txt + trackers_best_ip.txt
+  - 1265578519/OpenTracker tracker.txt
+  在下方 SOURCES 中增删 (输出文件名, 源 URL, 短名) 三元组即可调整；
   白名单 ALLOWED_SOURCE_URLS 与下游脚本会自动同步，无需其它改动。
 
 特性:
@@ -20,6 +24,7 @@
 import os
 import re
 import sys
+import socket
 import tempfile
 import time
 import html
@@ -36,8 +41,14 @@ except ImportError:
     _HAS_FCNTL = False
 
 # 订阅源清单：每条为 (输出文件名, 源 URL, 短名)。
-# 当前为空 —— 等待重新提供订阅源配置；填入后自动生效（白名单同步更新）。
-SOURCES = []
+# 顺序即优先级：靠前的源在合并 all 列表时优先入选。
+SOURCES = [
+    ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
+    ("trackers_run_best.txt", "https://trackers.run/s/rw_up_hp_hs_v4_v6.txt", "trackersrun-best"),
+    ("trackers_ngosang_best.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt", "ngosang-best"),
+    ("trackers_ngosang_best_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt", "ngosang-best-ip"),
+    ("trackers_opentracker.txt", "https://raw.githubusercontent.com/1265578519/OpenTracker/refs/heads/master/tracker.txt", "opentracker"),
+]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
@@ -64,6 +75,14 @@ MERGED_FILE = "trackers_merged.txt"
 ALIVE_FILE = "trackers_alive.txt"
 DEAD_FILE = "trackers_dead.txt"
 LOCK_FILE = os.path.join(PROJECT_ROOT, ".update.lock")
+
+# 已下线的订阅源短名（用于主动清理其残留文件）
+REMOVED_SOURCE_NAMES = [
+    "adysec_best", "adysec_http", "adysec_https", "adysec_udp", "adysec_wss",
+    "adysec_all", "anime_best", "anime_ip", "ultimate", "ngosang_ip",
+    "ngosang_i2p", "ngosang_ygg", "ngosang_all_ip", "ngosang_ygg_ip",
+    "ngosang_all", "pkgforge_all", "pkgforge_general", "cf_all",
+]
 
 LEGACY_FILES = [
     os.path.join(OUTPUT_DIR, "trackers_http.txt"),
@@ -101,6 +120,9 @@ LEGACY_FILES = [
     os.path.join(SHORT_LINKS_DIR, "cf.html"),
     os.path.join(SHORT_LINKS_DIR, "adysec.html"),
     os.path.join(SHORT_LINKS_DIR, "ngosang.html"),
+    # 已下线的订阅源文件（脚本会主动清理，避免残留）
+    *[os.path.join(OUTPUT_DIR, f"trackers_{n}.txt") for n in REMOVED_SOURCE_NAMES],
+    *[os.path.join(PAGES_DIR, f"{n}.txt") for n in REMOVED_SOURCE_NAMES],
 ]
 
 TIMEOUT = 30
@@ -327,40 +349,94 @@ def cleanup_legacy_files():
         print(f"[OK]   Cleaned {removed} legacy files.")
 
 
+def _fetch(url):
+    """单次抓取并返回文本响应体（非 200 视为错误）。"""
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (compatible; TrackerListBot/3.0)",
+        "Accept": "text/plain,*/*",
+    })
+    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+        if resp.status != 200:
+            raise urllib.error.HTTPError(url, resp.status, "Non-200", {}, None)
+        return resp.read().decode("utf-8", errors="replace")
+
+
+def _is_retryable(err):
+    """DNS 解析失败属确定性错误，重试无意义，直接快速失败。"""
+    for candidate in (getattr(err, "reason", None), err):
+        if isinstance(candidate, socket.gaierror):
+            return False
+    return True
+
+
+def mirror_urls(url):
+    """返回订阅源的镜像候选地址（原始地址不可达时按顺序回退）。
+
+    仅对白名单内的 URL 调用。raw.githubusercontent.com 地址额外支持
+    raw.pmwiu.com（专属 Raw 镜像）与 jsDelivr；其余地址走 gh.pmwiu.com 代理。
+    """
+    candidates = []
+    prefix = "https://raw.githubusercontent.com/"
+    if url.startswith(prefix):
+        rest = url[len(prefix):]
+        candidates.append("https://raw.pmwiu.com/" + rest)
+        parts = rest.split("/")
+        ref_index = 2
+        if len(parts) >= 6 and parts[2] == "refs" and parts[3] == "heads":
+            ref_index = 4
+        if len(parts) >= ref_index + 2:
+            owner, repo = parts[0], parts[1]
+            ref = parts[ref_index]
+            path = "/".join(parts[ref_index + 1:])
+            candidates.append(f"https://cdn.jsdelivr.net/gh/{owner}/{repo}@{ref}/{path}")
+    candidates.append("https://gh.pmwiu.com/" + url)
+
+    seen = set()
+    ordered = []
+    for c in candidates:
+        if c != url and c not in seen:
+            seen.add(c)
+            ordered.append(c)
+    return ordered
+
+
 def download_trackers(url, blacklist=None, url_blacklist=None):
     """下载并校验 tracker 列表，返回去重后的排序列表。
 
     仅接受 ALLOWED_SOURCE_URLS 白名单内的订阅源；非白名单来源直接拒绝，
-    其内容不会被下载、解析或合并。blacklist 为需排除的域名集合（小写），
+    其内容不会被下载、解析或合并。原始地址不可达时按 MIRROR_PREFIXES
+    顺序回退到镜像地址。blacklist 为需排除的域名集合（小写），
     url_blacklist 为需排除的精确 URL 集合（动态黑名单）。
     """
     if url not in ALLOWED_SOURCE_URLS:
         raise RuntimeError(f"Source not in whitelist, rejected: {url}")
     blacklist = blacklist or set()
     url_blacklist = url_blacklist or set()
-    last_error = None
+
     raw = None
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            req = urllib.request.Request(url, headers={
-                "User-Agent": "Mozilla/5.0 (compatible; TrackerListBot/3.0)",
-                "Accept": "text/plain,*/*",
-            })
-            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-                if resp.status != 200:
-                    raise urllib.error.HTTPError(url, resp.status, "Non-200", {}, None)
-                raw = resp.read().decode("utf-8", errors="replace")
+    last_error = None
+    sources = [url] + mirror_urls(url)
+    for index, candidate in enumerate(sources):
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                raw = _fetch(candidate)
+                break
+            except Exception as e:
+                last_error = e
+                if not _is_retryable(e):
+                    break
+                if attempt < MAX_RETRIES:
+                    print(f"  [RETRY] {attempt}/{MAX_RETRIES} {candidate}: {e}")
+                    time.sleep(RETRY_DELAY)
+        if raw is not None:
+            if index > 0:
+                print(f"  [MIRROR] fetched via {candidate}")
             break
-        except Exception as e:
-            last_error = e
-            if attempt < MAX_RETRIES:
-                print(f"  [RETRY] {attempt}/{MAX_RETRIES}: {e}")
-                time.sleep(RETRY_DELAY)
-            else:
-                raise last_error
+        if index + 1 < len(sources):
+            print(f"  [MIRROR] direct fetch failed ({last_error}); trying mirror...")
 
     if raw is None:
-        raise RuntimeError("Empty response")
+        raise last_error if last_error else RuntimeError("Empty response")
 
     # 内容校验：拒绝明显的 HTML 错误页
     if raw.lstrip().startswith("<!DOCTYPE") or raw.lstrip().startswith("<html"):
@@ -448,15 +524,17 @@ PROTOCOL_SUBLISTS = {
 
 
 def write_protocol_sublists(merged):
-    """按协议拆分合并列表，生成各协议子列表（对齐国际聚合项目的多格式列表）。"""
+    """按协议拆分合并列表，生成各协议子列表（对齐国际聚合项目的多格式列表）。
+
+    即使某协议当前没有条目也写出文件（仅含头部），保证 5 个协议订阅地址始终存在。
+    """
     for name, prefix in PROTOCOL_SUBLISTS.items():
         subset = [t for t in merged if t.startswith(prefix)]
-        if subset:
-            write_trackers(
-                os.path.join(OUTPUT_DIR, f"trackers_{name}.txt"),
-                subset,
-                extra_header=f"# 协议: {name}",
-            )
+        write_trackers(
+            os.path.join(OUTPUT_DIR, f"trackers_{name}.txt"),
+            subset,
+            extra_header=f"# 协议: {name}",
+        )
 
 
 def write_mirrors_file(repo):
@@ -525,26 +603,10 @@ def generate_source_links():
     """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
         "cf-best": "trackerslist/best",
-        "ngosang-ip": "ngosang/best-ip",
-        "adysec-best": "adysec/best",
-        "adysec-http": "adysec/best-http",
-        "adysec-https": "adysec/best-https",
-        "adysec-udp": "adysec/best-udp",
-        "adysec-wss": "adysec/best-wss",
-        "anime-best": "animeTrackerList/best",
-        "anime-ip": "animeTrackerList/best-ip",
-        "ultimate": "UltimateBTTrackersList",
-        "opentracker": "OpenTracker",
+        "trackersrun-best": "trackers.run/best",
         "ngosang-best": "ngosang/best",
-        "ngosang-i2p": "ngosang/all-i2p",
-        "ngosang-ygg": "ngosang/all-yggdrasil",
-        "ngosang-all-ip": "ngosang/all-ip",
-        "ngosang-ygg-ip": "ngosang/all-yggdrasil-ip",
-        "pkgforge-all": "pkgforge-security/all",
-        "pkgforge-general": "pkgforge-security/all-general",
-        "adysec-all": "adysec/all",
-        "ngosang-all": "ngosang/all",
-        "cf-all": "trackerslist/all",
+        "ngosang-best-ip": "ngosang/best-ip",
+        "opentracker": "OpenTracker",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -695,26 +757,10 @@ def sync_plain_text_files():
         "trackers_alive.txt": "alive.txt",
         "trackers_merged.txt": "merged.txt",
         "trackers_cf_best.txt": "cf_best.txt",
-        "trackers_ngosang_ip.txt": "ngosang_ip.txt",
-        "trackers_adysec_best.txt": "adysec_best.txt",
-        "trackers_adysec_http.txt": "adysec_http.txt",
-        "trackers_adysec_https.txt": "adysec_https.txt",
-        "trackers_adysec_udp.txt": "adysec_udp.txt",
-        "trackers_adysec_wss.txt": "adysec_wss.txt",
-        "trackers_anime_best.txt": "anime_best.txt",
-        "trackers_anime_ip.txt": "anime_ip.txt",
-        "trackers_ultimate.txt": "ultimate.txt",
-        "trackers_opentracker.txt": "opentracker.txt",
+        "trackers_run_best.txt": "run_best.txt",
         "trackers_ngosang_best.txt": "ngosang_best.txt",
-        "trackers_ngosang_i2p.txt": "ngosang_i2p.txt",
-        "trackers_ngosang_ygg.txt": "ngosang_ygg.txt",
-        "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
-        "trackers_ngosang_ygg_ip.txt": "ngosang_ygg_ip.txt",
-        "trackers_pkgforge_all.txt": "pkgforge_all.txt",
-        "trackers_pkgforge_general.txt": "pkgforge_general.txt",
-        "trackers_adysec_all.txt": "adysec_all.txt",
-        "trackers_ngosang_all.txt": "ngosang_all.txt",
-        "trackers_cf_all.txt": "cf_all.txt",
+        "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",
+        "trackers_opentracker.txt": "opentracker.txt",
         "trackers_udp.txt": "udp.txt",
         "trackers_http.txt": "http.txt",
         "trackers_https.txt": "https.txt",

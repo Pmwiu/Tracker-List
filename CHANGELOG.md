@@ -2,6 +2,14 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - feat
+- 订阅源重新配置为 5 个精选源（cf best / trackers.run best / ngosang best + best_ip /
+  OpenTracker），顺序即优先级；下线源文件由 REMOVED_SOURCE_NAMES 自动清理
+- 新增镜像回退：原始地址不可达时按 raw.pmwiu.com → jsDelivr → gh.pmwiu.com 顺序重试；
+  DNS 解析失败快速失败，不再空转重试
+- 协议子列表（udp/http/https/wss/ws）即使为空也写出文件，5 个协议订阅地址始终可用
+- 实测：5 源全部抓取成功，all = 100、best = 20（best ⊆ all 成立），健康检查 41/0/0
+
 ## [2026-10-08] - chore
 - 清空全部订阅源（SOURCES = []）及订阅数据内容（trackers/、docs/ 生成物、reports/），
   等待重新提供订阅源配置；仓库框架、脚本与工作流保持不变

@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-10-08 01:55:23 UTC",
+  "status": "success",
+  "duration_sec": 3.7,
+  "sources": {
+    "cf-best": {
+      "http_code": 200,
+      "lines": 71,
+      "ok": true
+    },
+    "trackersrun-best": {
+      "http_code": 200,
+      "lines": 53,
+      "ok": true
+    },
+    "ngosang-best": {
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
+    },
+    "ngosang-best-ip": {
+      "http_code": 200,
+      "lines": 20,
+      "ok": true
+    },
+    "opentracker": {
+      "http_code": 200,
+      "lines": 38,
+      "ok": true
+    }
+  },
+  "merged_lines": 100,
+  "alive_lines": null,
+  "failed_sources": []
+}
