@@ -537,32 +537,67 @@ def write_protocol_sublists(merged):
 
 
 def write_mirrors_file(repo):
+    """生成完整订阅地址清单：短链接（Worker）、jsDelivr 加速、双托管直链。
+
+    首页只展示短链接；本文件是全量参考（含长链接与镜像）。
+    """
     owner = repo.split("/")[0] if "/" in repo else repo
     repo_name = repo.split("/")[-1] if "/" in repo else repo
     pages = f"https://pmwiu.github.io/{repo_name}"
+    cf_pages = "https://tracker-list-edj.pages.dev"
     raw_base = f"https://raw.githubusercontent.com/{owner}/{repo_name}/main"
-    mirror = "https://gh.pmwiu.com"
+    jsd_base = f"https://cdn.jsdelivr.net/gh/{owner}/{repo_name}@main"
     cf = "https://tracker.pmwiu.com"
-    entries = [
-        ("存活 best - Pages 短链", f"{pages}/s/alive"),
-        ("存活 best - Pages 直链", f"{pages}/alive.txt"),
-        ("存活 best - Raw", f"{raw_base}/trackers/trackers_alive.txt"),
-        ("存活 best - 镜像代理", f"{mirror}/{raw_base}/trackers/trackers_alive.txt"),
-        ("存活 best - Cloudflare Pages", f"{cf}/alive.txt"),
-        ("合并 all - Pages 短链", f"{pages}/s/all"),
-        ("合并 all - Pages 直链", f"{pages}/merged.txt"),
-        ("合并 all - Raw", f"{raw_base}/trackers/trackers_merged.txt"),
-        ("合并 all - 镜像代理", f"{mirror}/{raw_base}/trackers/trackers_merged.txt"),
-        ("合并 all - Cloudflare Pages", f"{cf}/merged.txt"),
-    ]
+
+    def block(title, pairs):
+        out = [f"# === {title} ==="]
+        for name, url in pairs:
+            out += [f"# [{name}]", url]
+        out.append("")
+        return out
+
     lines = [
         "# Tracker 订阅地址清单",
         f"# Generated: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC",
-        "# 双托管：GitHub Pages/Raw + Cloudflare Pages；镜像代理：gh.pmwiu.com",
+        "# 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr",
+        "# 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)",
         "",
     ]
-    for name, url in entries:
-        lines += [f"# [{name}]", url, ""]
+    lines += block("best 精选 (trackers_alive.txt)", [
+        ("短链接", f"{cf}/best.txt"),
+        ("加速短链接 (jsDelivr)", f"{cf}/jsd/best.txt"),
+        ("兼容短链接", f"{cf}/alive.txt"),
+        ("Pages 短跳", f"{pages}/s/alive"),
+        ("Pages 直链", f"{pages}/alive.txt"),
+        ("Cloudflare Pages 直链", f"{cf_pages}/alive.txt"),
+        ("GitHub Raw", f"{raw_base}/trackers/trackers_alive.txt"),
+        ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_alive.txt"),
+    ])
+    lines += block("all 合并 (trackers_merged.txt)", [
+        ("短链接", f"{cf}/all.txt"),
+        ("加速短链接 (jsDelivr)", f"{cf}/jsd/all.txt"),
+        ("兼容短链接", f"{cf}/merged.txt"),
+        ("Pages 短跳", f"{pages}/s/all"),
+        ("Pages 直链", f"{pages}/merged.txt"),
+        ("Cloudflare Pages 直链", f"{cf_pages}/merged.txt"),
+        ("GitHub Raw", f"{raw_base}/trackers/trackers_merged.txt"),
+        ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_merged.txt"),
+    ])
+    proto_pairs = []
+    for proto in PROTOCOL_SUBLISTS:
+        proto_pairs += [
+            (f"{proto} 短链接", f"{cf}/p/{proto}.txt"),
+            (f"{proto} 加速", f"{cf}/jsd/p/{proto}.txt"),
+        ]
+    lines += block("按协议 /p/<协议>.txt", proto_pairs)
+    src_pairs = []
+    for filename, url, short_name in SOURCES:
+        base = filename[:-4].replace("trackers_", "")
+        src_pairs += [
+            (f"{short_name} 短链接", f"{cf}/src/{base}.txt"),
+            (f"{short_name} 加速", f"{cf}/jsd/src/{base}.txt"),
+        ]
+    lines += block("按源 /src/<源>.txt", src_pairs)
     atomic_write(os.path.join(OUTPUT_DIR, "MIRRORS.txt"), NL.join(lines))
     print("[OK]   MIRRORS.txt")
 
@@ -615,122 +650,192 @@ def generate_source_links():
 
 
 def generate_index_page(repo, short_links_with_urls, tracker_counts):
+    """生成现代化订阅主页：卡片式订阅区（短链接 + jsDelivr 加速短链接）、
+    协议芯片、统计表。所有订阅入口均为 tracker.pmwiu.com 短链接（txt）。"""
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    owner = (repo.split("/")[0] if "/" in repo else repo).lower()
     repo_name = repo.split("/")[-1] if "/" in repo else "Tracker-List"
-    pages_base = f"https://{owner}.github.io/{repo_name}"
+    short_base = "https://tracker.pmwiu.com"
+    n_sources = len(SOURCES)
 
-    groups = {}
-    for short, group, desc, target in short_links_with_urls:
-        groups.setdefault(group, []).append((short, desc, target))
-
-    sections_html = ""
-    for group_name in ["核心订阅", "订阅源", "合并总表"]:
-        items = groups.get(group_name, [])
-        if not items:
-            continue
-        rows = ""
-        for short, desc, target in items:
-            short_url = f"{pages_base}/s/{short}"
-            rows += f"""      <div class="row">
-        <div class="row-label">{html.escape(desc)}</div>
-        <div class="row-link"><a href="{html.escape(short_url)}">{html.escape(short_url)}</a></div>
+    def plan_card(key, name, count, desc, note):
+        short = f"{short_base}/{key}.txt"
+        accel = f"{short_base}/jsd/{key}.txt"
+        return f'''    <div class="card">
+      <div class="card-head">
+        <span class="card-name">{name}</span>
+        <span class="card-count">{count}</span>
       </div>
-"""
-        sections_html += f"""    <div class="block">
-      <div class="block-title">{html.escape(group_name)}</div>
-{rows}    </div>
-"""
+      <p class="card-desc">{desc}</p>
+      <div class="link-row">
+        <span class="link-label">短链接</span>
+        <code class="link-url">{short}</code>
+        <button class="copy" data-copy="{short}" type="button">复制</button>
+      </div>
+      <div class="link-row">
+        <span class="link-label">加速短链接</span>
+        <code class="link-url">{accel}</code>
+        <button class="copy" data-copy="{accel}" type="button">复制</button>
+      </div>
+      <p class="card-note">{note}</p>
+    </div>'''
 
-    counts_rows = ""
-    for name, count in tracker_counts:
-        counts_rows += f"""      <tr><td>{html.escape(name)}</td><td class="num">{count}</td></tr>
-"""
+    cards = (
+        plan_card("best", "best 精选", MAX_TRACKERS,
+                  "协议级活性测试 + 综合评分（速度 70% + 稳定性 30%），保底 "
+                  f"{MIN_NON_UDP_TRACKERS} 条非 UDP",
+                  "qBittorrent / Aria2 等客户端直接粘贴订阅")
+        + "\n"
+        + plan_card("all", "all 合并", MAX_ALL,
+                    f"{n_sources} 个精选源按优先级合并去重",
+                    "追求覆盖面的完整列表")
+    )
+
+    proto_chips = "".join(
+        f'      <a class="chip" href="{short_base}/p/{p}.txt">{p}.txt</a>\n'
+        for p in ("udp", "http", "https", "wss", "ws")
+    )
+
+    counts_rows = "".join(
+        f'        <tr><td>{html.escape(n)}</td><td class="num">{c}</td></tr>\n'
+        for n, c in tracker_counts
+    )
 
     source_links = generate_source_links()
 
-    return f"""<!DOCTYPE html>
+    css = """
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--accent:#2563eb;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;--bg:#f6f7f9}
+  html{-webkit-font-smoothing:antialiased}
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.7;font-size:15px;
+       background-image:radial-gradient(1200px 400px at 50% -10%,rgba(37,99,235,.08),transparent)}
+  .wrap{max-width:860px;margin:0 auto;padding:56px 24px 48px}
+  header{text-align:center;margin-bottom:40px}
+  .brand{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
+  h1{font-size:36px;font-weight:700;letter-spacing:-1px;margin-bottom:10px}
+  .tagline{color:var(--sub);max-width:560px;margin:0 auto;font-size:14px}
+  .badges{display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .badge{font-size:12px;color:var(--sub);background:#fff;border:1px solid var(--line);
+         border-radius:999px;padding:4px 12px;display:inline-flex;align-items:center;gap:6px}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
+  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:8px 0 24px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;
+        box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05)}
+  .card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .card-name{font-size:18px;font-weight:600}
+  .card-count{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;color:var(--accent);
+              background:rgba(37,99,235,.08);border-radius:999px;padding:2px 10px}
+  .card-desc{font-size:13px;color:var(--sub);margin-bottom:16px}
+  .link-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);
+            border-radius:10px;margin-bottom:10px;background:#fafafa}
+  .link-label{font-size:12px;color:var(--sub);flex-shrink:0;width:64px}
+  .link-url{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--ink);
+            flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .copy{flex-shrink:0;font-size:12px;color:var(--accent);background:#fff;border:1px solid var(--line);
+        border-radius:8px;padding:4px 10px;cursor:pointer;transition:all .15s}
+  .copy:hover{border-color:var(--accent);background:rgba(37,99,235,.06)}
+  .copy.done{color:#16a34a;border-color:#16a34a}
+  .card-note{font-size:12px;color:#9ca3af;margin-top:4px}
+  .section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px;
+           box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .section-title{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;color:var(--accent);
+        background:rgba(37,99,235,.08);border-radius:10px;padding:8px 14px;text-decoration:none;
+        transition:background .15s}
+  .chip:hover{background:rgba(37,99,235,.16)}
+  .hint{font-size:12px;color:#9ca3af;margin-top:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 0;border-bottom:1px solid #f3f4f6}
+  th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;font-weight:500}
+  td.num{text-align:right;font-family:"SF Mono",Menlo,monospace}
+  tr:last-child td{border-bottom:none}
+  footer{margin-top:32px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#9ca3af;text-align:center}
+  footer a{color:var(--sub);text-decoration:none}
+  footer a:hover{color:var(--ink)}
+  footer .sources{margin-top:8px;line-height:2}
+  @media (max-width:520px){.wrap{padding:40px 16px 32px}h1{font-size:28px}.link-label{display:none}}
+"""
+
+    js = """
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = this.getAttribute('data-copy');
+      var self = this;
+      var done = function () {
+        self.textContent = '已复制';
+        self.classList.add('done');
+        setTimeout(function () { self.textContent = '复制'; self.classList.remove('done'); }, 1500);
+      };
+      var fallback = function () {
+        var ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done).catch(fallback);
+      } else { fallback(); }
+    });
+  });
+"""
+
+    return f'''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tracker List</title>
-<style>
-  *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-  html{{-webkit-font-smoothing:antialiased}}
-  body{{font-family:"SF Pro Display","Helvetica Neue",Arial,sans-serif;
-        background:#fafafa;color:#1a1a1a;line-height:1.7;font-size:15px}}
-  .wrap{{max-width:680px;margin:0 auto;padding:64px 32px 48px}}
-  header{{margin-bottom:56px}}
-  .brand{{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#999;margin-bottom:16px}}
-  h1{{font-size:32px;font-weight:600;letter-spacing:-0.5px;color:#111;margin-bottom:12px}}
-  .tagline{{font-size:14px;color:#666;max-width:480px}}
-  .meta{{display:flex;gap:24px;margin-top:24px;font-size:12px;color:#999;flex-wrap:wrap}}
-  .meta span{{display:flex;align-items:center;gap:6px}}
-  .meta .dot{{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block}}
-  .block{{border-top:1px solid #e5e5e5;padding:28px 0}}
-  .block-title{{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:16px}}
-  .row{{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid #f0f0f0}}
-  .row:last-child{{border-bottom:none}}
-  .row-label{{font-size:14px;color:#333;flex-shrink:0;margin-right:16px}}
-  .row-link{{font-size:13px;font-family:"SF Mono",Menlo,monospace;text-align:right}}
-  .row-link a{{color:#2563eb;text-decoration:none;word-break:break-all}}
-  .row-link a:hover{{text-decoration:underline}}
-  table{{width:100%;border-collapse:collapse;font-size:13px}}
-  th,td{{text-align:left;padding:8px 0;border-bottom:1px solid #f0f0f0}}
-  th{{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#999;font-weight:500}}
-  td.num{{text-align:right;font-family:"SF Mono",Menlo,monospace;color:#333}}
-  .subscribe{{background:#111;color:#fff;padding:32px;border-radius:4px;margin:32px 0}}
-  .subscribe-label{{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:12px}}
-  .subscribe-url{{font-family:"SF Mono",Menlo,monospace;font-size:14px;color:#fff;word-break:break-all}}
-  .subscribe-url a{{color:#fff;text-decoration:none;border-bottom:1px solid #444}}
-  .subscribe-url a:hover{{border-bottom-color:#fff}}
-  .subscribe-note{{font-size:12px;color:#888;margin-top:12px}}
-  footer{{margin-top:56px;padding-top:24px;border-top:1px solid #e5e5e5;font-size:12px;color:#999}}
-  footer a{{color:#666;text-decoration:none}}
-  footer a:hover{{color:#111}}
-  footer .sources{{margin-top:8px}}
-</style>
+<meta name="description" content="自动聚合、去重、协议级活性测试与综合评分排序的 BitTorrent Tracker 订阅服务">
+<title>Tracker List — BitTorrent Tracker 订阅</title>
+<style>{css}</style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">Pmwiu / Tracker-List</div>
+    <div class="brand">Pmwiu / {html.escape(repo_name)}</div>
     <h1>Tracker List</h1>
-    <p class="tagline">自动聚合、去重、活性测试与测速排序的 BitTorrent Tracker 订阅服务。每日更新，仅保留最快最稳定的 {MAX_TRACKERS} 个。</p>
-    <div class="meta">
-      <span><span class="dot"></span> 7x24H Auto Update</span>
-      <span>Top {MAX_TRACKERS} by Speed</span>
-      <span>Direct Links Only</span>
+    <p class="tagline">自动聚合、去重、协议级活性测试与测速排序的 BitTorrent Tracker 订阅服务</p>
+    <div class="badges">
+      <span class="badge"><span class="dot"></span>每 6 小时自动更新</span>
+      <span class="badge">{n_sources} 个精选源</span>
+      <span class="badge">best 保底 {MIN_NON_UDP_TRACKERS} 条非 UDP</span>
+      <span class="badge">txt 短链接直订</span>
     </div>
   </header>
 
-{sections_html}  <div class="block">
-    <div class="block-title">Statistics</div>
+  <section class="plans">
+{cards}
+  </section>
+
+  <section class="section">
+    <div class="section-title">按协议订阅 · /p/&lt;协议&gt;.txt</div>
+    <div class="chips">
+{proto_chips}    </div>
+    <p class="hint">加速方式：任意短链接前加 <code>/jsd/</code> 前缀，即走 jsDelivr 全球加速镜像（如 {short_base}/jsd/p/udp.txt）。</p>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Statistics</div>
     <table>
       <thead><tr><th>List</th><th>Count</th></tr></thead>
       <tbody>
 {counts_rows}      </tbody>
     </table>
-  </div>
-
-  <div class="subscribe">
-    <div class="subscribe-label">BT Client Subscription</div>
-    <div class="subscribe-url"><a href="{pages_base}/alive.txt">{pages_base}/alive.txt</a></div>
-    <p class="subscribe-note">纯文本直链，qBittorrent 等客户端可直接订阅。经活性测试 + 测速排序，最多 {MAX_TRACKERS} 个。</p>
-  </div>
+  </section>
 
   <footer>
     <p>Last updated: {now}</p>
-    <p class="sources">Sources:
-      {source_links} &middot;
-      <a href="https://github.com/{repo}">GitHub</a>
-    </p>
+    <p class="sources">Sources: {source_links} &middot; <a href="https://github.com/{html.escape(repo)}">GitHub</a></p>
   </footer>
 </div>
+<script>{js}</script>
 </body>
 </html>
-"""
+'''
 
 
 def generate_pages(repo, results):

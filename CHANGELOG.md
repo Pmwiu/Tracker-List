@@ -3,6 +3,18 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- 短链接服务规范化：Worker 重写并入库（cloudflare/tracker-proxy.js）。
+  规范：`/best.txt` `/all.txt`（兼容 /alive.txt /merged.txt）、`/p/<协议>.txt`、
+  `/src/<源>.txt`、`/jsd/<任意短链接>` 切换 jsDelivr 加速镜像；
+  按扩展名返回正确 content-type（修复旧版全站 text/plain）、新增 x-tracker-upstream
+  调试头、路径大小写不敏感、404/502 区分
+- 首页（README + Pages index.html）现代化：卡片式订阅区（短链接 + 加速短链接 +
+  一键复制）、协议芯片、统计区块；首页订阅链接只展示 txt 短链接与加速短链接，
+  去除全部长链接
+- MIRRORS.txt 重写为分组全量清单（best/all/按协议/按源 × 短链接/加速/Pages/Raw/jsDelivr）
+- 新增 cloudflare/ 目录：Worker 源码纳入版本管理
+
+## [2026-10-08] - feat
 - best 列表增加协议多样性配额：保底 4 条非 UDP（http/https/wss/ws）。
   UDP 握手往返天然快于 HTTP announce，纯速度排序会让 best 变成单一协议，
   一旦订阅者网络封 UDP 整份订阅即失效；配额后其余 16 条仍按综合评分
