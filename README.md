@@ -1,17 +1,18 @@
-<h1 align="center">Tracker List</h1>
+<div align="center">
 
-<p align="center">
-自动聚合 · 智能去重 · 协议级活性测试 · 综合评分排序<br>
-每 6 小时自动更新的 BitTorrent Tracker 订阅服务
-</p>
+# Tracker List
 
-<p align="center">
-<img src="https://img.shields.io/github/actions/workflow/status/Pmwiu/Tracker-List/update-trackers.yml?branch=main&label=auto%20update" alt="auto update">
-<img src="https://img.shields.io/badge/best-20-2563eb" alt="best 20">
-<img src="https://img.shields.io/badge/all-100-2563eb" alt="all 100">
-<img src="https://img.shields.io/badge/sources-8-2563eb" alt="8 sources">
-<img src="https://img.shields.io/badge/non--UDP%20quota-%E2%89%A54-2563eb" alt="non-UDP quota">
-</p>
+生产级 BitTorrent Tracker 订阅服务 · 自动聚合 · 协议级探活 · 多维综合评分
+
+<img src="https://img.shields.io/github/actions/workflow/status/Pmwiu/Tracker-List/update-trackers.yml?branch=main&label=build&style=flat-square" alt="build">
+<img src="https://img.shields.io/badge/best-20-2563eb?style=flat-square" alt="best 20">
+<img src="https://img.shields.io/badge/all-100-2563eb?style=flat-square" alt="all 100">
+<img src="https://img.shields.io/badge/sources-8-2563eb?style=flat-square" alt="8 sources">
+<img src="https://img.shields.io/badge/secure-no%20secrets-16a34a?style=flat-square" alt="no secrets">
+
+</div>
+
+---
 
 ## 订阅
 
@@ -20,34 +21,36 @@
 | **best** 精选 | 20 | `https://tracker.pmwiu.com/best.txt` | `https://tracker.pmwiu.com/jsd/best.txt` |
 | **all** 合并 | 100 | `https://tracker.pmwiu.com/all.txt` | `https://tracker.pmwiu.com/jsd/all.txt` |
 
-> 加速短链接走 jsDelivr 全球 CDN；短链接网关为 Cloudflare Worker（`tracker.pmwiu.com`）。
+> 短链接由 Cloudflare Worker 网关提供；加速短链接走 jsDelivr 全球 CDN。
 > qBittorrent、Aria2 等客户端直接粘贴短链接即可订阅。
 
 <details>
-<summary><b>按协议 / 按源订阅</b>（点击展开，均为 txt 短链接）</summary>
+<summary><b>按协议 / 按源订阅</b></summary>
 
 **按协议** `/p/<协议>.txt`（加速：前缀加 `/jsd/`）
 
-| udp | http | https | wss | ws |
-|---|---|---|---|---|
-| `tracker.pmwiu.com/p/udp.txt` | `tracker.pmwiu.com/p/http.txt` | `tracker.pmwiu.com/p/https.txt` | `tracker.pmwiu.com/p/wss.txt` | `tracker.pmwiu.com/p/ws.txt` |
+`tracker.pmwiu.com/p/udp.txt` · `/p/http.txt` · `/p/https.txt` · `/p/wss.txt` · `/p/ws.txt`
 
-**按源** `/src/<源>.txt`（如 `tracker.pmwiu.com/src/ngosang_best.txt`、`/src/pexcn_best.txt`，覆盖全部 8 个源）
+**按源** `/src/<源>.txt`（覆盖全部 8 个源，如 `/src/ngosang_best.txt`、`/src/pexcn_best.txt`）
 
 </details>
 
-## 机制
+## 可靠性
 
-- **聚合**：8 个 best 精选源按优先级合并，来源白名单 + 内容校验 + 原子写入
-- **清洗**：URL 规范化去重、同 IP 保留最快、动态黑名单（连续失效自动下线）
-- **探活**：HTTP/HTTPS 验证 bencoded announce 响应、UDP connect+announce 握手、WSS/WS TLS 连通；>5s 低速淘汰
-- **评分**：多维综合评分 = 速度 50% + 历史稳定性 EMA 30% + 响应质量 20%；best 保底 4 条非 UDP（协议多样性配额）
-- **托管**：GitHub Pages + Cloudflare Pages 双托管，Worker 短链接网关，`/jsd/` 前缀切换 jsDelivr 加速
-- **监控**：定时任务 + 心跳 + 运行摘要 + 失败自动告警 Issue + 3 轮网络健康检查
+- **更新**：每 6 小时自动更新（定时计划 + 手动触发）
+- **筛选**：协议级活性测试（HTTP bencoded 校验 / UDP 握手 / WSS TLS）、低速淘汰、同 IP 去重、动态黑名单
+- **评分**：速度 50% + 历史稳定性 30% + 响应质量 20% + 内地/内网地域适配加分
+- **监控**：心跳 + 运行摘要 + 失败自动告警 + 180 项健康检查（3 轮全绿）
+
+## 安全
+
+- 仓库不包含、不存储任何密码 / 令牌 / API Key
+- 工作流使用最小权限临时 `GITHUB_TOKEN`，来源白名单校验，拒绝非白名单内容
+- 仅支持 `udp / http / https / wss / ws` 协议，排除 localhost、内网、保留段等不安全地址
 
 ## 链接
 
 - 订阅主页：`https://tracker.pmwiu.com/`
-- 完整地址清单（含各镜像长链接）：[`trackers/MIRRORS.txt`](trackers/MIRRORS.txt)
-- 变更记录：[`CHANGELOG.md`](CHANGELOG.md) · 安全说明：[`SECURITY.md`](SECURITY.md)
-- Cloudflare Worker 源码：[`cloudflare/tracker-proxy.js`](cloudflare/tracker-proxy.js)
+- 完整地址清单：[`trackers/MIRRORS.txt`](trackers/MIRRORS.txt)
+- 变更记录：[`CHANGELOG.md`](CHANGELOG.md) · 安全策略：[`SECURITY.md`](SECURITY.md)
+- Worker 源码：[`cloudflare/tracker-proxy.js`](cloudflare/tracker-proxy.js)

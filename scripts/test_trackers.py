@@ -10,7 +10,7 @@ Tracker 活性自动测试 + 测速排序脚本（v3.0 优化版）。
      - wss/ws     : TCP + TLS 连通性检查
   3. 第二轮精测：对第一轮存活的前 100 个再次测速，取较优值
   4. 历史加权：读取上一次 alive 列表，连续存活的 tracker 获得稳定性加分
-  5. 综合评分排序：速度(50%) + 历史稳定性(30%) + 响应质量(20%)
+  5. 综合评分排序：速度(50%) + 历史稳定性(30%) + 响应质量(20%) + 地域适配加分(内地/内网)
   6. 取前 MAX_TRACKERS 个写入 alive.txt
 
 输出:
@@ -507,13 +507,44 @@ def quality_score(detail):
     return QUALITY_SCORES.get(detail, 60)
 
 
-def compute_score(elapsed_ms, uptime, detail):
+def mainland_bonus(tracker):
+    """中国内地/内网环境适配加分（精细加分，参考 XIU2 TrackersListCollection 的
+    trackers_best_ip 思路：IP 直连能规避 DNS 污染，在内地/内网环境更可靠）。
+
+    - IPv4 字面量直连: +5（规避 DNS 污染，内网直连友好）
+    - IPv6 字面量直连: +2（略弱于 IPv4）
+    - .cn 域名: +4（国内节点，延迟低、受干扰小）
+    - https: +2（穿透网络干扰更稳定）
+    可叠加，最高 +11。
     """
-    多维综合评分 = 速度(50%) + 历史稳定性(30%) + 响应质量(20%)
+    bonus = 0
+    try:
+        parsed = urllib.parse.urlparse(tracker)
+        host = (parsed.hostname or "").lower()
+        scheme = (parsed.scheme or "").lower()
+    except Exception:
+        return 0
+    if not host:
+        return 0
+    try:
+        ip = ipaddress.ip_address(host)
+        bonus += 5 if ip.version == 4 else 2
+    except ValueError:
+        if host.endswith(".cn"):
+            bonus += 4
+    if scheme == "https":
+        bonus += 2
+    return bonus
+
+
+def compute_score(tracker, elapsed_ms, uptime, detail):
+    """
+    综合评分 = 速度(50%) + 历史稳定性(30%) + 响应质量(20%) + 地域适配加分(最高 +11)
 
     - 速度分：响应时间连续线性归一化（0ms=100，1000ms=0）
     - 稳定性分：存活率 EMA（0~1）× 100，历史越稳越高
     - 质量分：协议级握手/响应完整性分级（完整 announce > 仅建连 > 仅可达）
+    - 地域加分：IP 直连 / .cn / https 针对内地与内网环境精细加权
     返回分数，越高越优。
     """
     # 速度分：连续线性映射，0ms=100、1000ms=0（越近 0ms 越接近满分，速度差异如实反映）
@@ -530,7 +561,8 @@ def compute_score(elapsed_ms, uptime, detail):
 
     return (speed_score * SCORE_SPEED_WEIGHT
             + stability_score * SCORE_STABILITY_WEIGHT
-            + quality * SCORE_QUALITY_WEIGHT)
+            + quality * SCORE_QUALITY_WEIGHT
+            + mainland_bonus(tracker))
 
 
 def select_top_with_protocol_quota(scored, max_total, min_non_udp):
@@ -644,7 +676,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
         f'- 同 IP 去重 (kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
-        f'- 评分维度: 速度 50% + 历史稳定性 30% + 响应质量 20%',
+        f'- 评分维度: 速度 50% + 历史稳定性 30% + 响应质量 20% + 地域适配加分(最高 +11)',
         f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
         f'实际保留 {sum(1 for t, *_ in alive_final if not t.startswith("udp://"))} 条',
         f'- 耗时: {elapsed:.1f} 秒',
@@ -656,8 +688,8 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         lines.append(f'- {proto}: {count}')
 
     lines += ['', f'## 最终订阅列表（前 {ut.MAX_TRACKERS} 个，按综合评分降序）', '']
-    for rank, (t, score, speed, up, q) in enumerate(alive_final, 1):
-        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%, 质量{q:.0f}')
+    for rank, (t, score, speed, up, q, bonus) in enumerate(alive_final, 1):
+        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%, 质量{q:.0f}, 地域+{bonus}')
 
     if dead:
         lines += ['', '## 失效 Tracker', '']
@@ -858,7 +890,7 @@ def main():
     scored = []
     for t, d, e in alive_with_speed:
         up = uptime_map.get(t, 0.0)
-        score = compute_score(e, up, d)
+        score = compute_score(t, e, up, d)
         scored.append((t, score, e, up, d))
 
     # 按综合评分降序，分数相同按速度升序
@@ -869,7 +901,7 @@ def main():
         scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS
     )
     alive_final_list = [t for t, _, _, _, _ in selected]
-    alive_final_detail = [(t, score, speed, up, quality_score(d))
+    alive_final_detail = [(t, score, speed, up, quality_score(d), mainland_bonus(t))
                           for t, score, speed, up, d in selected]
     n_non_udp_kept = sum(1 for t in alive_final_list if not t.startswith('udp://'))
 
