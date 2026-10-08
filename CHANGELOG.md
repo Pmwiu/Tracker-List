@@ -2,6 +2,16 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - fix
+- 清理失效参数：mirror_urls 移除无 DNS 的 raw.pmwiu.com / gh.pmwiu.com 镜像主机，
+  仅保留可用的 jsDelivr 回退
+- Worker 修复「失效/未知路径返回 200 index.html」：Pages 对未知 .txt 路径会回退
+  index.html 且 _headers 把 content-type 伪装成 text/plain，改为按正文特征识别并
+  拒绝；Pages/GH 回退仅作用于 docs/ 内容（trackers//reports/ 仅走 Raw）
+- 重新部署 Worker，失效别名（run_best/opentracker 等）现正确返回 404
+- SECURITY.md 同步：权限（+issues:write）、Action 版本（v5/v6/v8）、触发方式
+  （含 push）、推荐订阅短链接改为 tracker.pmwiu.com/best.txt
+
 ## [2026-10-08] - feat
 - 订阅源替换为 8 个 best 精选源：ngosang（jsDelivr 加速）、cf、以及
   gonghailink / panda-men / gspu / linux-jin / AlphaCatMeow / pexcn 的

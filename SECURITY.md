@@ -13,13 +13,13 @@
 
 - 仓库**不包含、不存储**任何密码、令牌（Token）、API Key 等凭证
 - 活性测试使用的 `info_hash`、`peer_id` 均在每次运行时**随机生成**，不关联任何真实种子或身份
-- 自动维护通过 GitHub Actions 的临时 `GITHUB_TOKEN` 完成，权限最小化为 `contents: write`（仅用于推送更新），不授予 issues、packages、pull-requests 等其他权限
+- 自动维护通过 GitHub Actions 的临时 `GITHUB_TOKEN` 完成，权限最小化为 `contents: write` + `issues: write`（前者用于推送更新，后者仅用于失败时自动创建告警 Issue）
 
 ## 供应链与攻击面
 
-- 工作流**仅由定时计划（schedule）和手动触发（workflow_dispatch）运行**，不监听 `pull_request` 事件，因此来自 Fork 的外部 Pull Request **无法触发**本仓库工作流
+- 工作流由定时计划（schedule）、手动触发（workflow_dispatch）以及 `main` 分支上 `scripts/**` 与工作流文件变更时触发；**不监听 `pull_request` 事件**，因此来自 Fork 的外部 Pull Request **无法触发**本仓库工作流
 - 工作流设置了最大运行时长（`timeout-minutes`），防止失控
-- 第三方 Actions 固定使用官方主版本标签（`actions/checkout@v4`、`actions/setup-python@v5`）
+- 第三方 Actions 固定使用官方主版本标签（`actions/checkout@v5`、`actions/setup-python@v6`、`actions/github-script@v8`，均运行于 Node 24）
 
 ## 功能收敛
 
@@ -34,5 +34,5 @@
 推荐订阅经过协议级活性测试的存活列表，避免连接失效或不可信节点：
 
 ```
-https://pmwiu.github.io/Tracker-List/s/alive
+https://tracker.pmwiu.com/best.txt
 ```

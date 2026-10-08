@@ -376,16 +376,15 @@ def _is_retryable(err):
 
 
 def mirror_urls(url):
-    """返回订阅源的镜像候选地址（原始地址不可达时按顺序回退）。
+    """返回订阅源的镜像候选地址（原始地址不可达时回退）。
 
-    仅对白名单内的 URL 调用。raw.githubusercontent.com 地址额外支持
-    raw.pmwiu.com（专属 Raw 镜像）与 jsDelivr；其余地址走 gh.pmwiu.com 代理。
+    仅对白名单内的 URL 调用。raw.githubusercontent.com 地址回退到
+    jsDelivr（cdn.jsdelivr.net/gh/<owner>/<repo>@<ref>/<path>）。
     """
     candidates = []
     prefix = "https://raw.githubusercontent.com/"
     if url.startswith(prefix):
         rest = url[len(prefix):]
-        candidates.append("https://raw.pmwiu.com/" + rest)
         parts = rest.split("/")
         ref_index = 2
         if len(parts) >= 6 and parts[2] == "refs" and parts[3] == "heads":
@@ -395,7 +394,6 @@ def mirror_urls(url):
             ref = parts[ref_index]
             path = "/".join(parts[ref_index + 1:])
             candidates.append(f"https://cdn.jsdelivr.net/gh/{owner}/{repo}@{ref}/{path}")
-    candidates.append("https://gh.pmwiu.com/" + url)
 
     seen = set()
     ordered = []

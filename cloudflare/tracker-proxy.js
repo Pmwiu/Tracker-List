@@ -88,12 +88,22 @@ function contentType(repoPath) {
   return "text/plain; charset=utf-8";
 }
 
-async function tryFetch(url, ttl) {
+async function tryFetch(url, ttl, expectText) {
   const resp = await fetch(url, { cf: { cacheEverything: true, cacheTtl: ttl } });
-  return resp.ok ? resp : null;
+  if (!resp.ok) return null;
+  const text = await resp.text();
+  if (expectText) {
+    // Pages 对未知 .txt 路径回退 index.html，且 _headers 会把 content-type
+    // 伪装成 text/plain，故必须按正文特征识别 HTML 回退页
+    const head = text.trimStart().toLowerCase();
+    if (head.startsWith("<!doctype") || head.startsWith("<html") || head.startsWith("<!DOCTYPE")) {
+      return null;
+    }
+  }
+  return text;
 }
 
-function respond(resp, repoPath, upstream, isHead) {
+function respond(repoPath, upstream, body, isHead) {
   const headers = {
     "content-type": contentType(repoPath),
     "cache-control": "no-cache",
@@ -101,7 +111,7 @@ function respond(resp, repoPath, upstream, isHead) {
     "access-control-allow-methods": "GET, HEAD, OPTIONS",
     "x-tracker-upstream": upstream,
   };
-  return new Response(isHead ? null : resp.body, { status: 200, headers });
+  return new Response(isHead ? null : body, { status: 200, headers });
 }
 
 async function handle(request) {
@@ -154,10 +164,11 @@ async function handle(request) {
   // ---- jsDelivr 加速镜像: /jsd/<任意短链接> ----
   if (p.startsWith("jsd/")) {
     const repoPath = resolveRepoPath(normalize("/" + p.slice(4)));
+    const expectText = !repoPath.endsWith(".html");
     for (const t of [JSD_BASE + "/" + repoPath, REPO_RAW + "/" + repoPath]) {
       try {
-        const resp = await tryFetch(t, 300);
-        if (resp) return respond(resp, repoPath, t, isHead);
+        const body = await tryFetch(t, 300, expectText);
+        if (body !== null) return respond(repoPath, t, body, isHead);
       } catch (e) {}
     }
     return new Response("jsdelivr mirror unavailable\n", { status: 502 });
@@ -165,13 +176,19 @@ async function handle(request) {
 
   // ---- 常规短链接: raw → CF Pages → GH Pages ----
   const repoPath = resolveRepoPath(p);
-  const ttl = repoPath.endsWith(".html") ? 60 : 300;
-  const pagesPath = repoPath.replace(/^docs\//, "");
+  const isHtml = repoPath.endsWith(".html");
+  const ttl = isHtml ? 60 : 300;
+  const targets = [REPO_RAW + "/" + repoPath];
+  // Pages 站点以 docs/ 为根，仅 docs/ 内容有 Pages 镜像；trackers/、reports/ 仅存于 Raw
+  if (repoPath.startsWith("docs/")) {
+    const pagesPath = repoPath.replace(/^docs\//, "");
+    targets.push(CF_PAGES + "/" + pagesPath, GH_PAGES + "/" + pagesPath);
+  }
   let notFound = false;
-  for (const t of [REPO_RAW + "/" + repoPath, CF_PAGES + "/" + pagesPath, GH_PAGES + "/" + pagesPath]) {
+  for (const t of targets) {
     try {
-      const resp = await tryFetch(t, ttl);
-      if (resp) return respond(resp, repoPath, t, isHead);
+      const body = await tryFetch(t, ttl, !isHtml);
+      if (body !== null) return respond(repoPath, t, body, isHead);
       notFound = true;
     } catch (e) {}
   }
