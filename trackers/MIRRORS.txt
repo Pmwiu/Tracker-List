@@ -1,5 +1,5 @@
 # Tracker 订阅地址清单
-# Generated: 2026-10-08 13:15:09 UTC
+# Generated: 2026-10-08 13:37:35 UTC
 # 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr
 # 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)
 
@@ -108,6 +108,14 @@ https://tracker.pmwiu.com/jsd/src/alphacatmeow_best.txt
 https://tracker.pmwiu.com/src/pexcn_best.txt
 # [pexcn-best 加速]
 https://tracker.pmwiu.com/jsd/src/pexcn_best.txt
+# [opentracker 短链接]
+https://tracker.pmwiu.com/src/opentracker.txt
+# [opentracker 加速]
+https://tracker.pmwiu.com/jsd/src/opentracker.txt
+# [trackersrun-ws 短链接]
+https://tracker.pmwiu.com/src/run_ws.txt
+# [trackersrun-ws 加速]
+https://tracker.pmwiu.com/jsd/src/run_ws.txt
 # [ngosang-i2p 短链接]
 https://tracker.pmwiu.com/src/ngosang_i2p.txt
 # [ngosang-i2p 加速]
