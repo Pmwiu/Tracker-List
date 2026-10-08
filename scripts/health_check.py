@@ -183,9 +183,12 @@ def check_local_files(results):
     # 纯文本文件
     for ptf in PLAIN_TEXT_FILES:
         path = os.path.join(PAGES_DIR, ptf)
-        if os.path.exists(path) and os.path.getsize(path) > 0:
-            with open(path, "r", encoding="utf-8") as fh:
-                count = count_trackers_in_text(fh.read())
+        if os.path.exists(path):
+            if os.path.getsize(path) > 0:
+                with open(path, "r", encoding="utf-8") as fh:
+                    count = count_trackers_in_text(fh.read())
+            else:
+                count = 0  # 空协议列表（如 ws.txt 无 tracker）合法
             results.append(("PASS", f"Plain text: /{ptf}", f"{count} trackers"))
         else:
             results.append(("FAIL", f"Plain text: /{ptf}", "missing"))
