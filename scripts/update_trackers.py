@@ -715,7 +715,7 @@ def generate_index_page(repo, short_links_with_urls, tracker_counts):
 
     cards = (
         plan_card("best", "best 精选", MAX_TRACKERS,
-                  "协议级活性测试 + 综合评分（速度 60% + 稳定性 25% + 质量 15%，速度标度自适应），保底 "
+                  "协议级活性测试 + 综合评分（速度 60% + 稳定性 25% + 质量 15%，速度标度自适应 + 经典高可用优先），保底 "
                   f"{MIN_NON_UDP_TRACKERS} 条非 UDP",
                   "qBittorrent / Aria2 等客户端直接粘贴订阅")
         + "\n"

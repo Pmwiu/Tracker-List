@@ -3,6 +3,11 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-08] - feat
+- 评分新增「经典高可用加分」：长期稳定、广泛使用的经典公共 tracker 主机名
+  （opentrackr / stealth.si / torrent.eu.org / demonii / desync / explodie 等）
+  在综合评分中额外 +6，实现「经典高可用 Tracker 优先」的高质量要求
+
+## [2026-10-08] - feat
 - 补充订阅源 tracker.adysec.com/trackers_best.txt（adysec 成熟 Rust 聚合项目），
   同步更新白名单、docs 镜像、健康检查清单与 README（源数 11→12）
 

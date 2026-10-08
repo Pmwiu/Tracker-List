@@ -10,7 +10,7 @@ Tracker 活性自动测试 + 测速排序脚本（v3.0 优化版）。
      - wss/ws     : TCP + TLS 连通性检查
   3. 第二轮精测：对第一轮存活的前 100 个再次测速，取较优值
   4. 历史加权：读取上一次 alive 列表，连续存活的 tracker 获得稳定性加分
-  5. 综合评分排序：速度(60%, 自适应标度) + 历史稳定性(25%) + 响应质量(15%)
+  5. 综合评分排序：速度(60%, 自适应标度) + 历史稳定性(25%) + 响应质量(15%) + 经典高可用加分
   6. 取前 MAX_TRACKERS 个写入 alive.txt
 
 输出:
@@ -523,6 +523,35 @@ def quality_score(detail):
     return QUALITY_SCORES.get(detail, 60)
 
 
+# 经典高可用加分：长期稳定、广泛使用的公共 tracker 主机名（仅对存活 tracker 生效）
+CLASSIC_BONUS = 6.0
+CLASSIC_HOSTS = {
+    "tracker.opentrackr.org",
+    "open.stealth.si",
+    "tracker.torrent.eu.org",
+    "open.demonii.com",
+    "exodus.desync.com",
+    "explodie.org",
+    "tracker.moeking.me",
+    "tracker.openbittorrent.com",
+    "openbittorrent.com",
+    "tracker.leechers-paradise.org",
+    "tracker.coppersurfer.tk",
+    "tracker.internetwarriors.net",
+    "tracker.cyberia.is",
+    "tracker.tiny-vps.com",
+}
+
+
+def classic_bonus(tracker):
+    """经典高可用 tracker 加分：主机名命中经典名单则 +CLASSIC_BONUS。"""
+    try:
+        host = (urllib.parse.urlparse(tracker).hostname or "").lower()
+    except Exception:
+        return 0.0
+    return CLASSIC_BONUS if host in CLASSIC_HOSTS else 0.0
+
+
 def make_speed_scorer(all_elapsed_ms):
     """返回一个 speed_score(ms) 函数：自适应速度分，标度随本 run 中位延迟自校准。
 
@@ -544,13 +573,14 @@ def make_speed_scorer(all_elapsed_ms):
     return _score
 
 
-def compute_score(speed, uptime, detail):
+def compute_score(tracker, speed, uptime, detail):
     """
-    综合评分 = 速度(60%) + 历史稳定性(25%) + 响应质量(15%)
+    综合评分 = 速度(60%) + 历史稳定性(25%) + 响应质量(15%) + 经典高可用加分
 
     - 速度分：自适应线性归一化（由 make_speed_scorer 提供）
     - 稳定性分：存活率 EMA（0~1）× 100，历史越稳越高
     - 质量分：协议级握手/响应完整性分级（完整 announce > 仅建连 > 仅可达）
+    - 经典加分：长期稳定、广泛使用的经典公共 tracker 主机名额外加权
     返回分数，越高越优。
     """
     # 稳定性分：存活率 EMA（0~1）→ 0~100
@@ -561,7 +591,8 @@ def compute_score(speed, uptime, detail):
 
     return (speed * SCORE_SPEED_WEIGHT
             + stability_score * SCORE_STABILITY_WEIGHT
-            + quality * SCORE_QUALITY_WEIGHT)
+            + quality * SCORE_QUALITY_WEIGHT
+            + classic_bonus(tracker))
 
 
 def select_top_with_protocol_quota(scored, max_total, min_non_udp):
@@ -685,7 +716,7 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
         f'- 同网段去重 (/24, kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
-        f'- 评分维度: 速度 60% + 历史稳定性 25% + 响应质量 15%（速度标度自适应）',
+        f'- 评分维度: 速度 60% + 历史稳定性 25% + 响应质量 15%（速度标度自适应 + 经典高可用加分）',
         f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
         f'实际保留 {sum(1 for t, *_ in alive_final if not t.startswith("udp://"))} 条',
         f'- 耗时: {elapsed:.1f} 秒',
@@ -697,8 +728,8 @@ def write_report(results, alive_final, alive_sorted, capped, elapsed, protocol_s
         lines.append(f'- {proto}: {count}')
 
     lines += ['', f'## 最终订阅列表（前 {ut.MAX_TRACKERS} 个，按综合评分降序）', '']
-    for rank, (t, score, speed, up, q) in enumerate(alive_final, 1):
-        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%, 质量{q:.0f}')
+    for rank, (t, score, speed, up, q, cb) in enumerate(alive_final, 1):
+        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%, 质量{q:.0f}, 经典+{cb:.0f}')
 
     if dead:
         lines += ['', '## 失效 Tracker', '']
@@ -902,7 +933,7 @@ def main():
     scored = []
     for t, d, e in alive_with_speed:
         up = uptime_map.get(t, 0.0)
-        score = compute_score(speed_score(e), up, d)
+        score = compute_score(t, speed_score(e), up, d)
         scored.append((t, score, e, up, d))
 
     # 按综合评分降序，分数相同按速度升序
@@ -913,7 +944,7 @@ def main():
         scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS
     )
     alive_final_list = [t for t, _, _, _, _ in selected]
-    alive_final_detail = [(t, score, speed, up, quality_score(d))
+    alive_final_detail = [(t, score, speed, up, quality_score(d), classic_bonus(t))
                           for t, score, speed, up, d in selected]
     n_non_udp_kept = sum(1 for t in alive_final_list if not t.startswith('udp://'))
 
