@@ -68,7 +68,7 @@ jobs:
             echo "--- Test source connectivity ---"
             for u in $(python -c "import sys; sys.path.insert(0, 'scripts'); import update_trackers as ut; print(' '.join(u for _, u, _ in ut.SOURCES))"); do
               echo ">>> $u"
-              curl -sS -o /dev/null -w "  HTTP %{http_code}, total %{time_total}s\n" --connect-timeout 8 --max-time 20 "$u" || echo "  curl exit: $?"
+              curl -sS -o /dev/null -A "Mozilla/5.0 (compatible; TrackerListBot/3.0)" -w "  HTTP %{http_code}, total %{time_total}s\n" --connect-timeout 8 --max-time 20 "$u" || echo "  curl exit: $?"
             done
           } 2>&1 | tee diag.log
 
