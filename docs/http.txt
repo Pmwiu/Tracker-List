@@ -1,5 +1,16 @@
+http://004430.xyz:80/announce
 http://1337.abcvg.info:80/announce
+http://135.125.198.235:2710/announce
+http://135.125.198.235:80/announce
+http://138.186.10.167:1337/announce
+http://140.235.237.23:6969/announce
+http://152.249.214.196:6969/announce
+http://185.126.65.92:6969/announce
+http://207.241.226.111:6969/announce
+http://207.241.231.226:6969/announce
 http://211.75.205.187:6969/announce
+http://211.75.205.187:80/announce
+http://211.75.205.188:6969/announce
 http://bt1.archive.org:6969/announce
 http://bt2.archive.org:6969/announce
 http://btrackrqkjp6kgelov5a3uxisis77ofxqt5nvy5hvvtoybjpmq4q.b32.i2p:80/announce
@@ -21,10 +32,8 @@ http://tracker.dler.com:6969/announce
 http://tracker.dler.org:6969/announce
 http://tracker.insulaocculta.i2p:80/a
 http://tracker.mywaifu.best:6969/announce
-http://tracker.nyaa2p.i2p:80/announce
 http://tracker.opentrackr.org:1337/announce
 http://tracker.renfei.net:8080/announce
 http://tracker.waaa.moe:6969/announce
 http://www.wareztorrent.com:80/announce
-http://yet-another-public-tracker.i2p:80/announce
 http://yggtracker.i2p.rocks:80/announce

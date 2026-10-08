@@ -1,5 +1,5 @@
 # Tracker 订阅地址清单
-# Generated: 2026-10-08 11:05:03 UTC
+# Generated: 2026-10-08 12:12:26 UTC
 # 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr
 # 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)
 
@@ -74,6 +74,10 @@ https://tracker.pmwiu.com/jsd/src/ngosang_best_ip.txt
 https://tracker.pmwiu.com/src/cf_best.txt
 # [cf-best 加速]
 https://tracker.pmwiu.com/jsd/src/cf_best.txt
+# [adysec-best 短链接]
+https://tracker.pmwiu.com/src/adysec_best.txt
+# [adysec-best 加速]
+https://tracker.pmwiu.com/jsd/src/adysec_best.txt
 # [gonghailink-best 短链接]
 https://tracker.pmwiu.com/src/gonghailink_best.txt
 # [gonghailink-best 加速]
