@@ -2,6 +2,15 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - fix
+- 收紧判活标准（参照 ngosang/XIU2 只收录真正开放的 tracker，修复「订阅列表大部分
+  不可用」问题）：
+  - HTTP「failure reason」= 私有/受限 tracker（拒绝未知 info_hash）→ 判为失效
+  - HTTP「仅 bencoded 无 announce 字段」→ 判为失效
+  - UDP「仅 connect 成功、announce 无响应」→ 判为失效；announce 响应须校验
+    action==1 且事务号匹配，并增加一次重试降低高并发 UDP 丢包假阴性
+  - 存活列表现仅含「完成完整 announce 握手且返回有效响应」的 tracker
+
 ## [2026-10-08] - feat
 - 评分新增「经典高可用加分」：长期稳定、广泛使用的经典公共 tracker 主机名
   （opentrackr / stealth.si / torrent.eu.org / demonii / desync / explodie 等）

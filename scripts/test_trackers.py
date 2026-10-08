@@ -234,14 +234,16 @@ def test_http(tracker_url, timeout):
         return False, elapsed, 'response is not a bencoded dictionary'
 
     # bdecode 的 key 都是 bytes，直接检查 bytes key
+    # 关键：failure reason = 私有/受限 tracker（拒绝未知 info_hash），对随机种子下载无效，
+    # 必须判为不可用（参考 ngosang/XIU2 只收录真正开放的 tracker）
     if b'failure reason' in decoded:
-        return True, elapsed, 'online (failure reason)'
+        return False, elapsed, 'restricted (failure reason)'
     # 细分：返回 peers（真正可用的节点列表）质量最高；仅 interval/complete/incomplete 次之
     if b'peers' in decoded:
         return True, elapsed, 'announce with peers'
     if b'interval' in decoded or b'complete' in decoded or b'incomplete' in decoded:
         return True, elapsed, 'announce without peers'
-    return True, elapsed, 'online (bencoded dict)'
+    return False, elapsed, 'no announce fields'
 
 
 # ============================================================
@@ -286,30 +288,36 @@ def test_udp(host, port, timeout, max_retries=2):
 
     connection_id = struct.unpack('>Q', data[8:16])[0]
 
-    # 尝试 announce（失败不影响存活判定）
-    try:
-        info_hash, peer_id = make_identity()
-        ap = struct.pack('>QII', connection_id, 1, txn)
-        ap += info_hash + peer_id
-        ap += struct.pack('>QQQ', 0, 1000000, 0)
-        ap += struct.pack('>III', 0, 0, random.randint(0, 0xFFFFFFFF))
-        ap += struct.pack('>iH', -1, 6881)
-        sock.sendto(ap, addr)
-        remaining = timeout - (time.time() - start)
-        if remaining > 0:
+    # 尝试 announce：必须返回匹配事务号的 announce 响应才算可用（完整握手，
+    # 参考 ngosang/XIU2 的 best 列表收录标准），仅 connect 不返回 announce 视为不可用。
+    # 带一次重试，降低高并发下 UDP 响应丢失导致的假阴性。
+    info_hash, peer_id = make_identity()
+    for announce_attempt in range(2):
+        try:
+            ap = struct.pack('>QII', connection_id, 1, txn)
+            ap += info_hash + peer_id
+            ap += struct.pack('>QQQ', 0, 1000000, 0)
+            ap += struct.pack('>III', 0, 0, random.randint(0, 0xFFFFFFFF))
+            ap += struct.pack('>iH', -1, 6881)
+            sock.sendto(ap, addr)
+            remaining = timeout - (time.time() - start)
+            if remaining <= 0:
+                break
             sock.settimeout(min(remaining, 3))
             try:
                 adata, _ = sock.recvfrom(2048)
                 if adata and len(adata) >= 8:
-                    sock.close()
-                    return True, elapsed, 'valid connect + announce'
+                    raction, rtxn = struct.unpack('>II', adata[:8])
+                    if raction == 1 and rtxn == txn:  # 确认为本事务的 announce 响应
+                        sock.close()
+                        return True, elapsed, 'valid connect + announce'
             except socket.timeout:
                 pass
-    except Exception:
-        pass
+        except Exception:
+            break
 
     sock.close()
-    return True, elapsed, 'valid connect (announce not confirmed)'
+    return False, elapsed, 'announce no response'
 
 
 # ============================================================
@@ -506,16 +514,13 @@ SCORE_SPEED_WEIGHT = 0.60
 SCORE_STABILITY_WEIGHT = 0.25
 SCORE_QUALITY_WEIGHT = 0.15
 
-# 响应质量分：协议级握手/响应完整性越充分，可信度越高（参考 adysec/ngosang 的测试分级）
+# 响应质量分：仅对「完成完整 announce 握手」的存活 tracker 分级
 QUALITY_SCORES = {
     'announce with peers': 100,               # HTTP/HTTPS：返回 peers（可用节点列表）
     'valid connect + announce': 100,          # UDP：connect + announce 全握手
     'announce without peers': 90,             # HTTP/HTTPS：有 announce 字段但无 peers
     'TLS reachable': 90,                      # WSS：TLS 建连成功
     'TCP reachable': 80,                      # WS：TCP 建连成功
-    'online (bencoded dict)': 80,             # HTTP：有 bencoded 响应但缺 announce 字段
-    'valid connect (announce not confirmed)': 70,  # UDP：仅 connect 确认
-    'online (failure reason)': 55,            # HTTP：可达但拒绝请求
 }
 
 
