@@ -911,8 +911,8 @@ def main():
         if url_blacklist:
             print(f"[INFO] Dynamic blacklist: {len(url_blacklist)} URLs")
 
-        all_merged = []          # 按源优先级（SOURCES 顺序，精选源在前）收集
-        seen_merged = set()
+        all_merged = []          # 轮转合并结果（见下方），去重后取前 MAX_ALL 条
+        per_source = []          # [(short_name, sorted_trackers), ...]
         results = []
         failures = []
 
@@ -944,12 +944,7 @@ def main():
                     continue
             write_trackers(os.path.join(OUTPUT_DIR, filename), trackers, source_url=url)
             _backup_file(filename)
-            for t in trackers:
-                if t in seen_merged or not t.startswith(("http://", "https://", "udp://", "wss://", "ws://")):
-                    continue
-                seen_merged.add(t)
-                if len(all_merged) < MAX_ALL:
-                    all_merged.append(t)
+            per_source.append((short_name, trackers))
             results.append((filename, len(trackers)))
             print(f"[OK]   {len(trackers)} unique")
 
@@ -958,8 +953,31 @@ def main():
             for fn, sn, err in failures:
                 print(f"  - {sn}: {err}")
 
+        # 轮转合并：按 SOURCES 顺序逐源轮流取一条（去重），避免前面的源一次占满
+        # MAX_ALL 条，导致后面的精选源（如 ngosang best_ip / OpenTracker）完全无法入选。
+        seen_merged = set()
+        valid_prefixes = ("http://", "https://", "udp://", "wss://", "ws://")
+        contribution = {}
+        max_len = max((len(ts) for _, ts in per_source), default=0)
+        for i in range(max_len):
+            for short_name, ts in per_source:
+                if i >= len(ts):
+                    continue
+                t = ts[i]
+                if t in seen_merged or not t.startswith(valid_prefixes):
+                    continue
+                seen_merged.add(t)
+                all_merged.append(t)
+                contribution[short_name] = contribution.get(short_name, 0) + 1
+                if len(all_merged) >= MAX_ALL:
+                    break
+            if len(all_merged) >= MAX_ALL:
+                break
+        print(f"{NL}[INFO] all 合并贡献: " +
+              ", ".join(f"{sn}={contribution.get(sn, 0)}" for _, _, sn in SOURCES))
+
         if all_merged:
-            merged = sorted(all_merged)  # 已按源优先级（精选源在前）取前 MAX_ALL 条
+            merged = sorted(all_merged)  # 轮转合并 + 去重，取前 MAX_ALL 条
             write_trackers(
                 os.path.join(OUTPUT_DIR, MERGED_FILE), merged,
                 source_url=", ".join(u for _, u, _ in SOURCES),

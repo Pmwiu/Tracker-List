@@ -2,6 +2,12 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-08] - fix
+- all 合并改为「按源轮转」：原顺序取满 100 条会让 cf/trackers.run 占满名额，
+  ngosang best_ip（16 条）与 OpenTracker（24 条）的独有 tracker 永远进不了 all；
+  轮转后每个精选源都能贡献，all 覆盖更全、候选更多
+- 合并日志新增各源贡献统计（cf=… run=… ngosang=…）
+
 ## [2026-10-08] - feat
 - 短链接服务规范化：Worker 重写并入库（cloudflare/tracker-proxy.js）。
   规范：`/best.txt` `/all.txt`（兼容 /alive.txt /merged.txt）、`/p/<协议>.txt`、
