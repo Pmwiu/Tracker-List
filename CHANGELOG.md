@@ -2,6 +2,12 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-10] - feat
+- best 总数 20→25（最多 25）、all 总数 100→59（最多 59），均按评分降序取足目标条数；
+  为保证 all 能填满 59，新增独立的候选池上限 `MAX_CANDIDATES=200`（merge 阶段测试
+  足够多候选，独立于 all 输出上限），让存活池有足够多 tracker 填入 59 条
+- 同步更新：health_check MAX_ALIVE 20→25、README 徽章与订阅表、Worker 注释
+
 ## [2026-10-08] - chore
 - 清理死参数与冗余：write_trackers 移除 source_url/extra_header、write_result_file
   移除 description、generate_index_page 移除 short_links_with_urls、write_report 移除

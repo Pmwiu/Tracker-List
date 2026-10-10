@@ -3,7 +3,7 @@
 // 路由: tracker.pmwiu.com/*
 //
 // 短链接规范（全部 txt）:
-//   /best.txt  /alive.txt   → trackers_alive.txt   (best, 20 条, 协议多样性配额)
+//   /best.txt  /alive.txt   → trackers_alive.txt   (best, ≤25 条, 协议多样性配额)
 //   /all.txt                → trackers_all.txt     (all, 存活去重, 完整 announce)
 //   /merged.txt             → trackers_merged.txt  (原始候选池)
 //   /p/{udp,http,https,wss,ws}.txt → 协议子列表

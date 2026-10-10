@@ -5,8 +5,8 @@
 生产级 BitTorrent Tracker 订阅服务 · 自动聚合 · 协议级探活 · 多维综合评分
 
 <img src="https://img.shields.io/github/actions/workflow/status/Pmwiu/Tracker-List/update-trackers.yml?branch=main&label=build&style=flat-square" alt="build">
-<img src="https://img.shields.io/badge/best-20-2563eb?style=flat-square" alt="best 20">
-<img src="https://img.shields.io/badge/all-100-2563eb?style=flat-square" alt="all 100">
+<img src="https://img.shields.io/badge/best-25-2563eb?style=flat-square" alt="best 25">
+<img src="https://img.shields.io/badge/all-59-2563eb?style=flat-square" alt="all 59">
 <img src="https://img.shields.io/badge/sources-14-2563eb?style=flat-square" alt="14 sources">
 <img src="https://img.shields.io/badge/secure-no%20secrets-16a34a?style=flat-square" alt="no secrets">
 
@@ -18,8 +18,8 @@
 
 | 计划 | 条数 | 短链接 (txt) | 加速短链接 (txt) |
 |:---:|:---:|---|---|
-| **best** 精选 | 20 | `https://tracker.pmwiu.com/best.txt` | `https://tracker.pmwiu.com/jsd/best.txt` |
-| **all** 存活 | 100 | `https://tracker.pmwiu.com/all.txt` | `https://tracker.pmwiu.com/jsd/all.txt` |
+| **best** 精选 | 25 | `https://tracker.pmwiu.com/best.txt` | `https://tracker.pmwiu.com/jsd/best.txt` |
+| **all** 存活 | 59 | `https://tracker.pmwiu.com/all.txt` | `https://tracker.pmwiu.com/jsd/all.txt` |
 
 > 短链接由 Cloudflare Worker 网关提供；加速短链接走 jsDelivr 全球 CDN。
 > qBittorrent、Aria2 等客户端直接粘贴短链接即可订阅。

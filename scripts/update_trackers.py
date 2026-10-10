@@ -67,8 +67,9 @@ SOURCES = [
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
 
-MAX_TRACKERS = 20   # best 存活，正好 20 条
-MAX_ALL = 100       # all 合并，正好 100 条
+MAX_TRACKERS = 25   # best 存活，最多 25 条
+MAX_ALL = 59        # all 合并，最多 59 条
+MAX_CANDIDATES = 200  # 候选池测试上限（merge 阶段），独立于 MAX_ALL，确保有足够存活填满 all=59
 MIN_NON_UDP_TRACKERS = 4  # best 列表保底非 UDP（http/https/wss/ws）条数，防止单一协议失效时订阅整体不可用
 
 # all 列表协议保底：稀有协议（wss/ws）只要存在就保留；常见协议保证最小席位，其余由轮转填充
@@ -761,7 +762,7 @@ def generate_index_page(repo, tracker_counts):
                   f"{MIN_NON_UDP_TRACKERS} 条非 UDP",
                   "qBittorrent / Aria2 等客户端直接粘贴订阅")
         + "\n"
-        + plan_card("all", "all 合并", MAX_ALL,
+        + plan_card("all", "all 存活", MAX_ALL,
                     f"{n_sources} 个精选源按优先级合并去重",
                     "追求覆盖面的完整列表")
     )
@@ -995,8 +996,9 @@ def main():
         if url_blacklist:
             print(f"[INFO] URL blacklist: {len(url_blacklist)} URLs (dynamic + remote sources)")
 
-        all_merged = []          # 轮转合并结果（见下方），去重后取前 MAX_ALL 条
-        per_source = []          # [(short_name, sorted_trackers), ...]
+        all_merged = []          # 轮转合并结果（见下方），候选池上限 MAX_CANDIDATES；
+        per_source = []          # 最终 all 列表取其中评分前 MAX_ALL 条
+        # [(short_name, sorted_trackers), ...]
         results = []
         failures = []
         fingerprints = {}        # {short_name: 内容指纹}，用于源新鲜度检测
@@ -1042,9 +1044,11 @@ def main():
         # 记录源内容指纹，供 health_check 检测「源长时间未更新」
         update_source_state(fingerprints)
 
-        # 两阶段合并：协议保底（稀有协议优先占位）+ 按源轮转填充，去重后取 MAX_ALL 条。
+        # 两阶段合并：协议保底（稀有协议优先占位）+ 按源轮转填充，去重后取 MAX_CANDIDATES 条。
         # 目的：all 既保证各协议有席位（wss/ws 只要存在就保留、https/http/udp 保底），
         # 又保证每个精选源都能贡献（避免 cf/trackers.run 占满名额）。
+        # 测试候选池独立于 all 输出上限（MAX_CANDIDATES > MAX_ALL），保证有足够存活
+        # 填满 all 列表。
         seen_merged = set()
         valid_prefixes = ("http://", "https://", "udp://", "wss://", "ws://")
         contribution = {}
@@ -1062,22 +1066,22 @@ def main():
             got = 0
             for short_name, ts in per_source:
                 for t in ts:
-                    if got >= floor or len(all_merged) >= MAX_ALL:
+                    if got >= floor or len(all_merged) >= MAX_CANDIDATES:
                         break
                     if t.startswith(proto + "://") and _pick(t, short_name):
                         got += 1
-                if got >= floor or len(all_merged) >= MAX_ALL:
+                if got >= floor or len(all_merged) >= MAX_CANDIDATES:
                     break
 
         # Phase B：轮转填充剩余席位（按 SOURCES 顺序逐源轮流取一条）
-        if len(all_merged) < MAX_ALL:
+        if len(all_merged) < MAX_CANDIDATES:
             max_len = max((len(ts) for _, ts in per_source), default=0)
             for i in range(max_len):
                 for short_name, ts in per_source:
                     if i < len(ts):
-                        if _pick(ts[i], short_name) and len(all_merged) >= MAX_ALL:
+                        if _pick(ts[i], short_name) and len(all_merged) >= MAX_CANDIDATES:
                             break
-                if len(all_merged) >= MAX_ALL:
+                if len(all_merged) >= MAX_CANDIDATES:
                     break
 
         proto_counts = {}

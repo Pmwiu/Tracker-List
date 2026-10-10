@@ -113,7 +113,7 @@ CONSISTENCY_MAP = {
     "trackers_ws.txt": "ws.txt",
 }
 
-MAX_ALIVE = 20
+MAX_ALIVE = 25
 MIN_ALIVE_WARN = 5    # 存活数低于该值告警（可能源大面积失效）
 MIN_MERGED_WARN = 30  # 合并数低于该值告警（可能源异常或去重过度）
 STALE_SOURCE_DAYS = 7  # 源内容连续不变超过该天数告警（源可能已停止更新）
