@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-11 13:09:34 UTC",
+  "timestamp": "2026-10-11 22:10:05 UTC",
   "status": "success",
-  "duration_sec": 0.5,
+  "duration_sec": 1.5,
   "sources": {
     "ngosang-best": {
       "http_code": 200,
@@ -20,7 +20,7 @@
     },
     "adysec-best": {
       "http_code": 200,
-      "lines": 243,
+      "lines": 240,
       "ok": true
     },
     "gonghailink-best": {
@@ -50,7 +50,7 @@
     },
     "pexcn-best": {
       "http_code": 200,
-      "lines": 60,
+      "lines": 61,
       "ok": true
     },
     "opentracker": {

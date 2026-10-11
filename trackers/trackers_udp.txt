@@ -20,10 +20,10 @@ udp://51.15.41.46:6969/announce
 udp://51.81.222.188:6969/announce
 udp://52.58.128.163:6969/announce
 udp://65.109.28.17:6969/announce
+udp://65.109.28.33:6969/announce
 udp://6ahddutb1ucc3cp.ru:6969/announce
 udp://83.102.180.21:80/announce
 udp://89.234.156.205:451/announce
-udp://93.158.213.92:1337/announce
 udp://93.158.213.92:6969/announce
 udp://95.217.80.20:6969/announce
 udp://95.217.80.22:6969/announce
