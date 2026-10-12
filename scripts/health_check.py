@@ -121,6 +121,9 @@ REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 HEALTH_FILE = os.path.join(REPORTS_DIR, "health.json")
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
 
+# best 计划条数上限：从 update_trackers 共享，导入失败时回落到 25（与历史一致）
+MAX_ALIVE = getattr(ut, "MAX_TRACKERS", 25) if ut is not None else 25
+
 
 def count_trackers_in_text(text):
     count = 0
@@ -243,20 +246,27 @@ def check_merged_dedup(results):
         results.append(("FAIL", "Merged dedup check", f"{dupes} duplicates found"))
 
 
-def check_alive_subset_of_merged(results):
-    """校验 best（alive）列表是 all（merged）列表的子集（设计不变量）。"""
+def check_alive_subset_of_all(results):
+    """校验 best (alive) 是 all (trackers_all.txt) 子集的设计不变量。
+
+    best 由综合评分 + 配额（经典高可用 ≥4、非 UDP ≥4）从 scored 池中选取；
+    若配额将低分条目拉入 best 而该条目不在 all 前 MAX_ALL 名次内，
+    best 子集关系即被破坏。原实现检查的是 best ⊆ merged（候选池），
+    那是平凡不变量，无法捕获配额越界。
+    """
     alive_path = os.path.join(TRACKERS_DIR, "trackers_alive.txt")
-    merged_path = os.path.join(TRACKERS_DIR, "trackers_merged.txt")
-    if not os.path.exists(alive_path) or not os.path.exists(merged_path):
-        results.append(("WARN", "Alive subset check", "file missing"))
+    all_path = os.path.join(TRACKERS_DIR, "trackers_all.txt")
+    if not os.path.exists(alive_path) or not os.path.exists(all_path):
+        results.append(("WARN", "Alive subset-of-all check", "file missing"))
         return
     alive = set(extract_trackers(open(alive_path, "r", encoding="utf-8").read()))
-    merged = set(extract_trackers(open(merged_path, "r", encoding="utf-8").read()))
-    outside = alive - merged
+    all_set = set(extract_trackers(open(all_path, "r", encoding="utf-8").read()))
+    outside = alive - all_set
     if outside:
-        results.append(("FAIL", "Alive subset check", f"{len(outside)} not in merged"))
+        results.append(("FAIL", "Alive subset-of-all check", f"{len(outside)} best trackers not in all"))
     else:
-        results.append(("PASS", "Alive subset check", "best is subset of all"))
+        results.append(("PASS", "Alive subset-of-all check",
+                         f"all {len(alive)} best trackers present in all ({len(all_set)})"))
 
 
 def check_consistency(results):
@@ -415,7 +425,7 @@ def run_single_check(round_num, skip_net=False):
     check_local_files(results)
     check_alive_count(results)
     check_merged_dedup(results)
-    check_alive_subset_of_merged(results)
+    check_alive_subset_of_all(results)
     check_consistency(results)
     check_url_format(results)
     if not skip_net:

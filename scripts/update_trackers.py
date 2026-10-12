@@ -1094,7 +1094,9 @@ def main():
               ", ".join(f"{p}={proto_counts.get(p, 0)}" for p in ("http", "https", "udp", "wss", "ws")))
 
         if all_merged:
-            merged = sorted(all_merged)  # 轮转合并 + 去重，取前 MAX_ALL 条
+            # 候选池写入 trackers_merged.txt（大小受 MAX_CANDIDATES 限制）；
+            # 下游 test_trackers 从中按综合评分选 best(MAX_TRACKERS) 与 all(MAX_ALL)。
+            merged = sorted(all_merged)
             write_trackers(os.path.join(OUTPUT_DIR, MERGED_FILE), merged)
             results.append((MERGED_FILE, len(merged)))
             merged_lines = len(merged)

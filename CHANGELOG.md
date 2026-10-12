@@ -2,6 +2,23 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-12] - fix
+- health_check 不变量检查名实不符：原 `check_alive_subset_of_merged` 注释与输出都
+  标榜"best ⊆ all"，实际检查的是 `best ⊆ merged`（候选池 200），是平凡不变量，
+  无法捕获「配额（经典 ≥4 / 非 UDP ≥4）把低分条目拉入 best、却不在 all 前 59 名」
+  的违规。改为对照 `trackers_all.txt` 校验 `best ⊆ all`；检查项 label 改用 ASCII
+  避免 Windows GBK 控制台崩溃
+- health_check 重复硬编码：`MAX_ALIVE = 25` 与 update_trackers 的 `MAX_TRACKERS`
+  历史上漂移过（20→25 时手动同步过一次），改为 `getattr(ut, "MAX_TRACKERS", 25)`
+  单一真相源
+- update_trackers 注释与代码不符：第 1097 行 `merged = sorted(all_merged)` 注释
+  写"取前 MAX_ALL 条"但实际写入全部 200 条候选池；改为准确描述（候选池写入，
+  下游按评分选 best/all）
+
+## [2026-10-12] - docs
+- 新增 `RUNBOOK.md`：维护者/AI 会话运行手册，覆盖架构图、产物速查、本地/CI
+  常用操作、订阅源增删、Worker 部署、回滚、告警处理、9 条设计不变量、关键参数
+
 ## [2026-10-10] - feat
 - best 总数 20→25（最多 25）、all 总数 100→59（最多 59），均按评分降序取足目标条数；
   为保证 all 能填满 59，新增独立的候选池上限 `MAX_CANDIDATES=200`（merge 阶段测试
