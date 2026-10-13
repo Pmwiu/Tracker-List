@@ -1,6 +1,8 @@
-udp://tr4ck3r.duckdns.org:6969/announce
-udp://tracker.cn.nyaa.net:6969/announce
-udp://211.75.205.188:80/announce
+https://open.ftorrent.com:443/announce
+udp://tracker.aruku.ovh:8081/announce
+udp://23.157.120.14:6969/announce
+udp://211.75.205.187:80/announce
+udp://211.75.205.187:6969/announce
 http://t.nyaatracker.com:80/announce
 http://t.overflow.biz:6969/announce
 http://open.tracker.cl:1337/announce
