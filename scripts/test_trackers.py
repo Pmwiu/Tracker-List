@@ -1017,13 +1017,37 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic, *,
 RESERVE_MAX = ut.RESERVE_MAX  # 备选库条数上限（单一真相源在 update_trackers）
 
 
-def select_reserve(scored, discovered_set, cap=None):
-    """备选库：discovered 候选中通过探活、按综合评分降序的前 cap 条。
+def build_reserve(results, discovered_set, uptime_map, sa_map, ro_map, cap=None):
+    """备选库：从 results 里的 alive discovered 候选独立评分，按分降序取前 cap。
 
-    备选库（trackers_reserve.txt）是独立于 best/all 的候选订阅源，
-    供人工审查与转正（PROMOTE.md）；白名单条目永不进备选库。
-    scored 须已按评分降序（main 中已排序）。
+    备选库是独立于 best/all 的候选订阅源（供人工审查转正）。它**不套用** best/all
+    的低速淘汰与同网段/同域名去重（那些是 best 名额的curator），只要 discovered
+    候选通过探活即参与，慢的也保留（由人判断）。白名单条目永不进备选库。
     """
+    if not discovered_set:
+        return []
+    alive = [(t, d, e) for t, s, d, e in results if s == 'alive' and t in discovered_set]
+    if not alive:
+        return []
+    speed_score = make_speed_scorer([e for _, _, e in alive])
+    scored = []
+    for t, d, e in alive:
+        up = uptime_map.get(t, 0.0)
+        sa = sa_map.get(t, 0)
+        ro = ro_map.get(t, [])
+        rsr = (sum(ro) / len(ro)) if ro else 0.0
+        sc = compute_score(t, speed_score(e), up, d,
+                           source_agreement=sa, recent_success_rate=rsr,
+                           recent_outcomes=ro)
+        scored.append((t, sc))
+    scored.sort(key=lambda x: -x[1])
+    if cap is None:
+        cap = RESERVE_MAX
+    return [t for t, _ in scored[:cap]]
+
+
+def select_reserve(scored, discovered_set, cap=None):
+    """（保留：从已排序 scored 池取 discovered 子集，供测试与兼容）"""
     if not discovered_set:
         return []
     if cap is None:
@@ -1592,8 +1616,8 @@ def main():
         whitelist_only_set = {t for t, *_ in scored if t not in discovered_set}
         print(f'[INFO] discovered candidates excluded from best/all: {len(discovered_set)}')
 
-    # ---- 备选库：discovered 候选中通过探活并评分的前 RESERVE_MAX 条（独立订阅源）----
-    reserve_list = select_reserve(scored, discovered_set)
+    # ---- 备选库：从 results 的 alive discovered 独立评分（不套用 best/all 的低速/去重）----
+    reserve_list = build_reserve(results, discovered_set, uptime_map, sa_map, ro_map)
     write_result_file("trackers_reserve.txt", reserve_list)
     if reserve_list:
         print(f'[INFO] reserve pool: {len(reserve_list)} discovered candidates '

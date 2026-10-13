@@ -362,6 +362,28 @@ def test_select_reserve():
 
 
 @test
+def test_build_reserve_from_alive_discovered():
+    import test_trackers as tt
+    # results 含 discovered：1 alive 但慢(6s)，1 alive 快，1 dead；whitelist 一条
+    results = [
+        ("udp://slow-disc/announce", "alive", "valid connect + announce", 6000.0),
+        ("udp://fast-disc/announce", "alive", "valid connect + announce", 100.0),
+        ("udp://dead-disc/announce", "dead", "timeout", 0.0),
+        ("udp://whitelist/announce", "alive", "valid connect + announce", 90.0),
+    ]
+    discovered = {"udp://slow-disc/announce", "udp://fast-disc/announce",
+                  "udp://dead-disc/announce"}
+    out = tt.build_reserve(results, discovered, {}, {}, {}, cap=20)
+    # alive discovered 都进备选（含慢的，备选库不套用 best/all 的低速淘汰）
+    assert "udp://fast-disc/announce" in out
+    assert "udp://slow-disc/announce" in out
+    assert "udp://dead-disc/announce" not in out
+    assert "udp://whitelist/announce" not in out
+    # 评分降序：快的在前
+    assert out[0] == "udp://fast-disc/announce"
+
+
+@test
 def test_dedup_same_host():
     import test_trackers as tt
     # host key：小写 + 去 www. 前缀
