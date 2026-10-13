@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   check:
@@ -25,3 +26,57 @@ jobs:
         run: python scripts/monthly_subscription_check.py
       - name: Full health check
         run: python scripts/health_check.py --rounds 1
+      # 转正建议：若 promote_queue.json 有连续存活达标的 discovered 候选，开/更新一个 Issue
+      - name: Compute promotion candidates
+        id: promote
+        run: |
+          python - <<'PY' > /tmp/promo.md
+          import json, os
+          q = {}
+          if os.path.exists("reports/promote_queue.json"):
+              with open("reports/promote_queue.json", encoding="utf-8") as f:
+                  q = json.load(f)
+          ready = sorted(((u, e) for u, e in q.items() if e.get("alive_runs", 0) >= 5),
+                         key=lambda x: -x[1].get("last_score", 0))
+          if not ready:
+              print("__NONE__")
+              raise SystemExit(0)
+          print("以下自动发现的 tracker 已连续存活 ≥5 轮，建议评估转正（加入 update_trackers.py 的 SOURCES）：\n")
+          print("| tracker | 连续存活轮数 | 最近评分 | 首次发现 |")
+          print("|---|---|---|---|")
+          for u, e in ready:
+              print(f"| `{u}` | {e['alive_runs']} | {e.get('last_score', 0)} | {str(e.get('first_seen',''))[:10]} |")
+          PY
+          if grep -q "__NONE__" /tmp/promo.md; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::no promotion-ready candidates"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open/update promotion issue
+        if: steps.promote.outputs.ready == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '';
+            try { body = fs.readFileSync('/tmp/promo.md', 'utf8'); } catch (e) {}
+            if (!body || body.includes('__NONE__')) return;
+            const title = 'Tracker 转正建议（自动发现候选）';
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'tracker-promotion',
+            });
+            if (open.length > 0) {
+              await github.rest.issues.update({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: open[0].number, body,
+              });
+              core.info(`updated issue #${open[0].number}`);
+            } else {
+              const { data: iss } = await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['tracker-promotion'],
+              });
+              core.info(`created issue #${iss.number}`);
+            }
