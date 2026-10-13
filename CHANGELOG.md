@@ -2,6 +2,33 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-13] - feat
+- **评分 v2：5 维加权 + 反退化**。权重 速度50% + 稳定性EMA20% + 响应质量15%
+  + 跨源一致性10% + 近期成功率5%（此前 60/25/15）；经典高可用 +6 不变。
+  - 跨源一致性：同一 tracker 出现在 N 个独立源 → 1源0/2源30/3源70/≥4源100；
+    数据来自新的 `reports/source_counts.json`（update_trackers.py 产出）
+  - 近期成功率：`test_state.json` 新增 `last_outcomes`（最近 10 次 0/1）
+  - 反退化：最近 3 次全 0 → 最终分 −5
+- **多次采样测速**：首轮存活最快的 50 个各跑 3 样本，取中位；抖动扣分
+  `max(0.7, 1-(max-min)/median*0.3)`（最多 −30%），替换原「两轮取较快」逻辑
+- **IPv4/IPv6 双栈测试**：udp/wss/ws 若主机名同时有 A+AAAA，两栈各测一次取较优
+  （http/https 保持单栈）
+- **ASN /24 多样性 demotion + 冷门命中偏好**：best/all 选优后同 /24（IPv6 /48）
+  至多 3 条；非 UDP 保底阶段优先 uptime≥0.7；缓存 `trackers/cache/asn_cache.json`
+  （7 天 TTL，gitignored）
+- **自动发现模块（Phase 1）**：新增 `scripts/discover_trackers.py`，从 GitHub topic
+  （bt-tracker / public-tracker / tracker-list）+ 公开列表发现候选，写
+  `trackers/discovered/candidates_<date>.txt`；`update_trackers.py` 把它们并入
+  merge pool（计入 MAX_CANDIDATES）**但不进 best/all**（`reports/discovered_set.json`
+  + `select_top_with_quotas(whitelist_only_set=...)` 隔离）；`test_report.md`
+  新增 Discovery 段；转正需人工改 SOURCES
+- **CI**：`update-trackers.yml` 新增 "Discover candidate trackers" 步骤
+  （`continue-on-error: true`）；`health_check.py` 新增 Discovery 输出校验
+- **私有冒烟测试**：新增 `scripts/_smoke.py`（13 项断言，无 pytest 依赖）
+- **文档**：RUNBOOK 补充 4b（评分机制 v2）/4c（发现模块）/参数速查表；新增设计文档
+  `docs/superpowers/specs/2026-10-13-tracker-discovery-design.md` 与实施计划
+  `docs/superpowers/plans/2026-10-13-tracker-discovery-and-mechanism-improvements.md`
+
 ## [2026-10-12] - fix
 - health_check 不变量检查名实不符：原 `check_alive_subset_of_merged` 注释与输出都
   标榜"best ⊆ all"，实际检查的是 `best ⊆ merged`（候选池 200），是平凡不变量，

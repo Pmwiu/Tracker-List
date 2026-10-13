@@ -160,6 +160,46 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
 8. **历史状态按真实探活记录**："存活但被淘汰"（capped/低速/同网段去重）
    绝不能记为 dead，否则稳定性 EMA 被污染、动态黑名单误杀。
 9. 失败时**保留上次 best/all**（熔断与备份降级机制），宁可不更新也不发坏列表。
+10. **发现模块与生产隔离（Phase 1）**：`discover_trackers.py` 找到的候选只写
+    `trackers/discovered/`，参与 merge pool 与评分，但**绝不进入 best/all**
+    （`reports/discovered_set.json` 列出候选集，`select_top_with_quotas` 的
+    `whitelist_only_set` 参数把它们排除）。转正必须人工改 SOURCES。
+
+## 4b. 评分与筛选机制（v2）
+
+**评分权重（总和 1.0）**：速度 50% + 稳定性 EMA 20% + 响应质量 15% +
+**跨源一致性 10%** + **近期成功率 5%**；经典高可用主机名额外 +6。
+
+- **跨源一致性**：同一 tracker 出现在 N 个独立白名单源 → 1源0 / 2源30 / 3源70 / ≥4源100。
+  数据来源 `reports/source_counts.json`（update_trackers.py 产出）。
+- **近期成功率**：`test_state.json` 的 `last_outcomes`（最近 10 次 0/1）算 alive 占比。
+- **反退化**：最近 3 次结果全 0 → 最终分 −5。
+- **多次采样测速**：对首轮存活最快的 50 个各跑 3 个样本，取**中位**；抖动扣分
+  `max(0.7, 1 - (max-min)/median*0.3)`（最多扣 30%）。
+- **双栈测试**：udp/wss/ws 若主机名同时有 A+AAAA 记录，两栈各测一次，取较优
+  （http/https 保持单栈）。
+- **ASN /24 多样性**：best/all 选优后应用 demotion，同一 /24（IPv6 /48）至多 3 条；
+  缓存 `trackers/cache/asn_cache.json`（7 天 TTL，gitignored）。
+- **冷门命中偏好**：非 UDP 保底阶段优先 uptime_ema ≥ 0.7 的候选。
+
+**私有冒烟测试**：`python scripts/_smoke.py`（13 项断言，无 pytest 依赖）。
+CI 不跑它；改动评分/选优/发现逻辑后本地跑一遍。
+
+## 4c. 自动发现模块（Phase 1）
+
+- **入口**：`scripts/discover_trackers.py`（也可 `--out-dir` 指定目录）
+- **产出**：`trackers/discovered/candidates_<UTC日期>.txt`（每行一个 URL，UTC 日粒度）
+- **发现源**：GitHub topic `bt-tracker` / `public-tracker` / `tracker-list`；
+  每仓库抓 README.md + 名称含 `tracker` 的 `.txt`（≤10 文件、≤100KB）
+- **去重**：对 SOURCES 白名单 URL、当前 merged/alive/all 内容、过去 7 天发现结果去重
+- **CI**：`update-trackers.yml` 的 "Discover candidate trackers" 步骤，
+  `continue-on-error: true`（失败不阻断主流程）
+- **转正**：人工 review `test_report.md` 的 "Discovery" 段或 `candidates_*.txt`
+  → 手动加入 `SOURCES`（Phase 2 计划自动化成 PROMOTE.md + 月度 Issue）
+- **设计文档**：`docs/superpowers/specs/2026-10-13-tracker-discovery-design.md`
+- **实施计划**：`docs/superpowers/plans/2026-10-13-tracker-discovery-and-mechanism-improvements.md`
+- **本机限制**：国内网络对 `raw.githubusercontent.com` / `cdn.jsdelivr.net` 直连
+  常被重置（WinError 10054），本地跑发现常得 0 条；CI（US runner）正常。
 
 ## 5. 本机（Windows）环境注意事项
 
@@ -171,7 +211,10 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
   文件 `.update.lock`（已 gitignore），带死锁检测与 PID 抢占。
 - **控制台中文乱码**：Windows 终端代码页是 GBK，脚本 print 的中文显示为乱码
   属正常，文件内容本身是 UTF-8，不受影响。
+- **不要写非 GBK 字符到 print**：`⊆` 等符号会触发 `UnicodeEncodeError`（已改成 ASCII）。
 - Python 版本：CI 用 3.12；本地 `uv venv --python 3.12 .venv` 对齐。
+- **HTTPS 到 GitHub 被劫持**：本机 DNS 把 github 解析到 localhost，git 走 SSH-over-443
+  真实 IP（见 `~/.ssh/config`）；`git push` 前先确认能 `ssh -T git@github.com`。
 
 ## 6. 关键参数速查
 
@@ -184,8 +227,15 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
 | `ALL_PROTOCOL_FLOORS` | update_trackers.py | wss1/ws1/https15/http15/udp20 | all 协议保底 |
 | `MIN_CLASSIC_TRACKERS` | test_trackers.py | 4 | best 经典高可用保底 |
 | `CLASSIC_BONUS` | test_trackers.py | 6.0 | 经典主机加分 |
-| 评分权重 | test_trackers.py | 60/25/15 | 速度/稳定性/质量 |
+| 评分权重 | test_trackers.py | 50/20/15/10/5 | 速度/稳定性/质量/跨源/近期 |
+| `SCORE_*_WEIGHT` | test_trackers.py | 见上 | 五个独立权重常量 |
+| `SOURCE_AGREEMENT_SCORES` | test_trackers.py | 1:0/2:30/3:70/≥4:100 | 跨源一致性映射 |
+| `ASN_MAX_PER_PREFIX` | test_trackers.py | 3 | 每 /24 最多入选条数 |
+| `ASN_CACHE_TTL_SEC` | test_trackers.py | 604800 | ASN 缓存 7 天 |
+| `multi_sample_refine` | test_trackers.py | 3 样本 | 中位 + 抖动扣分（≤30%） |
 | `LOW_SPEED_THRESHOLD_MS` | test_trackers.py | 5000 | 低速淘汰线 |
 | `DEAD_BLACKLIST_RUNS` | test_trackers.py | 20 | 连续失效入动态黑名单 |
 | `UPTIME_ALPHA` | test_trackers.py | 0.2 | 存活率 EMA 权重 |
 | `STALE_SOURCE_DAYS` | health_check.py | 7 | 源内容不变告警天数 |
+| `PER_REPO_FILE_CAP` | discover_trackers.py | 10 | 每仓库最多抓文件数 |
+| `PER_FILE_BYTE_CAP` | discover_trackers.py | 102400 | 单文件字节上限 |
