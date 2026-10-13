@@ -532,6 +532,39 @@ def test_ws(host, port, timeout):
 # ============================================================
 # 单个 tracker 分发测试
 # ============================================================
+def _probe_families(host, port, timeout, test_fn):
+    """对 host 的 v4/v6 各测一次（双栈），返回 (best_alive, last_fail, attempted)。
+
+    best_alive / last_fail = (elapsed_ms, detail_with_family) 或 None；
+    attempted 表示是否真正发起过至少一次探测（用于区分"测了但都失败"
+    与"没解析到任何族需要 fallback"）。
+    """
+    v4, v6 = detect_dual_stack(host)
+    best = None
+    last_fail = None
+    attempted = False
+    for family_name, want in (('v4', v4), ('v6', v6)):
+        if not want:
+            continue
+        try:
+            infos = cached_getaddrinfo(host, None)
+        except Exception:
+            continue
+        target_family = socket.AF_INET6 if family_name == 'v6' else socket.AF_INET
+        resolved_ip = next((sa[0] for fam, _, _, _, sa in infos if fam == target_family), None)
+        if not resolved_ip:
+            continue
+        attempted = True
+        ok, elapsed, detail = test_fn(resolved_ip, port, timeout)
+        if ok:
+            cand = (elapsed, f"{detail} ({family_name})")
+            if best is None or elapsed < best[0]:
+                best = cand
+        else:
+            last_fail = (elapsed, detail)
+    return best, last_fail, attempted
+
+
 def test_one(tracker, timeout):
     safe, reason = is_safe_tracker(tracker)
     if not safe:
@@ -560,34 +593,15 @@ def test_one(tracker, timeout):
         if scheme == 'udp':
             if port is None:
                 return tracker, 'dead', 'missing port', 0.0
-            # 双栈：若 v4+v6 都有，并行各跑一次取较优；任一成功即 alive
-            v4, v6 = detect_dual_stack(host)
-            results_stack = []
-            for family_name, want in (('v4', v4), ('v6', v6)):
-                if not want:
-                    continue
-                try:
-                    infos = cached_getaddrinfo(host, None)
-                except Exception:
-                    continue
-                resolved_ip = None
-                target_family = socket.AF_INET6 if family_name == 'v6' else socket.AF_INET
-                for fam, _, _, _, sockaddr in infos:
-                    if fam == target_family:
-                        resolved_ip = sockaddr[0]
-                        break
-                if not resolved_ip:
-                    continue
-                ok, elapsed, detail = test_udp(resolved_ip, port, timeout)
-                if ok:
-                    results_stack.append((elapsed, f"{detail} ({family_name})"))
-            if results_stack:
-                results_stack.sort(key=lambda x: x[0])
-                return tracker, 'alive', results_stack[0][1], results_stack[0][0]
-            # fallback：单栈（用第一个解析到的 IP）
+            best, last_fail, attempted = _probe_families(host, port, timeout, test_udp)
+            if best:
+                return tracker, 'alive', best[1], best[0]
+            if attempted:
+                # 已测过 v4/v6 都失败，不再重复测（避免每个死 tracker 多花一次超时）
+                return tracker, 'dead', (last_fail[1] if last_fail else 'no connect response'), 0.0
+            # 未解析到任何族：fallback 用首个解析 IP 测一次
             try:
-                infos = cached_getaddrinfo(host, None)  # 复用校验过的缓存条目
-                resolved_ip = infos[0][4][0]
+                resolved_ip = cached_getaddrinfo(host, None)[0][4][0]
             except Exception:
                 resolved_ip = host
             ok, elapsed, detail = test_udp(resolved_ip, port, timeout)
@@ -596,58 +610,22 @@ def test_one(tracker, timeout):
         if scheme == 'wss':
             if port is None:
                 port = 443
-            v4, v6 = detect_dual_stack(host)
-            results_stack = []
-            for family_name, want in (('v4', v4), ('v6', v6)):
-                if not want:
-                    continue
-                try:
-                    infos = cached_getaddrinfo(host, None)
-                except Exception:
-                    continue
-                resolved_ip = None
-                target_family = socket.AF_INET6 if family_name == 'v6' else socket.AF_INET
-                for fam, _, _, _, sockaddr in infos:
-                    if fam == target_family:
-                        resolved_ip = sockaddr[0]
-                        break
-                if not resolved_ip:
-                    continue
-                ok, elapsed, detail = test_wss(resolved_ip, port, timeout)
-                if ok:
-                    results_stack.append((elapsed, f"{detail} ({family_name})"))
-            if results_stack:
-                results_stack.sort(key=lambda x: x[0])
-                return tracker, 'alive', results_stack[0][1], results_stack[0][0]
+            best, last_fail, attempted = _probe_families(host, port, timeout, test_wss)
+            if best:
+                return tracker, 'alive', best[1], best[0]
+            if attempted:
+                return tracker, 'dead', (last_fail[1] if last_fail else 'tls fail'), 0.0
             ok, elapsed, detail = test_wss(host, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
 
         if scheme == 'ws':
             if port is None:
                 port = 80
-            v4, v6 = detect_dual_stack(host)
-            results_stack = []
-            for family_name, want in (('v4', v4), ('v6', v6)):
-                if not want:
-                    continue
-                try:
-                    infos = cached_getaddrinfo(host, None)
-                except Exception:
-                    continue
-                resolved_ip = None
-                target_family = socket.AF_INET6 if family_name == 'v6' else socket.AF_INET
-                for fam, _, _, _, sockaddr in infos:
-                    if fam == target_family:
-                        resolved_ip = sockaddr[0]
-                        break
-                if not resolved_ip:
-                    continue
-                ok, elapsed, detail = test_ws(resolved_ip, port, timeout)
-                if ok:
-                    results_stack.append((elapsed, f"{detail} ({family_name})"))
-            if results_stack:
-                results_stack.sort(key=lambda x: x[0])
-                return tracker, 'alive', results_stack[0][1], results_stack[0][0]
+            best, last_fail, attempted = _probe_families(host, port, timeout, test_ws)
+            if best:
+                return tracker, 'alive', best[1], best[0]
+            if attempted:
+                return tracker, 'dead', (last_fail[1] if last_fail else 'tcp fail'), 0.0
             ok, elapsed, detail = test_ws(host, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
 

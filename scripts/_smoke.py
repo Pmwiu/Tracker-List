@@ -384,6 +384,32 @@ def test_select_reserve():
 
 
 @test
+def test_dual_stack_no_redundant_fallback():
+    import socket
+    import test_trackers as tt
+    # v4-only dead udp tracker must be probed exactly once (no double-test fallback)
+    calls = {"udp": 0}
+    orig = (tt.is_safe_tracker, tt.detect_dual_stack, tt.cached_getaddrinfo, tt.test_udp)
+    def fake_safe(t): return True, "safe"
+    def fake_dual(host): return True, False  # v4 only
+    def fake_gai(host, port): return [(socket.AF_INET, 1, 6, '', ('1.2.3.4', 0))]
+    def fake_udp(ip, port, timeout, **kw):
+        calls["udp"] += 1
+        return False, 1.0, 'no connect response'
+    tt.is_safe_tracker = fake_safe
+    tt.detect_dual_stack = fake_dual
+    tt.cached_getaddrinfo = fake_gai
+    tt.test_udp = fake_udp
+    try:
+        tracker, status, detail, _ = tt.test_one("udp://x.example.org:6969/announce", 5)
+        assert status == 'dead', status
+        assert calls["udp"] == 1, f"test_udp called {calls['udp']}x (expected 1)"
+    finally:
+        (tt.is_safe_tracker, tt.detect_dual_stack,
+         tt.cached_getaddrinfo, tt.test_udp) = orig
+
+
+@test
 def test_build_reserve_from_alive_discovered():
     import test_trackers as tt
     # results 含 discovered：1 alive 但慢(6s)，1 alive 快，1 dead；whitelist 一条
