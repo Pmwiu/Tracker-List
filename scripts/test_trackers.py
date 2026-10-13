@@ -439,7 +439,8 @@ def load_history():
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             pass
-    return {"alive_history": [], "uptime_ema": {}, "dead_streak": {}}
+    return {"alive_history": [], "uptime_ema": {}, "dead_streak": {},
+            "last_outcomes": {}}
 
 
 DEAD_BLACKLIST_RUNS = 20  # 连续失效 N 次（约 5 天 @ 4 次/天）→ 自动列入动态黑名单
@@ -478,10 +479,20 @@ def save_history(alive_trackers, dead_trackers=None, candidates=None):
         new_uptime = {t: v for t, v in new_uptime.items() if t in cand}
         new_dead_streak = {t: n for t, n in new_dead_streak.items() if t in cand}
 
+    # 最近 10 次存活/失效结果（0/1），用于"近期成功率"与"反退化"评分维度
+    last_outcomes = dict(old.get("last_outcomes", {}))
+    for t in observed:
+        hist = last_outcomes.get(t, [])
+        hist.append(1 if t in alive_set else 0)
+        last_outcomes[t] = hist[-10:]
+    if candidates is not None:
+        last_outcomes = {t: v for t, v in last_outcomes.items() if t in cand}
+
     state = {
         "alive_history": sorted(alive_set),
         "uptime_ema": new_uptime,
         "dead_streak": new_dead_streak,
+        "last_outcomes": last_outcomes,
         "last_update": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
     path = os.path.join(ut.OUTPUT_DIR, 'test_state.json')
