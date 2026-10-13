@@ -28,6 +28,7 @@ Tracker 活性自动测试 + 测速排序脚本（v3.0 优化版）。
 import os
 import sys
 import ssl
+import re
 import json
 import time
 import random
@@ -248,6 +249,72 @@ def encode_bytes(b):
     return ''.join('%%%02X' % x for x in b)
 
 
+def count_announce_peers(decoded):
+    """从 announce 响应解析 compact peers 数量（IPv4 6 字节/peer，IPv6 18 字节/peer）。"""
+    n = 0
+    p = decoded.get(b'peers')
+    if isinstance(p, bytes):
+        n += len(p) // 6
+    p6 = decoded.get(b'peers6')
+    if isinstance(p6, bytes):
+        n += len(p6) // 18
+    return n
+
+
+# scrape 响应中 complete 字段的截断容忍解析（bencode: 8:completei<N>e）
+_SCRAPE_COMPLETE_RE = re.compile(rb'8:completei(\d+)e')
+
+
+def parse_scrape_seeders(data, cap=50):
+    """从 scrape 响应体累计前 cap 个条目的 complete（种子数）。
+
+    全量 scrape 可能返回 MB 级数据，调用方只读前 64KB；正则解析对截断流
+    天然容忍，无需完整 bdecode。无 files 结构时返回 0。
+    """
+    if b'files' not in data:
+        return 0
+    total = 0
+    for i, m in enumerate(_SCRAPE_COMPLETE_RE.finditer(data)):
+        if i >= cap:
+            break
+        total += int(m.group(1))
+    return total
+
+
+def scrape_probe(tracker_url, timeout):
+    """BEP 15 scrape 热度探针（仅 http/https）。
+
+    返回 (ok, seeders, elapsed_ms)。scrape 端点关闭/超时/非法响应 →
+    (False, 0, elapsed)，不判失效——很多开放 tracker 有意禁用 scrape，
+    有数据才作为热度加分信号。
+    """
+    start = time.time()
+    try:
+        parsed = urllib.parse.urlparse(tracker_url)
+        scheme = parsed.scheme.lower()
+        if scheme not in ('http', 'https'):
+            return False, 0, 0.0
+        path = parsed.path or '/'
+        if path.endswith('/announce'):
+            spath = path[:-len('announce')] + 'scrape'
+        elif path.endswith('/'):
+            spath = path + 'scrape'
+        else:
+            spath = path + '/scrape'
+        url = urllib.parse.urlunparse((scheme, parsed.netloc, spath, '', '', ''))
+        req = urllib.request.Request(url, headers={
+            'User-Agent': 'Mozilla/5.0 TrackerListBot/3.0'})
+        with _http_opener.open(req, timeout=timeout) as resp:
+            data = resp.read(65536)
+        elapsed = (time.time() - start) * 1000
+        if data.lstrip().startswith((b'<!DOCTYPE', b'<html', b'<HTML')):
+            return False, 0, elapsed
+        seeders = parse_scrape_seeders(data)
+        return b'files' in data, seeders, elapsed
+    except Exception:
+        return False, 0, (time.time() - start) * 1000
+
+
 # ============================================================
 # 安全过滤
 # ============================================================
@@ -337,9 +404,12 @@ def test_http(tracker_url, timeout):
     if b'failure reason' in decoded:
         return False, elapsed, 'restricted (failure reason)'
     # 细分：返回 peers（真正可用的节点列表）质量最高；仅 interval/complete/incomplete 次之
-    if b'peers' in decoded:
-        return True, elapsed, 'announce with peers'
+    n_peers = count_announce_peers(decoded)
+    if n_peers > 0:
+        return True, elapsed, f'announce with peers:{n_peers}'
     if b'interval' in decoded or b'complete' in decoded or b'incomplete' in decoded:
+        return True, elapsed, 'announce without peers'
+    if b'peers' in decoded:
         return True, elapsed, 'announce without peers'
     return False, elapsed, 'no announce fields'
 
@@ -709,7 +779,7 @@ def source_agreement_to_score(count):
 
 # 响应质量分：仅对「完成完整 announce 握手」的存活 tracker 分级
 QUALITY_SCORES = {
-    'announce with peers': 100,               # HTTP/HTTPS：返回 peers（可用节点列表）
+    'announce with peers': 100,               # 旧格式兼容（新格式为 announce with peers:N）
     'valid connect + announce': 100,          # UDP：connect + announce 全握手
     'announce without peers': 90,             # HTTP/HTTPS：有 announce 字段但无 peers
     'TLS reachable': 90,                      # WSS：TLS 建连成功
@@ -717,8 +787,31 @@ QUALITY_SCORES = {
 }
 
 
-def quality_score(detail):
-    return QUALITY_SCORES.get(detail, 60)
+def quality_score(detail, scrape_seeders=None):
+    """响应质量分：announce 响应完整度分级 + 可选 scrape 热度分档，取较高者。
+
+    announce peers 计数分档：N≥3 → 100，1-2 → 95，0 → 90。
+    scrape 种子数分档（仅当探测有响应时）：≥100 → 100，10-99 → 98，
+    1-9 → 95，0 → 90。scrape 禁用/失败不惩罚（None）。
+    """
+    base = QUALITY_SCORES.get(detail, 60)
+    if base == 60 and isinstance(detail, str) and detail.startswith('announce with peers:'):
+        try:
+            n = int(detail.rsplit(':', 1)[1])
+        except ValueError:
+            n = 0
+        base = 100 if n >= 3 else 95 if n >= 1 else 90
+    if scrape_seeders is not None:
+        if scrape_seeders >= 100:
+            st = 100
+        elif scrape_seeders >= 10:
+            st = 98
+        elif scrape_seeders >= 1:
+            st = 95
+        else:
+            st = 90
+        base = max(base, st)
+    return base
 
 
 # 经典高可用加分：长期稳定、广泛使用的公共 tracker 主机名（仅对存活 tracker 生效）
@@ -796,7 +889,7 @@ def multi_sample_refine(samples):
 
 def compute_score(tracker, speed, uptime, detail, *,
                   source_agreement=0, recent_success_rate=0.0,
-                  recent_outcomes=None):
+                  recent_outcomes=None, scrape_seeders=None):
     """
     综合评分 = 速度(50%) + 历史稳定性(20%) + 响应质量(15%)
               + 跨源一致性(10%) + 近期成功率(5%)
@@ -805,7 +898,7 @@ def compute_score(tracker, speed, uptime, detail, *,
 
     - 速度分：自适应线性归一化（由 make_speed_scorer 提供）
     - 稳定性分：存活率 EMA（0~1）× 100
-    - 质量分：协议级握手/响应完整性分级
+    - 质量分：协议级握手/响应完整性分级 + 可选 scrape 种子热度（取较高者）
     - 跨源一致性：同一 tracker 出现在 N 个独立白名单源中
     - 近期成功率：最近 10 次 alive 占比 × 100
     - 经典加分：长期稳定的经典公共 tracker 主机名额外加权
@@ -813,8 +906,8 @@ def compute_score(tracker, speed, uptime, detail, *,
     """
     # 稳定性分：存活率 EMA（0~1）→ 0~100
     stability_score = max(0.0, min(1.0, uptime)) * 100
-    # 质量分：握手/响应完整性
-    quality = quality_score(detail)
+    # 质量分：握手/响应完整性 + 可选 scrape 热度
+    quality = quality_score(detail, scrape_seeders=scrape_seeders)
     # 跨源一致性
     agreement_score = source_agreement_to_score(source_agreement)
     # 近期成功率（0..1 → 0..100）
@@ -1013,7 +1106,8 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
         f'- 同网段去重 (/24, kept faster): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
-        f'- 评分维度: 速度 60% + 历史稳定性 25% + 响应质量 15%（速度标度自适应 + 经典高可用加分）',
+        f'- 评分维度: 速度 50% + 历史稳定性 20% + 响应质量 15%（含 peers 计数与 scrape 热度）'
+        f' + 跨源一致性 10% + 近期成功率 5%（速度标度自适应 + 经典高可用加分 + 反退化）',
         f'- 配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP + 保底 {MIN_CLASSIC_TRACKERS} 条经典高可用',
         f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
         f'实际保留 {sum(1 for t, *_ in alive_final if not t.startswith("udp://"))} 条',
@@ -1264,7 +1358,26 @@ def main():
         print(f'[INFO] Same-subnet(/24) dedup removed {len(same_ip_removed)} slower tracker(s)')
     alive_with_speed = [(t, d, e) for t, d, e in alive_with_speed if t not in same_ip_removed]
 
-    # ---- 综合评分：速度(自适应) + 稳定性 + 质量 + 跨源 + 近期 + 反退化 ----
+    # ---- scrape 热度探针（BEP 15，仅 http/https 存活者；失败不惩罚，有数据才加分）----
+    scrape_map = {}
+    http_alive = [t for t, _, _ in alive_with_speed
+                  if t.startswith(('http://', 'https://'))]
+    if http_alive and not args.no_second_pass:
+        print(f'[INFO] scrape probe: {len(http_alive)} http/https alive trackers')
+        with ThreadPoolExecutor(max_workers=15) as pool:
+            futs = {pool.submit(scrape_probe, t, max(args.timeout - 4, 3)): t
+                    for t in http_alive}
+            for fut in as_completed(futs):
+                try:
+                    ok, seeders, _ms = fut.result()
+                    if ok:
+                        scrape_map[futs[fut]] = seeders
+                except Exception:
+                    pass
+        print(f'[INFO] scrape: {len(scrape_map)} responded, '
+              f'{sum(1 for v in scrape_map.values() if v > 0)} with seeders')
+
+    # ---- 综合评分：速度(自适应) + 稳定性 + 质量(含scrape) + 跨源 + 近期 + 反退化 ----
     speed_score = make_speed_scorer([e for _, _, e in alive_with_speed])
     scored = []
     for t, d, e in alive_with_speed:
@@ -1275,7 +1388,8 @@ def main():
         score = compute_score(t, speed_score(e), up, d,
                               source_agreement=sa,
                               recent_success_rate=rsr,
-                              recent_outcomes=ro)
+                              recent_outcomes=ro,
+                              scrape_seeders=scrape_map.get(t))
         scored.append((t, score, e, up, d))
 
     # 按综合评分降序，分数相同按速度升序
@@ -1301,7 +1415,9 @@ def main():
         whitelist_only_set=whitelist_only_set,
     )
     alive_final_list = [t for t, _, _, _, _ in selected]
-    alive_final_detail = [(t, score, speed, up, quality_score(d), classic_bonus(t))
+    alive_final_detail = [(t, score, speed, up,
+                           quality_score(d, scrape_seeders=scrape_map.get(t)),
+                           classic_bonus(t))
                           for t, score, speed, up, d in selected]
     n_non_udp_kept = sum(1 for t in alive_final_list if not t.startswith('udp://'))
 

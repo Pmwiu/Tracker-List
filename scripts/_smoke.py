@@ -253,6 +253,32 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_peers_and_scrape_signals():
+    import test_trackers as tt
+    # announce peers 计数（compact IPv4 6 字节/peer，IPv6 18 字节/peer）
+    decoded = {b'peers': b'x' * 24, b'peers6': b'y' * 36, b'interval': 1800}
+    assert tt.count_announce_peers(decoded) == 4 + 2
+    assert tt.count_announce_peers({b'peers': b''}) == 0
+    # scrape 种子数解析（bencoded files dict，容忍截断流）
+    data = (b'd5:filesd20:' + b'0' * 20 + b'd8:completei123e10:downloadedi9e'
+            b'10:incompletei5eeee' + b'8:completei77e')
+    assert tt.parse_scrape_seeders(data) == 123 + 77
+    assert tt.parse_scrape_seeders(b'd8:intervali60ee') == 0
+    # quality：scrape 高热度可拉满
+    assert tt.quality_score('announce without peers') == 90
+    assert tt.quality_score('announce with peers:1') == 95
+    assert tt.quality_score('announce with peers:5') == 100
+    assert tt.quality_score('announce without peers', scrape_seeders=150) == 100
+    assert tt.quality_score('announce without peers', scrape_seeders=5) == 95
+    assert tt.quality_score('valid connect + announce', scrape_seeders=0) == 100
+    # compute_score 接受 scrape kwarg
+    s_hi = tt.compute_score("udp://a", 50.0, 0.5, "announce without peers",
+                            scrape_seeders=200)
+    s_lo = tt.compute_score("udp://a", 50.0, 0.5, "announce without peers")
+    assert s_hi > s_lo
+
+
+@test
 def test_append_discovered_sources_no_nameerror():
     import update_trackers as ut
     per_source = [("ngosang-best", ["udp://a/announce"])]
