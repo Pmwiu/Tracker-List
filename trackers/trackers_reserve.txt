@@ -1,9 +1,6 @@
-https://open.ftorrent.com:443/announce
-udp://tracker.aruku.ovh:8081/announce
-udp://23.157.120.14:6969/announce
-udp://211.75.205.187:80/announce
-udp://211.75.205.187:6969/announce
-http://t.nyaatracker.com:80/announce
-http://t.overflow.biz:6969/announce
-http://open.tracker.cl:1337/announce
-http://opentracker.xyz:80/announce
+udp://208.83.20.20:6969/announce
+udp://211.75.205.188:80/announce
+http://tr.nyacat.pw:80/announce
+http://tracker.novaopcj.eu.org:6969/announce
+http://tracker.coppersurfer.site:2710/announce
+http://tracker.zhuqiy.dgj055.icu:80/announce
