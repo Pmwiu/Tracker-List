@@ -214,6 +214,10 @@ def test_extract_tracker_urls():
     text2 = "udp://x/announce\nudp://x/announce\nudp://y/announce\n"
     urls2 = dt.extract_tracker_urls(text2)
     assert len(urls2) == 2
+    # 畸形 IPv6（[ 无匹配 ]）被拒绝，不写入候选
+    text3 = "udp://[::1:6969/announce\nudp://good.example.com:6969/announce\n"
+    urls3 = dt.extract_tracker_urls(text3)
+    assert urls3 == {"udp://good.example.com:6969/announce"}, urls3
 
 
 @test
@@ -223,6 +227,25 @@ def test_dedup_against_known():
     fresh = {"udp://known.example/announce", "udp://new.example/announce"}
     out = dt.filter_known(fresh, known)
     assert out == {"udp://new.example/announce"}
+
+
+@test
+def test_load_discovered_handles_malformed_ipv6():
+    import os, shutil, tempfile
+    import update_trackers as ut
+    tmp = tempfile.mkdtemp(prefix="disc_v6_")
+    try:
+        p = os.path.join(tmp, "candidates_20261013.txt")
+        # 畸形 IPv6（[ 无匹配 ]）能过 is_valid_tracker 正则，但 urlparse 会抛 ValueError
+        with open(p, "w", encoding="utf-8") as f:
+            f.write("udp://[::1:6969/announce\n"
+                    "udp://good.example.com:6969/announce\n")
+        # 不应抛异常；坏行被跳过，好行保留
+        res = ut.load_discovered_candidates(out_dir=tmp, blacklist=set(), url_blacklist=set())
+        urls = [u for _, us in res for u in us]
+        assert urls == ["udp://good.example.com:6969/announce"], urls
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 @test

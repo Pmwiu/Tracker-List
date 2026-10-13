@@ -65,8 +65,14 @@ def extract_tracker_urls(text):
     for m in _URL_RE.findall(text):
         candidate = m.rstrip(".,;:)]}\"'")
         normalized = ut.normalize_tracker(candidate)
-        if normalized and ut.is_valid_tracker(normalized):
-            out.add(normalized)
+        if not (normalized and ut.is_valid_tracker(normalized)):
+            continue
+        # 拒绝畸形 IPv6 字面量（正则能过但 urlparse 抛 ValueError），从源头不写入
+        try:
+            urllib.parse.urlparse(normalized).hostname
+        except ValueError:
+            continue
+        out.add(normalized)
     return out
 
 

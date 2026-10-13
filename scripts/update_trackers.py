@@ -629,7 +629,12 @@ def load_discovered_candidates(out_dir=None, max_age_days=7,
                         continue
                     if normalized in url_blacklist:
                         continue
-                    host = (urllib.parse.urlparse(normalized).hostname or "").lower()
+                    # 畸形 IPv6 字面量（如 udp://[::1:6969）能过正则但会让 urlparse 抛
+                    # ValueError；跳过这类无法解析主机的坏行，不让整个发现流程崩
+                    try:
+                        host = (urllib.parse.urlparse(normalized).hostname or "").lower()
+                    except ValueError:
+                        continue
                     if host and host in blacklist:
                         continue
                     urls.append(normalized)
