@@ -1,7 +1,12 @@
 # tracker-proxy Worker 部署 runbook
 
+> **状态：已于 2026-10-13 经 API 部署上线**（KV `tracker-cache` id `3b405b92…`、
+> Worker `tracker-proxy` 已更新为加固 ES-Module 版、每日 cron `17 3 * * *` 已挂）。
+> 验证：`/health` 返回 `{"status":"ok"}`、`best.txt` `cache-control: public, max-age=300,
+> stale-while-revalidate=3600`。以下步骤保留为重建/回滚 runbook。
+
 加固版 Worker（内存泄漏修复 + 上游超时 + KV last-known-good 降级 + 每日 Cron 预热 +
-`/health`）。**当前线上是旧版**，本 runbook 把它升级到新版。
+`/health`）。以下步骤用于重建或回滚。
 
 ## 为什么需要你来部署
 
