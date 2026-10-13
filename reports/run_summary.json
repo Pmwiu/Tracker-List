@@ -1,80 +1,9 @@
 {
-  "timestamp": "2026-10-13 07:18:50 UTC",
-  "status": "success",
-  "duration_sec": 0.6,
-  "sources": {
-    "ngosang-best": {
-      "http_code": 200,
-      "lines": 20,
-      "ok": true
-    },
-    "ngosang-best-ip": {
-      "http_code": 200,
-      "lines": 20,
-      "ok": true
-    },
-    "cf-best": {
-      "http_code": 200,
-      "lines": 60,
-      "ok": true
-    },
-    "adysec-best": {
-      "http_code": 200,
-      "lines": 249,
-      "ok": true
-    },
-    "gonghailink-best": {
-      "http_code": 200,
-      "lines": 17,
-      "ok": true
-    },
-    "pandamen-best": {
-      "http_code": 200,
-      "lines": 18,
-      "ok": true
-    },
-    "gspu-best": {
-      "http_code": 200,
-      "lines": 19,
-      "ok": true
-    },
-    "linuxjin-best": {
-      "http_code": 200,
-      "lines": 20,
-      "ok": true
-    },
-    "alphacatmeow-best": {
-      "http_code": 200,
-      "lines": 15,
-      "ok": true
-    },
-    "pexcn-best": {
-      "http_code": 200,
-      "lines": 63,
-      "ok": true
-    },
-    "opentracker": {
-      "http_code": 200,
-      "lines": 26,
-      "ok": true
-    },
-    "trackersrun-ws": {
-      "http_code": 200,
-      "lines": 45,
-      "ok": true
-    },
-    "ngosang-i2p": {
-      "http_code": 200,
-      "lines": 17,
-      "ok": true
-    },
-    "ngosang-yggdrasil": {
-      "http_code": 0,
-      "lines": 1,
-      "ok": true
-    }
-  },
-  "merged_lines": 200,
-  "alive_lines": 25,
+  "timestamp": "2026-10-13 08:45:55 UTC",
+  "status": "failure",
+  "duration_sec": 0.3,
+  "sources": {},
+  "merged_lines": 0,
+  "alive_lines": null,
   "failed_sources": []
 }
