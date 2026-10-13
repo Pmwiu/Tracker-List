@@ -521,10 +521,25 @@ def write_dynamic_blacklist(dead_streak, threshold=DEAD_BLACKLIST_RUNS):
 # ============================================================
 # 综合评分排序（速度 > 稳定性 > 响应质量）
 # ============================================================
-# 权重：速度为主，稳定性次之，响应质量再次
-SCORE_SPEED_WEIGHT = 0.60
-SCORE_STABILITY_WEIGHT = 0.25
+# 权重：速度为主，稳定性次之，响应质量 + 跨源一致性 + 近期成功率
+# 总和 = 1.0；经典高可用加分 +6 在加权求和后单独加
+SCORE_SPEED_WEIGHT = 0.50
+SCORE_STABILITY_WEIGHT = 0.20
 SCORE_QUALITY_WEIGHT = 0.15
+SCORE_SOURCE_AGREEMENT_WEIGHT = 0.10
+SCORE_RECENT_SUCCESS_WEIGHT = 0.05
+
+# 跨源一致性分数：1 源无信号，2 源初步，3 源稳健，4+ 源即满分
+SOURCE_AGREEMENT_SCORES = {1: 0.0, 2: 30.0, 3: 70.0}
+
+
+def source_agreement_to_score(count):
+    """独立源数 → 一致性分（0..100）。"""
+    if count <= 0:
+        return 0.0
+    if count >= 4:
+        return 100.0
+    return SOURCE_AGREEMENT_SCORES.get(count, 0.0)
 
 # 响应质量分：仅对「完成完整 announce 握手」的存活 tracker 分级
 QUALITY_SCORES = {
@@ -591,26 +606,43 @@ def make_speed_scorer(all_elapsed_ms):
     return _score
 
 
-def compute_score(tracker, speed, uptime, detail):
+def compute_score(tracker, speed, uptime, detail, *,
+                  source_agreement=0, recent_success_rate=0.0,
+                  recent_outcomes=None):
     """
-    综合评分 = 速度(60%) + 历史稳定性(25%) + 响应质量(15%) + 经典高可用加分
+    综合评分 = 速度(50%) + 历史稳定性(20%) + 响应质量(15%)
+              + 跨源一致性(10%) + 近期成功率(5%)
+              + 经典高可用加分
+              − 反退化惩罚（最近 3 次全 0 时 −5）
 
     - 速度分：自适应线性归一化（由 make_speed_scorer 提供）
-    - 稳定性分：存活率 EMA（0~1）× 100，历史越稳越高
-    - 质量分：协议级握手/响应完整性分级（完整 announce > 仅建连 > 仅可达）
-    - 经典加分：长期稳定、广泛使用的经典公共 tracker 主机名额外加权
+    - 稳定性分：存活率 EMA（0~1）× 100
+    - 质量分：协议级握手/响应完整性分级
+    - 跨源一致性：同一 tracker 出现在 N 个独立白名单源中
+    - 近期成功率：最近 10 次 alive 占比 × 100
+    - 经典加分：长期稳定的经典公共 tracker 主机名额外加权
     返回分数，越高越优。
     """
     # 稳定性分：存活率 EMA（0~1）→ 0~100
     stability_score = max(0.0, min(1.0, uptime)) * 100
-
     # 质量分：握手/响应完整性
     quality = quality_score(detail)
+    # 跨源一致性
+    agreement_score = source_agreement_to_score(source_agreement)
+    # 近期成功率（0..1 → 0..100）
+    recent_score = max(0.0, min(1.0, recent_success_rate)) * 100
 
-    return (speed * SCORE_SPEED_WEIGHT
-            + stability_score * SCORE_STABILITY_WEIGHT
-            + quality * SCORE_QUALITY_WEIGHT
-            + classic_bonus(tracker))
+    score = (speed * SCORE_SPEED_WEIGHT
+             + stability_score * SCORE_STABILITY_WEIGHT
+             + quality * SCORE_QUALITY_WEIGHT
+             + agreement_score * SCORE_SOURCE_AGREEMENT_WEIGHT
+             + recent_score * SCORE_RECENT_SUCCESS_WEIGHT
+             + classic_bonus(tracker))
+
+    # 反退化：最近 3 次结果全 0
+    if recent_outcomes and len(recent_outcomes) >= 3 and recent_outcomes[-3:] == [0, 0, 0]:
+        score -= 5.0
+    return score
 
 
 def select_top_with_quotas(scored, max_total, min_non_udp, min_classic):
@@ -854,6 +886,17 @@ def main():
 
     history = load_history()
     uptime_map = history.get("uptime_ema", {})
+    # 跨源一致性（来自 update_trackers.py 写入的 reports/source_counts.json）
+    sa_map = {}
+    sc_path = os.path.join(ut.PROJECT_ROOT, "reports", "source_counts.json")
+    if os.path.exists(sc_path):
+        try:
+            with open(sc_path, encoding="utf-8") as f:
+                sa_map = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            sa_map = {}
+    # 近期成功率：最近 10 次 alive 占比
+    ro_map = history.get("last_outcomes", {})
 
     # ---- 第一轮：全量探活（带熔断）----
     results = []
@@ -963,12 +1006,18 @@ def main():
         print(f'[INFO] Same-subnet(/24) dedup removed {len(same_ip_removed)} slower tracker(s)')
     alive_with_speed = [(t, d, e) for t, d, e in alive_with_speed if t not in same_ip_removed]
 
-    # ---- 综合评分：速度(自适应) + 稳定性 + 质量 ----
+    # ---- 综合评分：速度(自适应) + 稳定性 + 质量 + 跨源 + 近期 + 反退化 ----
     speed_score = make_speed_scorer([e for _, _, e in alive_with_speed])
     scored = []
     for t, d, e in alive_with_speed:
         up = uptime_map.get(t, 0.0)
-        score = compute_score(t, speed_score(e), up, d)
+        sa = sa_map.get(t, 0)
+        ro = ro_map.get(t, [])
+        rsr = (sum(ro) / len(ro)) if ro else 0.0
+        score = compute_score(t, speed_score(e), up, d,
+                              source_agreement=sa,
+                              recent_success_rate=rsr,
+                              recent_outcomes=ro)
         scored.append((t, score, e, up, d))
 
     # 按综合评分降序，分数相同按速度升序

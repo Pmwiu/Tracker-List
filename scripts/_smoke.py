@@ -78,6 +78,44 @@ def test_last_outcomes_roundtrip():
             shutil.move(backup, state_path)
 
 
+@test
+def test_compute_score_dimensions():
+    import test_trackers as tt
+    # 0-维度基线（旧行为）
+    base = tt.compute_score("udp://a", 50.0, 0.5, "valid connect + announce")
+    # 3 源一致 + 近期全活：无反退化
+    high = tt.compute_score("udp://a", 50.0, 0.5, "valid connect + announce",
+                            source_agreement=3, recent_success_rate=1.0,
+                            recent_outcomes=[1, 1, 1])
+    # 3 源一致 + 近期全死：触发反退化 -5
+    degraded = tt.compute_score("udp://a", 50.0, 0.5, "valid connect + announce",
+                                source_agreement=3, recent_success_rate=0.0,
+                                recent_outcomes=[0, 0, 0])
+    # 关键性质：多源 + 近期健康的 tracker 显著高于其他场景
+    assert high > base
+    assert high > degraded
+    # 反退化降低分数（与全活同源数对比）
+    fully_alive = tt.compute_score("udp://a", 50.0, 0.5, "valid connect + announce",
+                                   source_agreement=3, recent_success_rate=1.0,
+                                   recent_outcomes=[1, 1, 1])
+    assert degraded < fully_alive
+    # 权重和 = 1.0
+    w = (tt.SCORE_SPEED_WEIGHT + tt.SCORE_STABILITY_WEIGHT
+         + tt.SCORE_QUALITY_WEIGHT + tt.SCORE_SOURCE_AGREEMENT_WEIGHT
+         + tt.SCORE_RECENT_SUCCESS_WEIGHT)
+    assert abs(w - 1.0) < 1e-6
+
+
+@test
+def test_source_agreement_mapping():
+    import test_trackers as tt
+    assert tt.source_agreement_to_score(1) == 0
+    assert tt.source_agreement_to_score(2) == 30
+    assert tt.source_agreement_to_score(3) == 70
+    assert tt.source_agreement_to_score(4) == 100
+    assert tt.source_agreement_to_score(10) == 100
+
+
 def main():
     failed = 0
     for name, fn in TESTS:
