@@ -87,6 +87,7 @@ OUTPUT_DIR = os.path.join(PROJECT_ROOT, "trackers")
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 RUN_SUMMARY_FILE = os.path.join(REPORTS_DIR, "run_summary.json")
 SOURCE_STATE_FILE = os.path.join(REPORTS_DIR, "source_state.json")
+SOURCE_COUNTS_FILE = os.path.join(REPORTS_DIR, "source_counts.json")
 BACKUP_DIR = os.path.join(OUTPUT_DIR, "backup")
 INVALID_LINES_LOG = os.path.join(PROJECT_ROOT, "invalid_lines.log")
 PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
@@ -1102,6 +1103,13 @@ def main():
             merged_lines = len(merged)
             print(f"{NL}[OK]   merged: {len(merged)}")
             write_protocol_sublists(merged)
+            # 每个 tracker 出现在多少个独立源中（跨源一致性评分的输入）
+            source_counts = {url: sum(1 for _, ts in per_source if url in ts)
+                             for url in all_merged}
+            os.makedirs(REPORTS_DIR, exist_ok=True)
+            atomic_write(SOURCE_COUNTS_FILE,
+                         json.dumps(source_counts, ensure_ascii=False, indent=2) + NL)
+            print(f"[OK]   source_counts.json ({len(source_counts)})")
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
             sys.exit(1)
