@@ -8,12 +8,12 @@
     "first_seen": "2026-10-12T15:48:16.884249+00:00"
   },
   "cf-best": {
-    "hash": "e0c81ad525d8",
-    "first_seen": "2026-10-12T06:13:22.648516+00:00"
+    "hash": "e76f3eb46a59",
+    "first_seen": "2026-10-13T00:52:23.211633+00:00"
   },
   "adysec-best": {
-    "hash": "9430d9f622db",
-    "first_seen": "2026-10-12T06:13:22.648516+00:00"
+    "hash": "eb82addb3347",
+    "first_seen": "2026-10-13T00:52:23.211633+00:00"
   },
   "gonghailink-best": {
     "hash": "f5f99228c4c2",
@@ -36,16 +36,16 @@
     "first_seen": "2026-10-08T23:28:19.864618+00:00"
   },
   "pexcn-best": {
-    "hash": "becb4617b771",
-    "first_seen": "2026-10-11T22:10:05.893567+00:00"
+    "hash": "0a0d207667f0",
+    "first_seen": "2026-10-13T00:52:23.211633+00:00"
   },
   "opentracker": {
     "hash": "9e1ffee026f7",
     "first_seen": "2026-10-09T18:26:10.389667+00:00"
   },
   "trackersrun-ws": {
-    "hash": "bc8adc911bb4",
-    "first_seen": "2026-10-12T15:48:16.884249+00:00"
+    "hash": "52ae4421af2c",
+    "first_seen": "2026-10-13T00:52:23.211633+00:00"
   },
   "ngosang-i2p": {
     "hash": "7975595575da",
