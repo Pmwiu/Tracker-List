@@ -831,13 +831,16 @@ def compute_score(tracker, speed, uptime, detail, *,
     return score
 
 
-def select_top_with_quotas(scored, max_total, min_non_udp, min_classic):
+def select_top_with_quotas(scored, max_total, min_non_udp, min_classic, *,
+                            whitelist_only_set=None):
     """按综合评分选取前 max_total 个，同时满足两项保底配额：
     - min_non_udp 条非 UDP（协议多样性）
     - min_classic 条经典高可用 tracker（冷门/死种/老种子优化：经典 tracker 长期稳定、
       拥有深厚 peer 数据库、真正开放，对老资源加速显著）
     按「经典保底 → 非 UDP 保底（冷门命中偏好 uptime≥0.7）→ 评分填充」三阶段选取；
     不足配额时有多少取多少。完成后应用 ASN /24 多样性 demotion（每前缀至多 3）。
+    whitelist_only_set：若非 None，仅该集合内的 URL 可入选（用于把
+    discover 模块发现的候选排除在 best/all 之外，Phase 1 设计）。
     返回 (selected, capped)，selected 仍按评分降序。
     """
     picked = []
@@ -845,6 +848,8 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic):
 
     def _pick(e):
         if e[0] in seen:
+            return False
+        if whitelist_only_set is not None and e[0] not in whitelist_only_set:
             return False
         seen.add(e[0])
         picked.append(e)
@@ -985,7 +990,8 @@ def write_result_file(filename, trackers):
 # ============================================================
 # 写测试报告
 # ============================================================
-def write_report(results, alive_final, capped, elapsed, protocol_stats, low_speed=None, same_ip_removed=None):
+def write_report(results, alive_final, capped, elapsed, protocol_stats, low_speed=None,
+                 same_ip_removed=None, discovered_set=None, scored=None):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
     unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
@@ -1045,6 +1051,22 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
         lines += ['', '## 同网段去重（/24，保留响应最快）', '']
         for t in sorted(same_ip_removed):
             lines.append(f'- `{t}`')
+
+    if discovered_set:
+        lines += ['', '## Discovery（自动发现的候选，Phase 1 隔离，不进 best/all）', '']
+        disc_results = [(t, s, d, e) for t, s, d, e in results if t in discovered_set]
+        alive_disc = [(t, d, e) for t, s, d, e in disc_results if s == 'alive']
+        lines.append(f'- 候选总数: {len(disc_results)}')
+        lines.append(f'- 通过探活: {len(alive_disc)}')
+        would_rank = [t for t, _, _, _, _ in (scored or []) if t in discovered_set]
+        if would_rank:
+            lines.append(f'- 若允许参与排名会入选的（前 {min(len(would_rank), 10)} 条）:')
+            for t in would_rank[:10]:
+                lines.append(f'  - `{t}`')
+        lines.append('')
+        lines.append('转正方式：人工 review 后加入 `scripts/update_trackers.py` 的 SOURCES，'
+                     '或写进 `trackers/discovered/PROMOTE.md`（Phase 2）。')
+        lines.append('')
 
     ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), ut.NL.join(lines) + ut.NL)
 
@@ -1257,9 +1279,24 @@ def main():
     # 按综合评分降序，分数相同按速度升序
     scored.sort(key=lambda x: (-x[1], x[2]))
 
+    # Phase 1 隔离：discover 模块发现的候选不进 best/all（仅出现在报告里）
+    discovered_set = set()
+    disc_path = os.path.join(ut.PROJECT_ROOT, "reports", "discovered_set.json")
+    if os.path.exists(disc_path):
+        try:
+            with open(disc_path, encoding="utf-8") as f:
+                discovered_set = set(json.load(f))
+        except (json.JSONDecodeError, IOError):
+            discovered_set = set()
+    whitelist_only_set = None
+    if discovered_set:
+        whitelist_only_set = {t for t, *_ in scored if t not in discovered_set}
+        print(f'[INFO] discovered candidates excluded from best/all: {len(discovered_set)}')
+
     # 协议多样性 + 经典高可用配额：保底非 UDP 与经典 tracker，其余按评分填充
     selected, capped = select_top_with_quotas(
-        scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS, MIN_CLASSIC_TRACKERS
+        scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS, MIN_CLASSIC_TRACKERS,
+        whitelist_only_set=whitelist_only_set,
     )
     alive_final_list = [t for t, _, _, _, _ in selected]
     alive_final_detail = [(t, score, speed, up, quality_score(d), classic_bonus(t))
@@ -1276,10 +1313,14 @@ def main():
 
     write_result_file(ut.ALIVE_FILE, alive_final_list)
     # "all" = 全部存活（完成完整 announce 握手、返回有效响应），按综合评分降序，取前 MAX_ALL
-    all_alive_list = [t for t, _, _, _, _ in scored[:ut.MAX_ALL]]
+    # 同样排除 discovered（Phase 1 隔离）
+    all_pool = scored if whitelist_only_set is None else [
+        e for e in scored if e[0] in whitelist_only_set]
+    all_alive_list = [t for t, _, _, _, _ in all_pool[:ut.MAX_ALL]]
     write_result_file(ut.ALL_FILE, all_alive_list)
     write_result_file(ut.DEAD_FILE, dead_final)
-    write_report(results, alive_final_detail, capped, total_elapsed, protocol_stats, low_speed, same_ip_removed)
+    write_report(results, alive_final_detail, capped, total_elapsed, protocol_stats, low_speed,
+                 same_ip_removed, discovered_set=discovered_set, scored=scored)
 
     # 历史状态必须按「真实探活结果」记录：存活 = 本次响应成功，失效 = 本次响应失败。
     # capped / low_speed / same_ip_removed 都是「存活但被淘汰」的 tracker，绝不能记为失效，

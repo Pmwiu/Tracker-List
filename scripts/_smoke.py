@@ -227,7 +227,6 @@ def test_dedup_against_known():
 
 @test
 def test_load_discovered_caps_age():
-    import os
     import shutil
     import tempfile
     import time as _time
@@ -251,6 +250,23 @@ def test_load_discovered_caps_age():
         assert any("udp://new.example/announce" == u for u in new_urls)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+@test
+def test_discovered_excluded_from_best():
+    import test_trackers as tt
+    scored = [
+        ("udp://whitelist/ann", 100.0, 10.0, 1.0, "valid connect + announce"),
+        ("udp://discovered/ann", 110.0, 10.0, 1.0, "valid connect + announce"),
+    ]
+    picked, capped = tt.select_top_with_quotas(
+        scored, 25, 4, 4, whitelist_only_set={"udp://whitelist/ann"})
+    urls = [t for t, *_ in picked]
+    assert "udp://discovered/ann" not in urls
+    assert "udp://whitelist/ann" in urls
+    # capped 里应含被排除的 discovered
+    capped_urls = [t for t, *_ in capped]
+    assert "udp://discovered/ann" in capped_urls
 
 
 def main():
