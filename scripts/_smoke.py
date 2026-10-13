@@ -330,6 +330,30 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_select_discovered_rotation():
+    import test_trackers as tt
+    # 轮换：最近测过的应排后，优先测最久未测/从未测的
+    discovered = {"udp://a.example.com/announce",
+                  "udp://b.example.com/announce",
+                  "udp://c.example.com/announce"}
+    merged = []
+    tested_state = {
+        "udp://a.example.com/announce": "2026-10-13T00:00:00+00:00",  # 刚测过
+        "udp://b.example.com/announce": "2026-10-10T00:00:00+00:00",  # 很久前
+        # c 从未测过
+    }
+    out = tt.select_discovered_to_test(discovered, merged, cap=2,
+                                       tested_state=tested_state)
+    # 从未测的 c 最优先，其次最久未测的 b；刚测过的 a 排最后（被 cap 截断）
+    assert out[0] == "udp://c.example.com/announce", out
+    assert out[1] == "udp://b.example.com/announce", out
+    assert "udp://a.example.com/announce" not in out
+    # 无 tested_state 时退回域名优先（向后兼容旧测试）
+    out2 = tt.select_discovered_to_test(discovered, merged, cap=3)
+    assert len(out2) == 3
+
+
+@test
 def test_select_discovered_to_test():
     import test_trackers as tt
     merged = ["udp://in-merged.example/announce"]

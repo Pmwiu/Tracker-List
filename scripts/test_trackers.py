@@ -1136,19 +1136,33 @@ def _is_ip_literal(url):
         return False
 
 
-def select_discovered_to_test(discovered_set, merged, cap=DISCOVERED_TEST_CAP):
+def select_discovered_to_test(discovered_set, merged, cap=DISCOVERED_TEST_CAP,
+                              tested_state=None):
     """为备选库挑选 merged 之外、需额外测活的 discovered 候选。
 
     merged 池受 MAX_CANDIDATES 上限约束且按字母序，discovered 里排前的往往是
     IP 字面量（多为死/私有 tracker），域名类好候选进不了被测试的 200 池。这里
-    把 merged 之外的 discovered 单独取一批来测：**域名优先**（更可能存活且适合
-    转正），IP 字面量靠后；上限 cap 控制测活耗时。
+    把 merged 之外的 discovered 单独取一批来测，上限 cap 控制测活耗时。
+
+    轮换覆盖：tested_state = {url: last_tested_iso}。排序优先"最久未测/从未测"
+    （从未测的排最前），其次域名类优先于 IP 字面量，最后 url。这样每轮测不同的
+    样本，几天内覆盖全部 discovered。无 tested_state 时退回纯域名优先。
     """
     if not discovered_set:
         return []
     merged_set = set(merged)
     rest = [u for u in discovered_set if u not in merged_set]
-    rest.sort(key=lambda u: (1 if _is_ip_literal(u) else 0, u))
+    ts = tested_state or {}
+
+    def _key(u):
+        last = ts.get(u)
+        try:
+            order = datetime.datetime.fromisoformat(last).timestamp() if last else 0.0
+        except (ValueError, TypeError):
+            order = 0.0
+        return (order, 1 if _is_ip_literal(u) else 0, u)
+
+    rest.sort(key=_key)
     return rest[:cap]
 
 
@@ -1405,13 +1419,31 @@ def main():
 
     # discovered 候选全集（Phase 2 备选库需要）：merged 池受 200 上限+字母序限制，
     # discovered 里排前的多是死 IP 字面量，域名类好候选进不了被测池。这里为备选库
-    # 额外取一批 merged 之外的 discovered（域名优先，上限 DISCOVERED_TEST_CAP）一起测活。
+    # 额外取一批 merged 之外的 discovered 一起测活；轮换覆盖（最久未测优先）。
     discovered_set = load_discovered_set()
-    extra = select_discovered_to_test(discovered_set, trackers)
+    tested_state_path = os.path.join(ut.PROJECT_ROOT, "reports", "discovered_tested.json")
+    tested_state = {}
+    if os.path.exists(tested_state_path):
+        try:
+            with open(tested_state_path, encoding="utf-8") as f:
+                tested_state = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            tested_state = {}
+    extra = select_discovered_to_test(discovered_set, trackers, tested_state=tested_state)
     if extra:
         trackers = trackers + extra
+        _now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        for u in extra:
+            tested_state[u] = _now_iso
+        # 裁剪：只保留仍在 discovered_set 里的历史，防无限增长
+        tested_state = {u: t for u, t in tested_state.items() if u in discovered_set}
+        try:
+            with open(tested_state_path, "w", encoding="utf-8") as f:
+                json.dump(tested_state, f, ensure_ascii=False, indent=2)
+        except IOError:
+            pass
         print(f'[INFO] reserve: +{len(extra)} discovered candidates for liveness test '
-              f'(domain-first, cap {DISCOVERED_TEST_CAP})')
+              f'(rotation, cap {DISCOVERED_TEST_CAP})')
 
     print(f'[INFO] Testing {len(trackers)} candidates '
           f'(all-pool={total_available}, timeout={args.timeout}s, '
