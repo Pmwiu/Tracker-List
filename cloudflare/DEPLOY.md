@@ -1,14 +1,11 @@
 # tracker-proxy Worker 部署 runbook
 
 > **状态：已于 2026-10-13 经 API 部署上线**（KV `tracker-cache` id `3b405b92…`、
-> Worker `tracker-proxy` 已更新为加固 ES-Module 版）。验证：`/health` 返回
-> `{"status":"ok"}`、`best.txt` `cache-control: public, max-age=300,
-> stale-while-revalidate=3600`、KV 绑定已挂。
-> **唯一待补：每日 Cron** —— 经代理的 JSON PUT 到 `/schedules` 被拒（代理对 JSON PUT body
-> 兼容问题），请在 Dashboard → Workers → tracker-proxy → Settings → Triggers → Cron
-> Schedules 加 `17 3 * * *`（20 秒），或 `wrangler deploy`（wrangler.toml 已含 crons）。
-> 无 cron 时 KV 仍由每次真实请求写入（last-known-good 降级照常生效），cron 只是零流量时的预热保险。
-> 以下步骤保留为重建/回滚 runbook。
+> Worker `tracker-proxy` 加固 ES-Module 版、**每日 cron `17 3 * * *` 已挂**）。
+> 验证：`/health` 返回 `{"status":"ok"}`、`best.txt` `cache-control: public, max-age=300,
+> stale-while-revalidate=3600`、KV 绑定已挂、schedules 端点确认 cron 存在。
+> 注：cron 经 wrangler 部署成功（原始 `/schedules` PUT 对 JSON body 报 10026，wrangler 走
+> 正确通道）。以下步骤保留为重建/回滚 runbook。
 
 加固版 Worker（内存泄漏修复 + 上游超时 + KV last-known-good 降级 + 每日 Cron 预热 +
 `/health`）。以下步骤用于重建或回滚。
