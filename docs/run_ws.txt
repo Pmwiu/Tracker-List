@@ -26,7 +26,6 @@ udp://51.81.222.188:6969/announce
 udp://89.234.156.205:451/announce
 udp://ipv4announce.sktorrent.eu:6969/announce
 udp://martin-gebhardt.eu:25/announce
-udp://open.ftorrent.com:443/announce
 udp://open.stealth.si:80/announce
 udp://opentracker.lain.moscow:6969/announce
 udp://retracker.hotplug.ru:2710/announce
