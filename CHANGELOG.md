@@ -3,6 +3,19 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-14] - feat
+- **黑名单整合 + 去重 + 防误杀**：新增 `build_blacklists(source_counts)` 把域名级
+  (`blacklist.txt`)、远程 URL 级 (ngosang+XIU2)、动态 URL 级 (连续失效) 三类整合为
+  `(domain_set, url_set, protected_set)` 单一入口，各自去重；`download_trackers` 与
+  `load_discovered_candidates` 共用
+- **防误杀保护集**：`PROTECTED_HOSTS`（14 经典主机）∪ 上一轮跨源一致性≥3 的主机；
+  域名级黑名单不能杀受保护主机（`is_blacklisted`），URL 级仍可精确杀；动态黑名单
+  (`write_dynamic_blacklist`) 跳过受保护主机，经典 tracker 偶发下线不被自动永久拉黑
+- 清理了一处重复的 `load_discovered_candidates` 定义
+- **Cloudflare 托管加固上线**：`tracker-proxy` Worker 重新部署为 ES-Module 加固版
+  （内存泄漏修复 + 上游 4s 超时 + KV last-known-good 降级 + `cache-control` + `/health`），
+  新建 KV `tracker-cache` 并绑定，每日 Cron `17 3 * * *` 预热（wrangler 部署）
+
+## [2026-10-14] - feat
 - **测活增强**：HTTP/HTTPS announce 解析 compact peers/peers6 字节长度得节点数
   （`announce with peers:N`），质量分档 N≥3→100/1-2→95/0→90；新增 BEP 15 `scrape`
   热度探针（http/https 存活者，截断读 64KB 正则累计种子数，禁用/失败不惩罚），

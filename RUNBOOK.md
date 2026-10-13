@@ -215,6 +215,24 @@ CI 不跑它；改动评分/选优/发现逻辑后本地跑一遍。
 - **本机限制**：国内网络对 `raw.githubusercontent.com` / `cdn.jsdelivr.net` 直连
   常被重置（WinError 10054），本地跑发现常得 0 条；CI（US runner）正常。
 
+## 4d. 黑名单机制（整合 + 去重 + 防误杀）
+
+三类黑名单经 `build_blacklists(source_counts)` 整合为 `(domain_set, url_set, protected_set)`，
+各自去重，`main()` 单一入口加载，`download_trackers` 与 `load_discovered_candidates` 共用：
+
+| 来源 | 级别 | 文件/端点 | 作用 |
+|---|---|---|---|
+| 域名黑名单 | 域名 | `blacklist.txt` | 排除整个主机 |
+| 远程知名项目 | 精确 URL | ngosang + XIU2 `blacklist.txt` | 拉黑已知坏 tracker |
+| 动态黑名单 | 精确 URL | `trackers/blacklist_dynamic.txt` | 连续失效 ≥20 次自动拉黑 |
+
+**防误杀（false-kill protection）**：
+- `protected_set` = `PROTECTED_HOSTS`（14 个经典公共 tracker 主机）∪ 上一轮跨源一致性 ≥3 的主机。
+- **域名级黑名单不能杀受保护主机**（`is_blacklisted`：域名命中但主机在保护集 → 放行）。
+- **URL 级仍可精确杀**任意单条 URL（含受保护主机的某条坏 URL）——精确匹配不误伤同主机其它路径。
+- **动态黑名单跳过受保护主机**：经典 tracker 偶发连续下线不会被自动永久拉黑（`write_dynamic_blacklist`）。
+- 畸形 IPv6 URL（`udp://[::1:6969`）经 `is_blacklisted` 安全跳过，不崩不误杀。
+
 ## 5. 本机（Windows）环境注意事项
 
 - **Git Bash 中文路径坑**：工作目录 `E:\工作` 含中文，直接向 bash 传含中文
