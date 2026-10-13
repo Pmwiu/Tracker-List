@@ -136,12 +136,14 @@ def _build_asn_cache(alive_urls):
             port = (urllib.parse.urlparse(url).port
                     or (443 if url.startswith(("https://", "wss://"))
                         else 80 if url.startswith(("http://", "ws://")) else 0))
-            if not host or _ip_to_prefix(host) == host:  # 已是 IP
+            # 主机名（非 IP 字面量）走此分支：解析后取首个 IP 的前缀
+            if not host or _ip_to_prefix(host) == host:
                 key = f"{host}:{port}"
                 infos = cached_getaddrinfo(host, None)
                 ip = infos[0][4][0] if infos else host
                 out[key] = _ip_to_prefix(ip)
                 continue
+            # 此处 host 已是 IP 字面量：直接取前缀（再解析一次会返回自身）
             infos = cached_getaddrinfo(host, None)
             for fam, _, _, _, sockaddr in infos:
                 out[f"{host}:{port}"] = _ip_to_prefix(sockaddr[0])
