@@ -253,6 +253,38 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_fetch_public_lists_parses():
+    import discover_trackers as dt
+    fixture = {
+        "https://a/all.txt": "udp://t1.example.com:6969/announce\n# comment\nhttp://t2.example.com/announce\n",
+        "https://b/all.txt": "udp://t1.example.com:6969/announce\nnot a url\n",
+    }
+    orig = dt._http_get_text
+    dt._http_get_text = lambda url, **kw: fixture[url]
+    try:
+        out = dt.fetch_public_lists(urls=list(fixture.keys()))
+        # 去重 + 过滤非法 + normalize（http 补默认端口 80）
+        assert out == {"udp://t1.example.com:6969/announce",
+                       "http://t2.example.com:80/announce"}
+    finally:
+        dt._http_get_text = orig
+
+
+@test
+def test_fetch_public_lists_all_fail_graceful():
+    import discover_trackers as dt
+    orig = dt._http_get_text
+    def boom(url, **kw):
+        raise RuntimeError("network down")
+    dt._http_get_text = boom
+    try:
+        out = dt.fetch_public_lists(urls=["https://x/all.txt", "https://y/all.txt"])
+        assert out == set()  # 全部失败也不抛异常
+    finally:
+        dt._http_get_text = orig
+
+
+@test
 def test_select_reserve():
     import test_trackers as tt
     # discovered alive 按评分降序取前 cap；白名单条目绝不进备选

@@ -29,6 +29,28 @@ PER_FILE_BYTE_CAP = 100 * 1024
 TIMEOUT = 15
 USER_AGENT = "Tracker-List-Discover/1.0 (https://github.com/Pmwiu/Tracker-List)"
 
+# 公开"全量"列表（比白名单 best 源更宽，作为发现候选；不进 SOURCES 白名单）
+PUBLIC_ALL_LISTS = [
+    "https://cf.trackerslist.com/all.txt",
+    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all.txt",
+    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_ip.txt",
+    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_udp.txt",
+    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_http.txt",
+    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_https.txt",
+    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_ws.txt",
+    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_wss.txt",
+]
+PUBLIC_LIST_CAP = 20  # 单次发现最多抓取的公开列表数（防失控）
+
+
+def _github_headers():
+    """GitHub API 请求头；CI 环境有 GITHUB_TOKEN 时带上以提升速率限制。"""
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"}
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
 # 仅匹配协议 (udp|http|https|wss|ws)://host[:port]/path
 _URL_RE = re.compile(
     r'((?:udp|http|https|wss|ws)://[^\s<>"\']+)',
@@ -55,9 +77,8 @@ def filter_known(urls, known_urls):
 
 
 def _http_get_json(url, timeout=TIMEOUT):
-    """GET URL，期望 JSON 响应，失败抛异常。"""
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
-                                                "Accept": "application/vnd.github+json"})
+    """GET URL，期望 JSON 响应，失败抛异常。带 GITHUB_TOKEN（若有）时速率更高。"""
+    req = urllib.request.Request(url, headers=_github_headers())
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8", errors="replace"))
 
@@ -169,6 +190,24 @@ def _existing_recent_candidates(out_dir, max_age_days=7):
     return out
 
 
+def fetch_public_lists(urls=None, cap=PUBLIC_LIST_CAP, timeout=TIMEOUT):
+    """抓取公开"全量"列表（cf.trackerslist/ngosang all 等），抽取候选 tracker URL。
+
+    这些是发现候选的补充来源（比白名单 best 源宽得多）。单个列表失败仅告警跳过。
+    """
+    urls = urls or PUBLIC_ALL_LISTS
+    out = set()
+    for url in urls[:cap]:
+        try:
+            text = _http_get_text(url, timeout=timeout, max_bytes=PER_FILE_BYTE_CAP)
+            found = extract_tracker_urls(text)
+            out |= found
+            print(f"[INFO] public list {url}: {len(found)} urls")
+        except Exception as e:
+            print(f"[WARN] public list fetch failed {url}: {e}")
+    return out
+
+
 def discover_trackers(out_dir="trackers/discovered", known_urls=None):
     """运行一次发现流程；返回新写入的 URL 数量。"""
     if known_urls is None:
@@ -176,6 +215,9 @@ def discover_trackers(out_dir="trackers/discovered", known_urls=None):
     known_urls |= _existing_recent_candidates(out_dir)
 
     collected = set()
+    # 1) 公开"全量"列表（宽口径候选）
+    collected |= fetch_public_lists()
+    # 2) GitHub topic 仓库扫描
     for topic in TOPICS:
         repos = fetch_github_topic_repos(topic)
         for full_name, branch in repos:
