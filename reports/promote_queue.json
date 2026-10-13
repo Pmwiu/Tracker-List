@@ -7,10 +7,10 @@
     "dead_streak": 0
   },
   "udp://tr4ck3r.duckdns.org:6969/announce": {
-    "alive_runs": 2,
-    "last_score": 67.7,
+    "alive_runs": 3,
+    "last_score": 65.7,
     "first_seen": "2026-10-13T07:20:46.774546+00:00",
-    "last_seen": "2026-10-13T09:59:50.400265+00:00",
+    "last_seen": "2026-10-13T15:18:08.810270+00:00",
     "dead_streak": 0
   },
   "udp://211.75.205.187:80/announce": {
@@ -77,10 +77,10 @@
     "dead_streak": 0
   },
   "https://open.ftorrent.com:443/announce": {
-    "alive_runs": 1,
-    "last_score": 59.6,
+    "alive_runs": 2,
+    "last_score": 59.0,
     "first_seen": "2026-10-13T10:37:33.216121+00:00",
-    "last_seen": "2026-10-13T10:37:33.216121+00:00",
+    "last_seen": "2026-10-13T15:18:08.810270+00:00",
     "dead_streak": 0
   },
   "udp://tracker.aruku.ovh:8081/announce": {
@@ -116,6 +116,20 @@
     "last_score": 52.0,
     "first_seen": "2026-10-13T14:27:37.173242+00:00",
     "last_seen": "2026-10-13T14:27:37.173242+00:00",
+    "dead_streak": 0
+  },
+  "udp://tracker.wildkat.net:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 66.8,
+    "first_seen": "2026-10-13T15:18:08.810270+00:00",
+    "last_seen": "2026-10-13T15:18:08.810270+00:00",
+    "dead_streak": 0
+  },
+  "udp://51.81.222.188:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 65.2,
+    "first_seen": "2026-10-13T15:18:08.810270+00:00",
+    "last_seen": "2026-10-13T15:18:08.810270+00:00",
     "dead_streak": 0
   }
 }
