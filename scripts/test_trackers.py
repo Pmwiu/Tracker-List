@@ -34,6 +34,7 @@ import random
 import socket
 import struct
 import argparse
+import statistics
 import ipaddress
 import urllib.parse
 import urllib.request
@@ -606,6 +607,28 @@ def make_speed_scorer(all_elapsed_ms):
     return _score
 
 
+def multi_sample_refine(samples):
+    """多样本中位 + 抖动扣分。
+
+    返回 (effective_ms, penalty)，其中 penalty ∈ [0.7, 1.0]：
+    - samples 数量 < 2：不精炼，penalty=1.0，eff=samples[0]（若存在），否则 0
+    - 抖动=0：penalty=1.0
+    - 抖动 > 0：penalty = max(0.7, 1 - jitter/median*0.3)
+    """
+    if not samples:
+        return 0.0, 1.0
+    if len(samples) < 2:
+        return float(samples[0]), 1.0
+    median = statistics.median(samples)
+    if median <= 0:
+        return float(median), 1.0
+    jitter = max(samples) - min(samples)
+    if jitter <= 0:
+        return float(median), 1.0
+    penalty = max(0.7, 1.0 - (jitter / median) * 0.3)
+    return float(median) * penalty, penalty
+
+
 def compute_score(tracker, speed, uptime, detail, *,
                   source_agreement=0, recent_success_rate=0.0,
                   recent_outcomes=None):
@@ -949,34 +972,45 @@ def main():
         print('[WARN] Circuit breaker triggered; keeping previous trackers_alive.txt, exiting.')
         return
 
-    # ---- 第二轮：对存活的前 100 个精测 ----
+    # ---- 第二轮/多样本精测：对存活的前 50 个跑 2 次额外样本（合计 3 样本），
+    # 取中位并按抖动扣分 ----
     alive_first = [(t, d, e) for t, s, d, e in results if s == 'alive']
     alive_first.sort(key=lambda x: x[2])  # 按速度升序
-    second_pass_targets = [t for t, _, _ in alive_first[:100]]
+    refine_targets = [t for t, _, _ in alive_first[:50]]
 
-    if not args.no_second_pass and second_pass_targets:
-        print(f'[INFO] Second pass: re-testing top {len(second_pass_targets)} alive trackers...')
-        second_results = {}
+    if not args.no_second_pass and refine_targets:
+        print(f'[INFO] Multi-sample: 3 samples on top {len(refine_targets)} alive trackers...')
+        refined = {}  # tracker -> [ms, ms, ms]
+        retest_timeout = max(args.timeout - 2, 5)
         with ThreadPoolExecutor(max_workers=min(args.workers, 15)) as pool:
-            futures = {pool.submit(test_one, t, max(args.timeout - 2, 5)): t for t in second_pass_targets}
+            futures = []
+            for t in refine_targets:
+                # 每个 tracker 多提交 2 次（合计 3 样本：原 first-pass + 2 次新测）
+                for _ in range(2):
+                    futures.append(pool.submit(test_one, t, retest_timeout))
             for future in as_completed(futures):
                 try:
-                    tracker, status, detail, elapsed_ms = future.result()
+                    tracker, status, _detail, elapsed_ms = future.result()
                     if status == 'alive':
-                        second_results[tracker] = elapsed_ms
+                        refined.setdefault(tracker, []).append(elapsed_ms)
                 except Exception:
                     pass
 
-        # 合并两轮结果：取较优（较快）的速度
+        # 把每个 tracker 的首轮 elapsed + 精测样本合并，取中位 + 抖动扣分
+        first_pass_elapsed_map = {t: e for t, _, e in alive_first}
         updated_results = []
+        refined_count = 0
         for tracker, status, detail, elapsed_ms in results:
-            if tracker in second_results:
-                best_speed = min(elapsed_ms, second_results[tracker])
-                updated_results.append((tracker, status, detail, best_speed))
+            extra = refined.get(tracker, [])
+            samples = [elapsed_ms] + extra
+            if len(samples) >= 2:
+                eff, _pen = multi_sample_refine(samples)
+                updated_results.append((tracker, status, detail, eff))
+                refined_count += 1
             else:
                 updated_results.append((tracker, status, detail, elapsed_ms))
         results = updated_results
-        print(f'[INFO] Second pass done, refined {len(second_results)} trackers')
+        print(f'[INFO] Multi-sample refined {refined_count} trackers (median + jitter penalty)')
 
     total_elapsed = time.time() - start
 

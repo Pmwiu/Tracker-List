@@ -116,6 +116,28 @@ def test_source_agreement_mapping():
     assert tt.source_agreement_to_score(10) == 100
 
 
+@test
+def test_jitter_penalty():
+    import statistics
+    import test_trackers as tt
+    # 中位 + 抖动 → 期望 effective speed
+    samples = [50, 100, 150]
+    median = statistics.median(samples)
+    assert median == 100
+    # 抖动=100，median=100 → penalty = 1 - 100/100*0.3 = 0.7
+    eff, pen = tt.multi_sample_refine(samples)
+    assert pen == 0.7
+    assert eff == 100 * 0.7
+    # 抖动=0 → penalty=1.0
+    eff, pen = tt.multi_sample_refine([80, 80, 80])
+    assert pen == 1.0
+    assert eff == 80
+    # 样本不足时退回原值
+    eff, pen = tt.multi_sample_refine([42])
+    assert pen == 1.0
+    assert eff == 42
+
+
 def main():
     failed = 0
     for name, fn in TESTS:
