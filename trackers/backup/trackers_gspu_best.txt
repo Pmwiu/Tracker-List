@@ -12,8 +12,5 @@ udp://tracker-udp.gbitt.info:80/announce
 udp://tracker.alaskantf.com:6969/announce
 udp://tracker.dler.org:6969/announce
 udp://tracker.filemail.com:6969/announce
-udp://tracker.srv00.com:6969/announce
 udp://tracker.theoks.net:6969/announce
 udp://tracker.torrent.eu.org:451/announce
-udp://tracker.wepzone.net:6969/announce
-udp://wepzone.net:6969/announce
