@@ -88,6 +88,8 @@ REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 RUN_SUMMARY_FILE = os.path.join(REPORTS_DIR, "run_summary.json")
 SOURCE_STATE_FILE = os.path.join(REPORTS_DIR, "source_state.json")
 SOURCE_COUNTS_FILE = os.path.join(REPORTS_DIR, "source_counts.json")
+DISCOVERED_SET_FILE = os.path.join(REPORTS_DIR, "discovered_set.json")
+DISCOVERED_DIR = os.path.join(OUTPUT_DIR, "discovered")
 BACKUP_DIR = os.path.join(OUTPUT_DIR, "backup")
 INVALID_LINES_LOG = os.path.join(PROJECT_ROOT, "invalid_lines.log")
 PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
@@ -581,6 +583,45 @@ def write_trackers(filepath, trackers):
     atomic_write(filepath, content)
 
 
+def load_discovered_candidates(out_dir=None, max_age_days=7):
+    """读取 out_dir 中 mtime 在 max_age_days 内的 candidates_*.txt。
+
+    返回 [(synthetic_name, [url, ...]), ...]，每个文件 = 一个合成源。
+    synthetic_name 形如 "discovered-<sha1[:8]>"，基于文件名哈希保证唯一稳定。
+    每个 URL 经 is_valid_tracker 严格校验。
+    """
+    import glob
+    if out_dir is None:
+        out_dir = DISCOVERED_DIR
+    if not os.path.isdir(out_dir):
+        return []
+    cutoff = time.time() - max_age_days * 86400
+    out = []
+    for path in sorted(glob.glob(os.path.join(out_dir, "candidates_*.txt"))):
+        try:
+            if os.path.getmtime(path) < cutoff:
+                continue
+        except OSError:
+            continue
+        try:
+            with open(path, encoding="utf-8") as f:
+                urls = []
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    normalized = normalize_tracker(line)
+                    if normalized and is_valid_tracker(normalized):
+                        urls.append(normalized)
+        except OSError:
+            continue
+        if not urls:
+            continue
+        name_hash = hashlib.sha1(os.path.basename(path).encode("utf-8")).hexdigest()[:8]
+        out.append((f"discovered-{name_hash}", urls))
+    return out
+
+
 PROTOCOL_SUBLISTS = {
     "udp": "udp://",
     "http": "http://",
@@ -1004,6 +1045,17 @@ def main():
         failures = []
         fingerprints = {}        # {short_name: 内容指纹}，用于源新鲜度检测
 
+        # 加载发现模块（discover_trackers.py）产出的候选，作为"报告源"参与 merge pool；
+        # 不会进入 best/all（Task 10 在 select_top_with_quotas 过滤 discovered_set.json）
+        discovered_sources = load_discovered_candidates()
+        if discovered_sources:
+            total_disc = sum(len(u) for _, u in discovered_sources)
+            print(f"[INFO] discovered candidates: {total_disc} URLs "
+                  f"in {len(discovered_sources)} file(s)")
+        discovered_urls = set()
+        for sn, urls in discovered_sources:
+            discovered_urls.update(urls)
+
         # 硬校验：SOURCES 中任何非白名单来源都是配置错误，立即失败
         rogue = [u for _, u, _ in SOURCES if u not in ALLOWED_SOURCE_URLS]
         if rogue:
@@ -1036,6 +1088,13 @@ def main():
             results.append((filename, len(trackers)))
             fingerprints[short_name] = hashlib.sha1(NL.join(trackers).encode("utf-8")).hexdigest()[:12]
             print(f"[OK]   {len(trackers)} unique")
+
+        # 把 discovered candidates 作为额外源（合成 short_name）追加到 per_source；
+        # 它们计入 MAX_CANDIDATES 但不写 trackers/trackers_<name>.txt（不进文件系统）
+        for short_name, urls in discovered_sources:
+            per_source.append((short_name, urls))
+            results.append((f"discovered/{short_name}", len(urls)))
+            contribution[short_name] = len(urls)
 
         if failures:
             print(f"{NL}[WARN] {len(failures)} source(s) failed:")
@@ -1110,6 +1169,11 @@ def main():
             atomic_write(SOURCE_COUNTS_FILE,
                          json.dumps(source_counts, ensure_ascii=False, indent=2) + NL)
             print(f"[OK]   source_counts.json ({len(source_counts)})")
+            # discovered URL 集合：test_trackers 读这个文件，在 best/all 选优时排除
+            atomic_write(DISCOVERED_SET_FILE,
+                         json.dumps(sorted(discovered_urls), ensure_ascii=False, indent=2) + NL)
+            if discovered_urls:
+                print(f"[OK]   discovered_set.json ({len(discovered_urls)})")
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
             sys.exit(1)

@@ -225,6 +225,34 @@ def test_dedup_against_known():
     assert out == {"udp://new.example/announce"}
 
 
+@test
+def test_load_discovered_caps_age():
+    import os
+    import shutil
+    import tempfile
+    import time as _time
+    import update_trackers as ut
+    tmp = tempfile.mkdtemp(prefix="discovered_test_")
+    try:
+        old_path = os.path.join(tmp, "candidates_20200101.txt")
+        new_path = os.path.join(tmp, "candidates_20261013.txt")
+        with open(old_path, "w", encoding="utf-8") as f:
+            f.write("udp://old.example/announce\n")
+        with open(new_path, "w", encoding="utf-8") as f:
+            f.write("udp://new.example/announce\n")
+        # 把 old 文件 mtime 设为 100 天前
+        old_mtime = _time.time() - 100 * 86400
+        os.utime(old_path, (old_mtime, old_mtime))
+        results = ut.load_discovered_candidates(out_dir=tmp, max_age_days=7)
+        new_urls = [u for _, urls in results for u in urls]
+        # 100 天前的应被剔除
+        assert not any("udp://old.example/announce" == u for u in new_urls)
+        # 当天的应保留
+        assert any("udp://new.example/announce" == u for u in new_urls)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def main():
     failed = 0
     for name, fn in TESTS:
