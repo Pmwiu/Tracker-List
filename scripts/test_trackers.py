@@ -1107,6 +1107,49 @@ def _promote_dead_urls(results, discovered_set):
             if s in ('dead', 'unsafe') and t in discovered_set}
 
 
+DISCOVERED_TEST_CAP = 120  # 为备选库额外测活的 discovered 样本上限
+
+
+def load_discovered_set():
+    """读取 reports/discovered_set.json（update_trackers 产出的 discovered 候选全集）。"""
+    path = os.path.join(ut.PROJECT_ROOT, "reports", "discovered_set.json")
+    if not os.path.exists(path):
+        return set()
+    try:
+        with open(path, encoding="utf-8") as f:
+            return set(json.load(f))
+    except (json.JSONDecodeError, IOError):
+        return set()
+
+
+def _is_ip_literal(url):
+    try:
+        host = urllib.parse.urlparse(url).hostname or ""
+    except Exception:
+        return False
+    try:
+        ipaddress.ip_address(host)
+        return True
+    except ValueError:
+        return False
+
+
+def select_discovered_to_test(discovered_set, merged, cap=DISCOVERED_TEST_CAP):
+    """为备选库挑选 merged 之外、需额外测活的 discovered 候选。
+
+    merged 池受 MAX_CANDIDATES 上限约束且按字母序，discovered 里排前的往往是
+    IP 字面量（多为死/私有 tracker），域名类好候选进不了被测试的 200 池。这里
+    把 merged 之外的 discovered 单独取一批来测：**域名优先**（更可能存活且适合
+    转正），IP 字面量靠后；上限 cap 控制测活耗时。
+    """
+    if not discovered_set:
+        return []
+    merged_set = set(merged)
+    rest = [u for u in discovered_set if u not in merged_set]
+    rest.sort(key=lambda u: (1 if _is_ip_literal(u) else 0, u))
+    return rest[:cap]
+
+
 def _host_key(tracker):
     """tracker URL 的主机名归一键（小写、去 www. 前缀）；无法解析返回 None。"""
     try:
@@ -1357,6 +1400,17 @@ def main():
     merged_all = read_merged()
     total_available = len(merged_all)
     trackers = read_candidates(args.max_candidates)
+
+    # discovered 候选全集（Phase 2 备选库需要）：merged 池受 200 上限+字母序限制，
+    # discovered 里排前的多是死 IP 字面量，域名类好候选进不了被测池。这里为备选库
+    # 额外取一批 merged 之外的 discovered（域名优先，上限 DISCOVERED_TEST_CAP）一起测活。
+    discovered_set = load_discovered_set()
+    extra = select_discovered_to_test(discovered_set, trackers)
+    if extra:
+        trackers = trackers + extra
+        print(f'[INFO] reserve: +{len(extra)} discovered candidates for liveness test '
+              f'(domain-first, cap {DISCOVERED_TEST_CAP})')
+
     print(f'[INFO] Testing {len(trackers)} candidates '
           f'(all-pool={total_available}, timeout={args.timeout}s, '
           f'workers={args.workers})')
@@ -1532,15 +1586,7 @@ def main():
     # 按综合评分降序，分数相同按速度升序
     scored.sort(key=lambda x: (-x[1], x[2]))
 
-    # Phase 1 隔离：discover 模块发现的候选不进 best/all（仅出现在报告里）
-    discovered_set = set()
-    disc_path = os.path.join(ut.PROJECT_ROOT, "reports", "discovered_set.json")
-    if os.path.exists(disc_path):
-        try:
-            with open(disc_path, encoding="utf-8") as f:
-                discovered_set = set(json.load(f))
-        except (json.JSONDecodeError, IOError):
-            discovered_set = set()
+    # Phase 1 隔离：discover 模块发现的候选不进 best/all（discovered_set 已在前面加载）
     whitelist_only_set = None
     if discovered_set:
         whitelist_only_set = {t for t, *_ in scored if t not in discovered_set}

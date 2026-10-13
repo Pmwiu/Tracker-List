@@ -253,6 +253,25 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_select_discovered_to_test():
+    import test_trackers as tt
+    merged = ["udp://in-merged.example/announce"]
+    discovered = {
+        "http://160.1.2.3:6969/announce",   # IP literal -> deprioritized
+        "udp://good-domain.example.com/announce",  # domain -> prioritized
+        "udp://in-merged.example/announce",        # already in merged -> excluded
+        "http://8.8.8.8/announce",                 # IP literal
+    }
+    out = tt.select_discovered_to_test(discovered, merged, cap=2)
+    # 域名优先，且 merged 内的被排除
+    assert out[0] == "udp://good-domain.example.com/announce"
+    assert "udp://in-merged.example/announce" not in out
+    assert len(out) == 2  # cap
+    # 空 discovered -> 空
+    assert tt.select_discovered_to_test(set(), merged) == []
+
+
+@test
 def test_update_promote_queue():
     import test_trackers as tt
     now = "2026-10-14T00:00:00+00:00"
