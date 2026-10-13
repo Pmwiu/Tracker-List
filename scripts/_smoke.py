@@ -253,6 +253,24 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_dedup_same_host():
+    import test_trackers as tt
+    # host key：小写 + 去 www. 前缀
+    assert tt._host_key("udp://WWW.Example.COM:1337/announce") == "example.com"
+    assert tt._host_key("not a url") is None
+    # 同域名（跨端口/跨协议）只保留最快
+    entries = [
+        ("udp://a.example.com:1337/announce", "d", 50.0),
+        ("udp://a.example.com:6969/announce", "d", 80.0),
+        ("http://www.a.example.com/announce", "d", 60.0),
+        ("udp://b.other.com/announce", "d", 70.0),
+    ]
+    removed = tt.dedup_by_groups(entries, tt._host_key)
+    assert removed == {"udp://a.example.com:6969/announce",
+                       "http://www.a.example.com/announce"}
+
+
+@test
 def test_peers_and_scrape_signals():
     import test_trackers as tt
     # announce peers 计数（compact IPv4 6 字节/peer，IPv6 18 字节/peer）

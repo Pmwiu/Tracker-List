@@ -1014,11 +1014,45 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic, *,
     return picked, capped
 
 
-def dedup_same_ip(entries):
-    """同 IP / 同网段去重：解析到同一 IP 或同一 /24 网段（IPv4）的多个 tracker
-    只保留响应最快的，避免同一主机/同一运营商的冗余节点占据名额。
+def _host_key(tracker):
+    """tracker URL 的主机名归一键（小写、去 www. 前缀）；无法解析返回 None。"""
+    try:
+        host = urllib.parse.urlparse(tracker).hostname
+    except Exception:
+        return None
+    if not host:
+        return None
+    host = host.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return host or None
 
-    entries: [(tracker, detail, elapsed_ms)]，返回需移除的 tracker 集合（同网段中较慢者）。
+
+def dedup_by_groups(entries, key_fn):
+    """按 key_fn 分组，每组只保留 elapsed 最小的；返回需移除的 tracker 集合。
+
+    entries: [(tracker, detail, elapsed_ms)]；key_fn(tracker) -> 分组键或 None（跳过）。
+    """
+    groups = {}
+    for t, _d, e in entries:
+        k = key_fn(t)
+        if k is None:
+            continue
+        groups.setdefault(k, []).append((t, e))
+    removed = set()
+    for lst in groups.values():
+        if len(lst) > 1:
+            lst.sort(key=lambda x: x[1])
+            removed.update(t for t, _ in lst[1:])
+    return removed
+
+
+def dedup_same_ip(entries):
+    """同 IP / 同网段 / 同域名去重（ngosang 方法：同域名或同 IP 只留一个）：
+    解析到同一 IP 或同一 /24 网段（IPv4）、或主机名相同（跨端口/跨协议，
+    同一基础设施）的多个 tracker 只保留响应最快的，避免冗余节点占据名额。
+
+    entries: [(tracker, detail, elapsed_ms)]，返回需移除的 tracker 集合。
     """
     def _key(ip):
         try:
@@ -1046,6 +1080,9 @@ def dedup_same_ip(entries):
         if len(lst) > 1:
             lst.sort(key=lambda x: x[1])  # 按耗时升序，最快在前
             removed.update(t for t, _ in lst[1:])
+
+    # 同域名去重（跨端口/协议；IP 字面量 host 已被上面的 /24 组覆盖）
+    removed |= dedup_by_groups(entries, _host_key)
     return removed
 
 
@@ -1104,7 +1141,7 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
         f'- 不安全 (unsafe): **{len(unsafe)}**',
         f'- 无法测试 (untestable): {len(untestable)}',
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
-        f'- 同网段去重 (/24, kept faster): {len(same_ip_removed or [])}',
+        f'- 同网段/同域名去重 (kept fastest): {len(same_ip_removed or [])}',
         f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
         f'- 评分维度: 速度 50% + 历史稳定性 20% + 响应质量 15%（含 peers 计数与 scrape 热度）'
         f' + 跨源一致性 10% + 近期成功率 5%（速度标度自适应 + 经典高可用加分 + 反退化）',
@@ -1144,7 +1181,7 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
             lines.append(f'- `{t}` — {e:.0f}ms')
 
     if same_ip_removed:
-        lines += ['', '## 同网段去重（/24，保留响应最快）', '']
+        lines += ['', '## 同网段/同域名去重（保留响应最快）', '']
         for t in sorted(same_ip_removed):
             lines.append(f'- `{t}`')
 
