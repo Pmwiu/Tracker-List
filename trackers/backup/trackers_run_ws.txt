@@ -38,6 +38,7 @@ udp://tracker.ducks.party:1984/announce
 udp://tracker.opentrackr.org:1337/announce
 udp://tracker.torrent.eu.org:451/announce
 udp://tracker.wildkat.net:6969/announce
+udp://tracker.willy.pro:6969/announce
 udp://wegkxfcivgx.ydns.eu:80/announce
 wss://spacetradersapi-chatbox.herokuapp.com:443/announce
 wss://tracker.btorrent.xyz:443/announce
