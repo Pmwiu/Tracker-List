@@ -1032,6 +1032,81 @@ def select_reserve(scored, discovered_set, cap=None):
     return reserve[:cap]
 
 
+PROMOTE_ALIVE_RUNS = 5    # 连续存活轮数达标才进转正建议
+PROMOTE_DEAD_TOLERANCE = 3  # 连续死 N 次从队列剔除
+PROMOTE_STALE_DAYS = 30   # 超过 N 天未再出现则从队列裁剪
+
+
+def update_promote_queue(old_queue, reserve_scores, dead_urls, now_iso):
+    """更新转正队列（reports/promote_queue.json 的内容）。
+
+    reserve_scores: {url: score} 本轮存活的 discovered 候选
+    dead_urls: set 本轮探活失败的 discovered 候选
+    返回新队列 {url: {alive_runs, last_score, first_seen, last_seen, dead_streak}}。
+    存活累加 alive_runs 并清零 dead_streak；连续死满 PROMOTE_DEAD_TOLERANCE 次剔除；
+    超过 PROMOTE_STALE_DAYS 天未再出现的裁剪。
+    """
+    q = {u: dict(v) for u, v in (old_queue or {}).items()}
+    for u, score in reserve_scores.items():
+        e = q.get(u, {})
+        e["alive_runs"] = e.get("alive_runs", 0) + 1
+        e["last_score"] = round(float(score), 1)
+        e["first_seen"] = e.get("first_seen", now_iso)
+        e["last_seen"] = now_iso
+        e["dead_streak"] = 0
+        q[u] = e
+    for u in dead_urls:
+        if u in q:
+            q[u]["dead_streak"] = q[u].get("dead_streak", 0) + 1
+            if q[u]["dead_streak"] >= PROMOTE_DEAD_TOLERANCE:
+                del q[u]
+    try:
+        now_dt = datetime.datetime.fromisoformat(now_iso)
+        cutoff = now_dt - datetime.timedelta(days=PROMOTE_STALE_DAYS)
+        pruned = {}
+        for u, e in q.items():
+            try:
+                if datetime.datetime.fromisoformat(e["last_seen"]) >= cutoff:
+                    pruned[u] = e
+            except (KeyError, ValueError):
+                pruned[u] = e
+        q = pruned
+    except ValueError:
+        pass
+    return q
+
+
+def render_promote_md(queue, threshold=PROMOTE_ALIVE_RUNS):
+    """把转正队列渲染成 PROMOTE.md 文本（达标候选按分数降序）。"""
+    rows = [(u, e) for u, e in (queue or {}).items()
+            if e.get("alive_runs", 0) >= threshold]
+    rows.sort(key=lambda x: -x[1].get("last_score", 0))
+    lines = [
+        "# 转正建议（自动发现候选，人工 review 后加入 SOURCES）",
+        "",
+        f"达标线：连续存活 ≥ {threshold} 轮。以下候选通过探活且稳定，建议评估转正。",
+        "",
+        f"更新时间：{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+        "",
+    ]
+    if not rows:
+        lines.append("_（暂无达标候选）_")
+    else:
+        lines.append("| tracker | 连续存活轮数 | 最近评分 | 首次发现 |")
+        lines.append("|---|---|---|---|")
+        for u, e in rows:
+            lines.append(f"| `{u}` | {e['alive_runs']} | {e.get('last_score', 0)} | "
+                         f"{str(e.get('first_seen', ''))[:10]} |")
+    lines += ["", "转正方式：把选定 tracker 加入 `scripts/update_trackers.py` 的 SOURCES。", ""]
+    return "\n".join(lines)
+
+
+def _promote_dead_urls(results, discovered_set):
+    """本轮探活失败（dead/unsafe）的 discovered 候选集合。"""
+    return {t for t, s, _, _ in results
+            if s in ('dead', 'unsafe') and t in discovered_set}
+
+
 def _host_key(tracker):
     """tracker URL 的主机名归一键（小写、去 www. 前缀）；无法解析返回 None。"""
     try:
@@ -1477,6 +1552,31 @@ def main():
     if reserve_list:
         print(f'[INFO] reserve pool: {len(reserve_list)} discovered candidates '
               f'-> trackers_reserve.txt')
+
+    # ---- 转正队列：跟踪 discovered 候选的连续存活轮数，达标进 PROMOTE.md ----
+    if discovered_set:
+        try:
+            pq_path = os.path.join(ut.PROJECT_ROOT, "reports", "promote_queue.json")
+            old_q = {}
+            if os.path.exists(pq_path):
+                try:
+                    with open(pq_path, encoding="utf-8") as f:
+                        old_q = json.load(f)
+                except (json.JSONDecodeError, IOError):
+                    old_q = {}
+            reserve_scores = {t: score for t, score, *_ in scored if t in discovered_set}
+            dead_disc = _promote_dead_urls(results, discovered_set)
+            now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            new_q = update_promote_queue(old_q, reserve_scores, dead_disc, now_iso)
+            ut.atomic_write(pq_path, json.dumps(new_q, ensure_ascii=False, indent=2) + ut.NL)
+            promote_path = os.path.join(ut.OUTPUT_DIR, "discovered", "PROMOTE.md")
+            os.makedirs(os.path.dirname(promote_path), exist_ok=True)
+            ut.atomic_write(promote_path, render_promote_md(new_q))
+            n_ready = sum(1 for e in new_q.values()
+                          if e.get("alive_runs", 0) >= PROMOTE_ALIVE_RUNS)
+            print(f'[INFO] promote queue: {len(new_q)} tracked, {n_ready} ready to promote')
+        except Exception as e:
+            print(f'[WARN] promote queue update failed: {e}')
 
     # 协议多样性 + 经典高可用配额：保底非 UDP 与经典 tracker，其余按评分填充
     selected, capped = select_top_with_quotas(

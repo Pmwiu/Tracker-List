@@ -253,6 +253,47 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_update_promote_queue():
+    import test_trackers as tt
+    now = "2026-10-14T00:00:00+00:00"
+    q = {}
+    # 首轮：2 个 discovered alive
+    q = tt.update_promote_queue(q, {"udp://r1/announce": 88.5, "udp://r2/announce": 70.0},
+                                set(), now)
+    assert q["udp://r1/announce"]["alive_runs"] == 1
+    assert q["udp://r1/announce"]["last_score"] == 88.5
+    assert q["udp://r1/announce"]["first_seen"] == now
+    # 第二轮：r1 继续活（runs=2），r2 死一次（dead_streak=1，保留）
+    now2 = "2026-10-14T06:00:00+00:00"
+    q = tt.update_promote_queue(q, {"udp://r1/announce": 90.0}, {"udp://r2/announce"}, now2)
+    assert q["udp://r1/announce"]["alive_runs"] == 2
+    assert q["udp://r2/announce"]["dead_streak"] == 1
+    # 连续死 3 次 -> 剔除
+    for i in range(3):
+        q = tt.update_promote_queue(q, {}, {"udp://r2/announce"}, now2)
+    assert "udp://r2/announce" not in q
+    # 存活即清零 dead_streak
+    q = tt.update_promote_queue(q, {"udp://r1/announce": 91.0}, set(), now2)
+    assert q["udp://r1/announce"]["dead_streak"] == 0
+
+
+@test
+def test_render_promote_md():
+    import test_trackers as tt
+    q = {
+        "udp://a/announce": {"alive_runs": 6, "last_score": 95.0,
+                             "first_seen": "x", "last_seen": "y", "dead_streak": 0},
+        "udp://b/announce": {"alive_runs": 2, "last_score": 99.0,
+                             "first_seen": "x", "last_seen": "y", "dead_streak": 0},
+    }
+    md = tt.render_promote_md(q, threshold=5)
+    assert "udp://a/announce" in md   # 达标
+    assert "udp://b/announce" not in md  # 未达 5 轮
+    # 按分数排序：a 在 b 之前（b 被过滤，只剩 a）
+    assert md.index("udp://a/announce") < md.index("转正方式") or "udp://a" in md
+
+
+@test
 def test_fetch_public_lists_parses():
     import discover_trackers as dt
     fixture = {
