@@ -1014,6 +1014,24 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic, *,
     return picked, capped
 
 
+RESERVE_MAX = ut.RESERVE_MAX  # 备选库条数上限（单一真相源在 update_trackers）
+
+
+def select_reserve(scored, discovered_set, cap=None):
+    """备选库：discovered 候选中通过探活、按综合评分降序的前 cap 条。
+
+    备选库（trackers_reserve.txt）是独立于 best/all 的候选订阅源，
+    供人工审查与转正（PROMOTE.md）；白名单条目永不进备选库。
+    scored 须已按评分降序（main 中已排序）。
+    """
+    if not discovered_set:
+        return []
+    if cap is None:
+        cap = RESERVE_MAX
+    reserve = [t for t, *_ in scored if t in discovered_set]
+    return reserve[:cap]
+
+
 def _host_key(tracker):
     """tracker URL 的主机名归一键（小写、去 www. 前缀）；无法解析返回 None。"""
     try:
@@ -1123,7 +1141,7 @@ def write_result_file(filename, trackers):
 # 写测试报告
 # ============================================================
 def write_report(results, alive_final, capped, elapsed, protocol_stats, low_speed=None,
-                 same_ip_removed=None, discovered_set=None, scored=None):
+                 same_ip_removed=None, discovered_set=None, scored=None, reserve=None):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
     unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
@@ -1199,6 +1217,13 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
         lines.append('')
         lines.append('转正方式：人工 review 后加入 `scripts/update_trackers.py` 的 SOURCES，'
                      '或写进 `trackers/discovered/PROMOTE.md`（Phase 2）。')
+        lines.append('')
+
+    if reserve:
+        lines += ['', f'## 备选库（trackers_reserve.txt，前 {len(reserve)} 条，按评分降序）', '']
+        lines.append('独立于 best/all 的候选订阅源，供人工审查转正。')
+        for rank, t in enumerate(reserve, 1):
+            lines.append(f'{rank}. `{t}`')
         lines.append('')
 
     ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), ut.NL.join(lines) + ut.NL)
@@ -1446,6 +1471,13 @@ def main():
         whitelist_only_set = {t for t, *_ in scored if t not in discovered_set}
         print(f'[INFO] discovered candidates excluded from best/all: {len(discovered_set)}')
 
+    # ---- 备选库：discovered 候选中通过探活并评分的前 RESERVE_MAX 条（独立订阅源）----
+    reserve_list = select_reserve(scored, discovered_set)
+    write_result_file("trackers_reserve.txt", reserve_list)
+    if reserve_list:
+        print(f'[INFO] reserve pool: {len(reserve_list)} discovered candidates '
+              f'-> trackers_reserve.txt')
+
     # 协议多样性 + 经典高可用配额：保底非 UDP 与经典 tracker，其余按评分填充
     selected, capped = select_top_with_quotas(
         scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS, MIN_CLASSIC_TRACKERS,
@@ -1475,7 +1507,8 @@ def main():
     write_result_file(ut.ALL_FILE, all_alive_list)
     write_result_file(ut.DEAD_FILE, dead_final)
     write_report(results, alive_final_detail, capped, total_elapsed, protocol_stats, low_speed,
-                 same_ip_removed, discovered_set=discovered_set, scored=scored)
+                 same_ip_removed, discovered_set=discovered_set, scored=scored,
+                 reserve=reserve_list)
 
     # 历史状态必须按「真实探活结果」记录：存活 = 本次响应成功，失效 = 本次响应失败。
     # capped / low_speed / same_ip_removed 都是「存活但被淘汰」的 tracker，绝不能记为失效，

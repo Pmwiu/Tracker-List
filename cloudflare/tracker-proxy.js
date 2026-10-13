@@ -29,6 +29,7 @@ const ALIASES = {
   "alive.txt": "trackers/trackers_alive.txt",
   "best.txt": "trackers/trackers_alive.txt",
   "all.txt": "trackers/trackers_all.txt",
+  "reserve.txt": "trackers/trackers_reserve.txt",
   "merged.txt": "trackers/trackers_merged.txt",
   "udp.txt": "trackers/trackers_udp.txt",
   "http.txt": "trackers/trackers_http.txt",

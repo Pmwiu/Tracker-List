@@ -253,6 +253,23 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_select_reserve():
+    import test_trackers as tt
+    # discovered alive 按评分降序取前 cap；白名单条目绝不进备选
+    pool = [
+        ("udp://d1/announce", 90.0, 10.0, 0.9, "valid connect + announce"),
+        ("udp://w1/announce", 95.0, 10.0, 0.9, "valid connect + announce"),  # whitelist
+        ("udp://d2/announce", 80.0, 10.0, 0.9, "valid connect + announce"),
+        ("udp://d3/announce", 70.0, 10.0, 0.9, "valid connect + announce"),
+    ]
+    discovered = {"udp://d1/announce", "udp://d2/announce", "udp://d3/announce"}
+    out = tt.select_reserve(pool, discovered, cap=2)
+    assert out == ["udp://d1/announce", "udp://d2/announce"]
+    # discovered 为空 -> 空备选
+    assert tt.select_reserve(pool, set(), cap=2) == []
+
+
+@test
 def test_dedup_same_host():
     import test_trackers as tt
     # host key：小写 + 去 www. 前缀

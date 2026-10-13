@@ -91,6 +91,7 @@ PLAIN_TEXT_FILES = [
 CONSISTENCY_MAP = {
     "trackers_alive.txt": "alive.txt",
     "trackers_all.txt": "all.txt",
+    "trackers_reserve.txt": "reserve.txt",
     "trackers_merged.txt": "merged.txt",
     "trackers_ngosang_best.txt": "ngosang_best.txt",
     "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",
@@ -123,6 +124,8 @@ TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', r
 
 # best 计划条数上限：从 update_trackers 共享，导入失败时回落到 25（与历史一致）
 MAX_ALIVE = getattr(ut, "MAX_TRACKERS", 25) if ut is not None else 25
+# 备选库条数上限：从 test_trackers 共享，导入失败时回落到 20
+RESERVE_MAX = getattr(ut, "RESERVE_MAX", 20) if ut is not None else 20
 
 
 def count_trackers_in_text(text):
@@ -306,6 +309,34 @@ def check_alive_subset_of_all(results):
                          f"all {len(alive)} best trackers present in all ({len(all_set)})"))
 
 
+def check_reserve_pool(results):
+    """备选库校验：trackers_reserve.txt 存在时条数 ≤ RESERVE_MAX，且不与 best/all 重叠。
+
+    文件缺失属正常（首轮发现尚无存活候选，或 test_trackers 未跑），记 PASS。
+    """
+    reserve_path = os.path.join(TRACKERS_DIR, "trackers_reserve.txt")
+    if not os.path.exists(reserve_path):
+        results.append(("PASS", "Reserve pool check", "no reserve file yet"))
+        return
+    with open(reserve_path, "r", encoding="utf-8") as f:
+        reserve = set(extract_trackers(f.read()))
+    if len(reserve) > RESERVE_MAX:
+        results.append(("FAIL", "Reserve pool check", f"{len(reserve)} > {RESERVE_MAX}"))
+        return
+    alive_path = os.path.join(TRACKERS_DIR, "trackers_alive.txt")
+    all_path = os.path.join(TRACKERS_DIR, "trackers_all.txt")
+    overlap = set()
+    for p in (alive_path, all_path):
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                overlap |= reserve & set(extract_trackers(f.read()))
+    if overlap:
+        results.append(("FAIL", "Reserve pool check",
+                        f"{len(overlap)} reserve entries overlap best/all"))
+    else:
+        results.append(("PASS", "Reserve pool check", f"{len(reserve)} candidates, disjoint"))
+
+
 def check_consistency(results):
     """校验 trackers/ 与 docs/ 纯文本文件内容一致。"""
     for src, dst in CONSISTENCY_MAP.items():
@@ -463,6 +494,7 @@ def run_single_check(round_num, skip_net=False):
     check_alive_count(results)
     check_merged_dedup(results)
     check_alive_subset_of_all(results)
+    check_reserve_pool(results)
     check_consistency(results)
     check_url_format(results)
     if not skip_net:
