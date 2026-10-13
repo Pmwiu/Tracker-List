@@ -22,6 +22,49 @@ def test(fn):
 
 
 @test
+def test_is_blacklisted_protected():
+    import update_trackers as ut
+    domain = {"evil.com", "tracker.opentrackr.org"}   # 某经典主机也在域名黑名单里（测防误杀）
+    urls = {"udp://urlbad.example.com:6969/announce"}
+    protected = {"tracker.opentrackr.org"}
+    # 域名命中但受保护 -> 不杀
+    assert not ut.is_blacklisted("udp://tracker.opentrackr.org:1337/announce",
+                                 domain, urls, protected)
+    # 域名命中且不受保护 -> 杀
+    assert ut.is_blacklisted("udp://evil.com:6969/announce", domain, urls, protected)
+    # URL 级精确命中 -> 即便主机受保护也杀
+    assert ut.is_blacklisted("udp://urlbad.example.com:6969/announce", domain, urls, protected)
+    # 正常 -> 不杀
+    assert not ut.is_blacklisted("udp://good.example.com:6969/announce", domain, urls, protected)
+    # 畸形 IPv6（urlparse 抛错）-> 不崩、不误杀
+    assert not ut.is_blacklisted("udp://[::1:6969/announce", domain, urls, protected)
+
+
+@test
+def test_build_blacklists_dedup_and_protected():
+    import update_trackers as ut
+    orig = (ut.load_blacklist, ut.load_url_blacklist, ut.fetch_remote_blacklist)
+    ut.load_blacklist = lambda: {"evil.com", "tracker.opentrackr.org"}
+    ut.load_url_blacklist = lambda: {"udp://dyn.example.com:6969/announce"}
+    ut.fetch_remote_blacklist = lambda: {"udp://dyn.example.com:6969/announce",
+                                         "udp://rem.example.com/announce"}
+    try:
+        source_counts = {"udp://popular.example.com/announce": 4,
+                         "udp://lone.example.com/announce": 1}
+        domain, urls, protected = ut.build_blacklists(source_counts)
+        assert domain == {"evil.com", "tracker.opentrackr.org"}
+        # 动态+远程重叠的 URL 去重
+        assert urls == {"udp://dyn.example.com:6969/announce", "udp://rem.example.com/announce"}
+        # 保护集 = 经典主机 ∪ 跨源一致性>=3
+        assert "tracker.opentrackr.org" in protected   # 经典
+        assert "popular.example.com" in protected       # agreement 4
+        assert "lone.example.com" not in protected      # agreement 1
+    finally:
+        (ut.load_blacklist, ut.load_url_blacklist,
+         ut.fetch_remote_blacklist) = orig
+
+
+@test
 def test_source_counts_shape():
     import json
     p = ut.SOURCE_COUNTS_FILE

@@ -232,6 +232,69 @@ def load_url_blacklist():
     return urls
 
 
+# 受保护主机：长期稳定、广泛使用的经典公共 tracker。域名级黑名单**不能**杀掉它们
+# （防误杀：一个坏 tracker 与经典 tracker 同域名时不连坐）。URL 级黑名单仍可精确杀。
+PROTECTED_HOSTS = {
+    "tracker.opentrackr.org",
+    "open.stealth.si",
+    "tracker.torrent.eu.org",
+    "open.demonii.com",
+    "exodus.desync.com",
+    "explodie.org",
+    "tracker.moeking.me",
+    "tracker.openbittorrent.com",
+    "openbittorrent.com",
+    "tracker.leechers-paradise.org",
+    "tracker.coppersurfer.tk",
+    "tracker.internetwarriors.net",
+    "tracker.cyberia.is",
+    "tracker.tiny-vps.com",
+}
+
+# 跨源一致性达到该数（出现在 >=N 个独立白名单源）即视为可信，纳入保护集
+PROTECTED_AGREEMENT = 3
+
+
+def build_blacklists(source_counts=None):
+    """整合三类黑名单为 (domain_set, url_set, protected_set)，各自去重。
+
+    - domain_set：blacklist.txt 的域名级黑名单
+    - url_set：动态黑名单 ∪ 远程知名项目黑名单（精确 URL，天然去重）
+    - protected_set：经典主机 ∪ 上一轮跨源一致性 >= 3 的主机（域名级不可杀）
+    source_counts：上一轮 reports/source_counts.json（{url: count}），用于保护集。
+    """
+    domain_set = load_blacklist()
+    url_set = load_url_blacklist() | fetch_remote_blacklist()
+    protected_set = set(PROTECTED_HOSTS)
+    if source_counts:
+        for url, n in source_counts.items():
+            if n >= PROTECTED_AGREEMENT:
+                try:
+                    host = (urllib.parse.urlparse(url).hostname or "").lower()
+                except ValueError:
+                    host = ""
+                if host:
+                    protected_set.add(host)
+    return domain_set, url_set, protected_set
+
+
+def is_blacklisted(url, domain_set, url_set, protected_set):
+    """单条 URL 是否应被排除（含防误杀）。
+
+    URL 级命中 -> 杀（精确）；域名级命中且主机**不在**保护集 -> 杀；否则放行。
+    畸形 URL（urlparse 抛错）不崩、不误杀。
+    """
+    if url in url_set:
+        return True
+    try:
+        host = (urllib.parse.urlparse(url).hostname or "").lower()
+    except ValueError:
+        return False
+    if host and host in domain_set and host not in protected_set:
+        return True
+    return False
+
+
 def update_source_state(fingerprints):
     """记录各源内容指纹与首次出现时间（检测订阅源是否停止更新）。
 
@@ -524,7 +587,7 @@ def mirror_urls(url):
     return ordered
 
 
-def download_trackers(url, blacklist=None, url_blacklist=None):
+def download_trackers(url, blacklist=None, url_blacklist=None, protected=None):
     """下载并校验 tracker 列表，返回去重后的排序列表。
 
     仅接受 ALLOWED_SOURCE_URLS 白名单内的订阅源；非白名单来源直接拒绝，
@@ -536,6 +599,7 @@ def download_trackers(url, blacklist=None, url_blacklist=None):
         raise RuntimeError(f"Source not in whitelist, rejected: {url}")
     blacklist = blacklist or set()
     url_blacklist = url_blacklist or set()
+    protected = protected or set()
 
     raw = None
     last_error = None
@@ -580,7 +644,7 @@ def download_trackers(url, blacklist=None, url_blacklist=None):
                 url_blacklisted += 1
                 continue
             host = (urllib.parse.urlparse(normalized).hostname or "").lower()
-            if host and host in blacklist:
+            if host and host in blacklist and host not in protected:
                 blacklisted += 1
                 continue
             trackers.add(normalized)
@@ -627,28 +691,22 @@ def write_trackers(filepath, trackers):
     atomic_write(filepath, content)
 
 
-def load_discovered_candidates(out_dir=None, max_age_days=7):
-    """读取 out_dir 中 mtime 在 max_age_days 内的 candidates_*.txt。
-
-    返回 [(synthetic_name, [url, ...]), ...]，每个文件 = 一个合成源。
-    synthetic_name 形如 "discovered-<sha1[:8]>"，基于文件名哈希保证唯一稳定。
-    每个 URL 经 is_valid_tracker 严格校验。
-    """
 def load_discovered_candidates(out_dir=None, max_age_days=7,
-                               blacklist=None, url_blacklist=None):
+                               blacklist=None, url_blacklist=None, protected=None):
     """读取 out_dir 中 mtime 在 max_age_days 内的 candidates_*.txt。
 
     返回 [(synthetic_name, [url, ...]), ...]，每个文件 = 一个合成源。
     synthetic_name 形如 "discovered-<sha1[:8]>"，基于文件名哈希保证唯一稳定。
     每个 URL 经 is_valid_tracker 严格校验，并套用与白名单源相同的黑名单过滤
-    （blacklist 域名集合 / url_blacklist 精确 URL 集合）——防止被拉黑的坏
-    tracker 经"all 列表"进入 discovered 池并出现在公开的 reserve.txt。
+    （blacklist 域名集合 / url_blacklist 精确 URL 集合 / protected 防误杀保护集）
+    ——防止被拉黑的坏 tracker 经"all 列表"进入 discovered 池并出现在公开的 reserve.txt。
     """
     import glob
     if out_dir is None:
         out_dir = DISCOVERED_DIR
     blacklist = blacklist or set()
     url_blacklist = url_blacklist or set()
+    protected = protected or set()
     if not os.path.isdir(out_dir):
         return []
     cutoff = time.time() - max_age_days * 86400
@@ -677,7 +735,7 @@ def load_discovered_candidates(out_dir=None, max_age_days=7,
                         host = (urllib.parse.urlparse(normalized).hostname or "").lower()
                     except ValueError:
                         continue
-                    if host and host in blacklist:
+                    if host and host in blacklist and host not in protected:
                         continue
                     urls.append(normalized)
         except OSError:
@@ -1118,12 +1176,22 @@ def main():
         print(f"[INFO] Repo: {repo}, Max: {MAX_TRACKERS}")
         cleanup_legacy_files()
 
-        blacklist = load_blacklist()
+        # 整合三类黑名单（域名/URL/动态）为单一入口，含防误杀保护集
+        # 保护集来自上一轮 source_counts.json（跨源一致性>=3 的主机不被域名级误杀）
+        prev_source_counts = {}
+        if os.path.exists(SOURCE_COUNTS_FILE):
+            try:
+                with open(SOURCE_COUNTS_FILE, encoding="utf-8") as f:
+                    prev_source_counts = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                prev_source_counts = {}
+        blacklist, url_blacklist, protected = build_blacklists(prev_source_counts)
         if blacklist:
             print(f"[INFO] Blacklist: {len(blacklist)} domains")
-        url_blacklist = load_url_blacklist() | fetch_remote_blacklist()
         if url_blacklist:
             print(f"[INFO] URL blacklist: {len(url_blacklist)} URLs (dynamic + remote sources)")
+        if protected:
+            print(f"[INFO] Protected hosts (防误杀): {len(protected)}")
 
         all_merged = []          # 轮转合并结果（见下方），候选池上限 MAX_CANDIDATES；
         per_source = []          # 最终 all 列表取其中评分前 MAX_ALL 条
@@ -1135,7 +1203,7 @@ def main():
         # 加载发现模块（discover_trackers.py）产出的候选，作为"报告源"参与 merge pool；
         # 套用与白名单源相同的黑名单过滤，不会进入 best/all（select_top_with_quotas 排除）
         discovered_sources = load_discovered_candidates(
-            blacklist=blacklist, url_blacklist=url_blacklist)
+            blacklist=blacklist, url_blacklist=url_blacklist, protected=protected)
         if discovered_sources:
             total_disc = sum(len(u) for _, u in discovered_sources)
             print(f"[INFO] discovered candidates: {total_disc} URLs "
@@ -1156,7 +1224,8 @@ def main():
             source_stats[short_name] = {"http_code": 0, "lines": 0, "ok": False}
             trackers = None
             try:
-                trackers = download_trackers(url, blacklist=blacklist, url_blacklist=url_blacklist)
+                trackers = download_trackers(url, blacklist=blacklist,
+                                             url_blacklist=url_blacklist, protected=protected)
                 source_stats[short_name] = {"http_code": 200, "lines": len(trackers), "ok": True}
             except Exception as e:
                 # 补丁 D：下载失败或异常源 → 降级到上次成功备份
