@@ -72,6 +72,14 @@ jobs:
             done
           } 2>&1 | tee diag.log
 
+      # 自动发现候选 tracker（Phase 1：仅写 trackers/discovered/，不进 best/all）
+      # 失败不中断主流程
+      - name: Discover candidate trackers
+        if: steps.sources.outputs.enabled == 'true'
+        continue-on-error: true
+        run: |
+          python scripts/discover_trackers.py 2>&1 | tee -a diag.log
+
       # 心跳：每次运行更新 .github/last_run.txt（成功/失败都会由 persist 步骤提交）
       - name: Write heartbeat
         run: |

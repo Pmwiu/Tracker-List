@@ -189,6 +189,8 @@ def check_local_files(results):
     else:
         results.append(("FAIL", "Local Pages index.html", "missing"))
 
+    check_discovery_output(results)
+
     # 短链接页面
     for sp in SHORT_PAGES:
         path = os.path.join(SHORT_DIR, f"{sp}.html")
@@ -214,6 +216,41 @@ def check_local_files(results):
             results.append(("PASS", f"Plain text: /{ptf}", f"{count} trackers"))
         else:
             results.append(("FAIL", f"Plain text: /{ptf}", "missing"))
+
+
+def check_discovery_output(results):
+    """校验 discover 模块产出（trackers/discovered/candidates_*.txt）。
+
+    无文件 → PASS（首次运行尚未发现，属预期）。
+    有文件 → 内容可为空（网络受限时）或每行合法 tracker URL；出现非法行则 FAIL。
+    """
+    import glob
+    disc_dir = os.path.join(PROJECT_ROOT, "trackers", "discovered")
+    paths = sorted(glob.glob(os.path.join(disc_dir, "candidates_*.txt")))
+    if not paths:
+        results.append(("PASS", "Discovery output", "no candidates file yet"))
+        return
+    total = 0
+    invalid = 0
+    for path in paths:
+        try:
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    total += 1
+                    if not TRACKER_PATTERN.match(line):
+                        invalid += 1
+        except OSError as e:
+            results.append(("WARN", "Discovery output", f"{os.path.basename(path)}: {e}"))
+            return
+    if invalid:
+        results.append(("FAIL", "Discovery output",
+                        f"{invalid} invalid lines in {len(paths)} file(s)"))
+    else:
+        results.append(("PASS", "Discovery output",
+                        f"{total} candidates in {len(paths)} file(s)"))
 
 
 def check_alive_count(results):
