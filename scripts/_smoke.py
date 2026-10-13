@@ -197,6 +197,34 @@ def test_cold_seed_bias_prefers_high_uptime():
     assert sum(1 for t in urls if not t.startswith("udp://")) >= 2
 
 
+@test
+def test_extract_tracker_urls():
+    import discover_trackers as dt
+    text = (
+        "udp://tracker.opentrackr.org:1337/announce\n"
+        "http://tracker.example.com:80/announce\n"
+        "not a url\n"
+        "udp://broken host/announce\n"  # 含空格，不应匹配
+    )
+    urls = dt.extract_tracker_urls(text)
+    assert "udp://tracker.opentrackr.org:1337/announce" in urls
+    assert "http://tracker.example.com:80/announce" in urls
+    assert "not a url" not in urls
+    # 重复应去重
+    text2 = "udp://x/announce\nudp://x/announce\nudp://y/announce\n"
+    urls2 = dt.extract_tracker_urls(text2)
+    assert len(urls2) == 2
+
+
+@test
+def test_dedup_against_known():
+    import discover_trackers as dt
+    known = {"udp://known.example/announce"}
+    fresh = {"udp://known.example/announce", "udp://new.example/announce"}
+    out = dt.filter_known(fresh, known)
+    assert out == {"udp://new.example/announce"}
+
+
 def main():
     failed = 0
     for name, fn in TESTS:
