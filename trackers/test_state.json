@@ -24,6 +24,7 @@
     "http://announce.sktorrent.eu:6969/announce",
     "http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce",
     "http://ipv4announce.sktorrent.eu:6969/announce",
+    "http://open.demonii.si:80/announce",
     "http://open.tracker.cl:1337/announce",
     "http://opentracker.xyz:80/announce",
     "http://retracker01-msk-virt.corbina.net:80/announce",
@@ -59,9 +60,7 @@
     "udp://193.148.251.93:6969/announce",
     "udp://193.34.92.5:80/announce",
     "udp://209.141.59.25:6969/announce",
-    "udp://211.75.205.187:6969/announce",
-    "udp://211.75.205.187:80/announce",
-    "udp://23.157.120.14:6969/announce",
+    "udp://211.75.205.188:80/announce",
     "udp://31.38.161.123:6969/announce",
     "udp://31.56.179.159:6969/announce",
     "udp://34.66.57.33:1337/announce",
@@ -83,7 +82,6 @@
     "udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce",
     "udp://evan.im:6969/announce",
     "udp://exodus.desync.com:6969/announce",
-    "udp://explodie.org:6969/announce",
     "udp://ipv4announce.sktorrent.eu:6969/announce",
     "udp://kolankoalastree.newtrackon.co.nz:1337/announce",
     "udp://mail.segso.net:6969/announce",
@@ -94,13 +92,16 @@
     "udp://opentracker.lain.moscow:6969/announce",
     "udp://retracker01-msk-virt.corbina.net:80/announce",
     "udp://t.overflow.biz:6969/announce",
+    "udp://tr4ck3r.duckdns.org:6969/announce",
     "udp://tracker-udp.gbitt.info:80/announce",
     "udp://tracker.004430.xyz:1337/announce",
     "udp://tracker.bittor.pw:1337/announce",
+    "udp://tracker.cn.nyaa.net:6969/announce",
     "udp://tracker.corpscorp.online:80/announce",
     "udp://tracker.dler.org:6969/announce",
     "udp://tracker.ducks.party:1984/announce",
     "udp://tracker.farted.net:6969/announce",
+    "udp://tracker.filemail.com:6969/announce",
     "udp://tracker.gmi.gd:6969/announce",
     "udp://tracker.nyaa.vc:6969/announce",
     "udp://tracker.opentrackr.org:1337/announce",
@@ -108,77 +109,76 @@
     "udp://tracker.qu.ax:6969/announce",
     "udp://tracker.skynetcloud.site:6969/announce",
     "udp://tracker.torrent.eu.org:451/announce",
-    "udp://tracker.tryhackx.org:6969/announce",
     "udp://tracker2.dler.org:80/announce"
   ],
   "uptime_ema": {
-    "http://tracker.dler.org:6969/announce": 0.9987620599607148,
-    "http://tracker.waaa.moe:6969/announce": 0.9987620599607148,
-    "https://tracker.nekomi.cn:443/announce": 0.9987620599607148,
-    "udp://tracker.opentrackr.org:1337/announce": 0.9993537517240039,
-    "udp://exodus.desync.com:6969/announce": 0.744257436864783,
-    "http://tracker.opentrackr.org:1337/announce": 0.9987620599607148,
-    "http://1337.abcvg.info:80/announce": 0.9987620599607148,
-    "udp://open.stealth.si:80/announce": 0.9987620599607148,
-    "http://tracker.renfei.net:8080/announce": 0.9998670772004217,
-    "udp://tracker.dler.org:6969/announce": 0.9997403851570734,
-    "udp://retracker01-msk-virt.corbina.net:80/announce": 0.9987620599607148,
-    "wss://tracker.openwebtorrent.com:443/announce": 0.32754707720042164,
-    "udp://tracker.qu.ax:6969/announce": 0.9988601943713411,
-    "udp://t.overflow.biz:6969/announce": 0.8964210423607148,
-    "http://tracker.dler.com:6969/announce": 0.9987620599607148,
-    "udp://tracker.skynetcloud.site:6969/announce": 0.9988139829293003,
-    "https://tracker.midnightprogrammer.net:443/announce": 0.3995659669385068,
-    "udp://tracker-udp.gbitt.info:80/announce": 0.9994214187862791,
-    "udp://tracker.corpscorp.online:80/announce": 0.9989446016471477,
-    "udp://tracker.bittor.pw:1337/announce": 0.998888752004063,
-    "http://tracker.dhitechnical.com:6969/announce": 0.9987620599607148,
-    "udp://tracker.gmi.gd:6969/announce": 0.957725966794136,
-    "udp://open.demonii.com:1337/announce": 0.9829290925207406,
-    "udp://tracker.torrent.eu.org:451/announce": 0.8698481120410861,
-    "https://1.tracker.eu.org:443/announce": 0.9998670772004217,
-    "udp://tracker2.dler.org:80/announce": 0.9987620599607148,
-    "https://004430.xyz:443/announce": 0.9987620599607148,
-    "http://ipv4announce.sktorrent.eu:6969/announce": 0.9987620599607148,
-    "https://tracker.foreverpirates.co:443/announce": 0.9987620599607148,
-    "https://tracker.zhuqiy.com:443/announce": 0.02128005809756711,
-    "udp://tracker.ducks.party:1984/announce": 0.9996690067941363,
-    "https://tracker.7471.top:443/announce": 0.9987620599607148,
-    "udp://tracker.nyaa.vc:6969/announce": 0.9994214187862791,
-    "https://t.213891.xyz:443/announce": 0.9998670772004217,
-    "udp://explodie.org:6969/announce": 0.9762314148431506,
-    "http://tracker.mywaifu.best:6969/announce": 0.9987620599607148,
-    "udp://tracker.004430.xyz:1337/announce": 0.9998670772004217,
-    "udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce": 0.9961057288141004,
-    "http://211.75.205.187:6969/announce": 0.9987620599607148,
+    "http://tracker.dler.org:6969/announce": 0.999009647968572,
+    "http://tracker.waaa.moe:6969/announce": 0.999009647968572,
+    "https://tracker.nekomi.cn:443/announce": 0.999009647968572,
+    "udp://tracker.opentrackr.org:1337/announce": 0.9994830013792031,
+    "udp://exodus.desync.com:6969/announce": 0.7954059494918264,
+    "http://tracker.opentrackr.org:1337/announce": 0.999009647968572,
+    "http://1337.abcvg.info:80/announce": 0.999009647968572,
+    "udp://open.stealth.si:80/announce": 0.999009647968572,
+    "http://tracker.renfei.net:8080/announce": 0.9998936617603373,
+    "udp://tracker.dler.org:6969/announce": 0.9997923081256588,
+    "udp://retracker01-msk-virt.corbina.net:80/announce": 0.999009647968572,
+    "wss://tracker.openwebtorrent.com:443/announce": 0.2620376617603373,
+    "udp://tracker.qu.ax:6969/announce": 0.999088155497073,
+    "udp://t.overflow.biz:6969/announce": 0.9171368338885719,
+    "http://tracker.dler.com:6969/announce": 0.999009647968572,
+    "udp://tracker.skynetcloud.site:6969/announce": 0.9990511863434404,
+    "https://tracker.midnightprogrammer.net:443/announce": 0.31965277355080546,
+    "udp://tracker-udp.gbitt.info:80/announce": 0.9995371350290234,
+    "udp://tracker.corpscorp.online:80/announce": 0.9991556813177183,
+    "udp://tracker.bittor.pw:1337/announce": 0.9991110016032505,
+    "http://tracker.dhitechnical.com:6969/announce": 0.999009647968572,
+    "udp://tracker.gmi.gd:6969/announce": 0.966180773435309,
+    "udp://open.demonii.com:1337/announce": 0.9863432740165925,
+    "udp://tracker.torrent.eu.org:451/announce": 0.8958784896328689,
+    "https://1.tracker.eu.org:443/announce": 0.9998936617603373,
+    "udp://tracker2.dler.org:80/announce": 0.999009647968572,
+    "https://004430.xyz:443/announce": 0.999009647968572,
+    "http://ipv4announce.sktorrent.eu:6969/announce": 0.999009647968572,
+    "https://tracker.foreverpirates.co:443/announce": 0.999009647968572,
+    "https://tracker.zhuqiy.com:443/announce": 0.01702404647805369,
+    "udp://tracker.ducks.party:1984/announce": 0.999735205435309,
+    "https://tracker.7471.top:443/announce": 0.999009647968572,
+    "udp://tracker.nyaa.vc:6969/announce": 0.9995371350290234,
+    "https://t.213891.xyz:443/announce": 0.9998936617603373,
+    "udp://explodie.org:6969/announce": 0.7809851318745205,
+    "http://tracker.mywaifu.best:6969/announce": 0.999009647968572,
+    "udp://tracker.004430.xyz:1337/announce": 0.9998936617603373,
+    "udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce": 0.9968845830512805,
+    "http://211.75.205.187:6969/announce": 0.999009647968572,
     "http://yggtracker.i2p.rocks:80/announce": 0.0,
-    "udp://209.141.59.25:6969/announce": 0.9119492938870004,
-    "udp://31.56.179.159:6969/announce": 0.9992077183748576,
-    "udp://151.242.104.187:80/announce": 0.9992077183748576,
-    "udp://185.121.168.96:1337/announce": 0.9992077183748576,
-    "udp://109.201.134.183:80/announce": 0.9992077183748576,
-    "udp://135.125.198.235:1984/announce": 0.9989601303670006,
-    "http://207.241.231.226:6969/announce": 0.997582148360771,
-    "http://185.126.65.92:6969/announce": 0.997582148360771,
-    "http://140.235.237.23:6969/announce": 0.997582148360771,
-    "http://135.125.198.235:2710/announce": 0.997582148360771,
-    "http://207.241.226.111:6969/announce": 0.997582148360771,
-    "http://138.186.10.167:1337/announce": 0.997582148360771,
-    "http://135.125.198.235:80/announce": 0.997582148360771,
-    "http://004430.xyz:80/announce": 0.997582148360771,
-    "https://2.tracker.eu.org:443/announce": 0.9940970418964132,
-    "https://337hhh.xyz:443/announce": 0.9940970418964132,
-    "https://3.tracker.eu.org:443/announce": 0.9940970418964132,
-    "http://211.75.205.188:80/announce": 0.9940970418964132,
-    "http://94.23.207.177:6969/announce": 0.9926213023705164,
-    "http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce": 0.9754414331865164,
-    "http://211.75.210.221:80/announce": 0.9926213023705164,
-    "http://tracker.nyaa.vc:6969/announce": 0.9926213023705164,
-    "http://211.75.210.221:6969/announce": 0.9926213023705164,
-    "http://tracker.auctor.tv:6969/announce": 0.9926213023705164,
-    "http://announce.sktorrent.eu:6969/announce": 0.9926213023705164,
-    "http://107.189.2.131:1337/announce": 0.9754414331865164,
-    "http://tracker.qu.ax:6969/announce": 0.9926213023705164,
+    "udp://209.141.59.25:6969/announce": 0.9295594351096004,
+    "udp://31.56.179.159:6969/announce": 0.9993661746998861,
+    "udp://151.242.104.187:80/announce": 0.9993661746998861,
+    "udp://185.121.168.96:1337/announce": 0.9993661746998861,
+    "udp://109.201.134.183:80/announce": 0.9993661746998861,
+    "udp://135.125.198.235:1984/announce": 0.9991681042936005,
+    "http://207.241.231.226:6969/announce": 0.9980657186886168,
+    "http://185.126.65.92:6969/announce": 0.9980657186886168,
+    "http://140.235.237.23:6969/announce": 0.9980657186886168,
+    "http://135.125.198.235:2710/announce": 0.9980657186886168,
+    "http://207.241.226.111:6969/announce": 0.9980657186886168,
+    "http://138.186.10.167:1337/announce": 0.9980657186886168,
+    "http://135.125.198.235:80/announce": 0.9980657186886168,
+    "http://004430.xyz:80/announce": 0.9980657186886168,
+    "https://2.tracker.eu.org:443/announce": 0.9952776335171307,
+    "https://337hhh.xyz:443/announce": 0.9952776335171307,
+    "https://3.tracker.eu.org:443/announce": 0.9952776335171307,
+    "http://211.75.205.188:80/announce": 0.9952776335171307,
+    "http://94.23.207.177:6969/announce": 0.9940970418964132,
+    "http://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce": 0.9803531465492132,
+    "http://211.75.210.221:80/announce": 0.9940970418964132,
+    "http://tracker.nyaa.vc:6969/announce": 0.9940970418964132,
+    "http://211.75.210.221:6969/announce": 0.9940970418964132,
+    "http://tracker.auctor.tv:6969/announce": 0.9940970418964132,
+    "http://announce.sktorrent.eu:6969/announce": 0.9940970418964132,
+    "http://107.189.2.131:1337/announce": 0.9803531465492132,
+    "http://tracker.qu.ax:6969/announce": 0.9940970418964132,
     "udp://6ahddutb1ucc3cp.ru:6969/announce": 0.0,
     "http://www.wareztorrent.com:80/announce": 0.0,
     "udp://open.dstud.io:6969/announce": 0.0,
@@ -187,185 +187,193 @@
     "https://tr.abiir.top:443/announce": 0.0,
     "https://tracker.bt4g.com:443/announce": 0.0,
     "https://tr.burnabyhighstar.com:443/announce": 0.0,
-    "https://ht.therarbg.to:443/announce": 0.007036874417766407,
+    "https://ht.therarbg.to:443/announce": 0.005629499534213126,
     "https://tracker.kuroy.me:443/announce": 0.0,
     "udp://torrents.tmtime.dev:6969/announce": 0.0,
     "udp://torrentclub.online:54123/announce": 0.0,
-    "udp://34.66.57.33:1337/announce": 0.9819856014905182,
-    "udp://34.66.57.33:80/announce": 0.9819856014905182,
-    "http://211.75.205.187:80/announce": 0.9819856014905182,
-    "udp://tracker.farted.net:6969/announce": 0.9774820018631476,
-    "udp://kolankoalastree.newtrackon.co.nz:1337/announce": 0.9063165023289346,
-    "udp://193.34.92.5:80/announce": 0.9718525023289344,
-    "udp://45.137.199.107:6969/announce": 0.9718525023289344,
-    "udp://89.234.156.205:451/announce": 0.9718525023289344,
-    "udp://ipv4announce.sktorrent.eu:6969/announce": 0.9718525023289344,
+    "udp://34.66.57.33:1337/announce": 0.9855884811924145,
+    "udp://34.66.57.33:80/announce": 0.9855884811924145,
+    "http://211.75.205.187:80/announce": 0.9855884811924145,
+    "udp://tracker.farted.net:6969/announce": 0.9819856014905182,
+    "udp://kolankoalastree.newtrackon.co.nz:1337/announce": 0.9250532018631477,
+    "udp://193.34.92.5:80/announce": 0.9774820018631476,
+    "udp://45.137.199.107:6969/announce": 0.9774820018631476,
+    "udp://89.234.156.205:451/announce": 0.9774820018631476,
+    "udp://ipv4announce.sktorrent.eu:6969/announce": 0.9774820018631476,
     "http://ehtracker.org:80/1104308/announce": 0.0,
-    "udp://83.102.180.21:80/announce": 0.9718525023289344,
-    "http://tracker2.dler.org:80/announce": 0.9718525023289344,
-    "udp://43.154.112.29:17272/announce": 0.9718525023289344,
-    "udp://95.217.80.22:6969/announce": 0.9718525023289344,
+    "udp://83.102.180.21:80/announce": 0.9774820018631476,
+    "http://tracker2.dler.org:80/announce": 0.9774820018631476,
+    "udp://43.154.112.29:17272/announce": 0.9774820018631476,
+    "udp://95.217.80.22:6969/announce": 0.9774820018631476,
     "udp://tracker.srv00.com:6969/announce": 0.0,
-    "http://43.250.54.126:6969/announce": 0.9718525023289344,
-    "udp://opentracker.lain.moscow:6969/announce": 0.9718525023289344,
+    "http://43.250.54.126:6969/announce": 0.9774820018631476,
+    "udp://opentracker.lain.moscow:6969/announce": 0.9774820018631476,
     "http://ehtracker.org:80/1226599/1080494xo5eXcwFOBq/announce": 0.0,
-    "udp://evan.im:6969/announce": 0.9718525023289344,
+    "udp://evan.im:6969/announce": 0.9774820018631476,
     "udp://retracker.hotplug.ru:2710/announce": 0.0,
-    "udp://52.58.128.163:6969/announce": 0.7145783650222082,
-    "http://211.75.205.188:6969/announce": 0.9718525023289344,
+    "udp://52.58.128.163:6969/announce": 0.7716626920177665,
+    "http://211.75.205.188:6969/announce": 0.9774820018631476,
     "http://ehtracker.org:80/2496841/announce": 0.0,
     "udp://tracker1.itzmx.com:8080/announce": 0.0,
-    "udp://43.250.54.126:6969/announce": 0.9718525023289344,
-    "https://tr.nyacat.pw:443/announce": 0.9718525023289344,
+    "udp://43.250.54.126:6969/announce": 0.9774820018631476,
+    "https://tr.nyacat.pw:443/announce": 0.9774820018631476,
     "http://ehtracker.org:80/1113709/announce": 0.0,
-    "udp://95.217.80.20:6969/announce": 0.9718525023289344,
-    "udp://tracker.filemail.com:6969/announce": 0.3877671639711745,
+    "udp://95.217.80.20:6969/announce": 0.9774820018631476,
+    "udp://tracker.filemail.com:6969/announce": 0.5102137311769397,
     "http://bittorrent.kali.org:80/announce": 0.0,
     "udp://opentor.org:2710/announce": 0.0,
     "http://ehtracker.org:80/2566145/1159106xUfsJkT9Btg/announce": 0.0,
-    "udp://tracker.peerfect.org:6969/announce": 0.9718525023289344,
-    "udp://65.109.28.17:6969/announce": 0.9718525023289344,
-    "udp://93.158.213.92:6969/announce": 0.9718525023289344,
-    "udp://tracker.theoks.net:6969/announce": 0.007036874417766407,
+    "udp://tracker.peerfect.org:6969/announce": 0.9774820018631476,
+    "udp://65.109.28.17:6969/announce": 0.9774820018631476,
+    "udp://93.158.213.92:6969/announce": 0.9774820018631476,
+    "udp://tracker.theoks.net:6969/announce": 0.005629499534213126,
     "udp://tracker1.myporn.club:9337/announce": 0.0,
-    "udp://tracker.tryhackx.org:6969/announce": 0.631114694033408,
-    "udp://mail.segso.net:6969/announce": 0.9718525023289344,
-    "udp://open.ftorrent.com:443/announce": 0.9718525023289344,
-    "udp://51.15.41.46:6969/announce": 0.9718525023289344,
+    "udp://tracker.tryhackx.org:6969/announce": 0.5048917552267265,
+    "udp://mail.segso.net:6969/announce": 0.9774820018631476,
+    "udp://open.ftorrent.com:443/announce": 0.9774820018631476,
+    "udp://51.15.41.46:6969/announce": 0.9774820018631476,
     "http://ehtracker.org:80/2541477/announce": 0.0,
-    "http://retracker01-msk-virt.corbina.net:80/announce": 0.9718525023289344,
-    "udp://martin-gebhardt.eu:25/announce": 0.9718525023289344,
-    "http://31.38.161.123:6969/announce": 0.9718525023289344,
-    "http://216.144.239.90:6969/announce": 0.9718525023289344,
+    "http://retracker01-msk-virt.corbina.net:80/announce": 0.9774820018631476,
+    "udp://martin-gebhardt.eu:25/announce": 0.9774820018631476,
+    "http://31.38.161.123:6969/announce": 0.9774820018631476,
+    "http://216.144.239.90:6969/announce": 0.9774820018631476,
     "udp://wepzone.net:6969/announce": 0.0,
-    "http://93.158.213.92:1337/announce": 0.9718525023289344,
+    "http://93.158.213.92:1337/announce": 0.9774820018631476,
     "udp://p4p.arenabg.com:1337/announce": 0.0,
     "udp://open.tracker.ink:6969/announce": 0.0,
     "udp://tracker.wepzone.net:6969/announce": 0.0,
-    "udp://193.148.251.93:6969/announce": 0.9718525023289344,
-    "udp://132.226.6.145:6969/announce": 0.95601953488896,
-    "udp://51.81.222.188:6969/announce": 0.9450244186112,
-    "udp://65.109.28.33:6969/announce": 0.8926258176000001,
+    "udp://193.148.251.93:6969/announce": 0.9774820018631476,
+    "udp://132.226.6.145:6969/announce": 0.9648156279111679,
+    "udp://51.81.222.188:6969/announce": 0.95601953488896,
+    "udp://65.109.28.33:6969/announce": 0.9141006540800001,
     "https://tr.abir.ga:443/announce": 0.0,
-    "udp://93.158.213.92:1337/announce": 0.83222784,
-    "https://4.tracker.eu.org:443/announce": 0.7902848,
-    "http://34.66.57.33:2701/announce": 0.06553600000000002,
+    "udp://93.158.213.92:1337/announce": 0.8657822720000001,
+    "https://4.tracker.eu.org:443/announce": 0.83222784,
+    "http://34.66.57.33:2701/announce": 0.052428800000000025,
     "http://79.111.12.213:6969/announce": 0.0,
     "http://34.66.57.33:443/announce": 0.0,
     "http://34.66.57.33:1337/announce": 0.0,
-    "udp://31.38.161.123:6969/announce": 0.5904,
-    "http://104.244.77.14:1337/announce": 0.0,
+    "udp://31.38.161.123:6969/announce": 0.67232,
     "http://retracker.hotplug.ru:2710/announce": 0.0,
-    "http://106.14.254.164:6969/announce": 0.0,
-    "http://107.150.14.110:6969/announce": 0.0,
-    "http://104.28.16.69:80/announce": 0.0,
-    "http://0205.uptm.ch:6969/announce": 0.0,
-    "http://116.252.176.125:6969/announce": 0.0,
-    "udp://23.157.120.14:6969/announce": 0.2,
-    "http://144.76.118.107:6969/announce": 0.0,
-    "http://116.9.207.198:6969/announce": 0.0,
-    "http://116.9.207.226:6969/announce": 0.0,
-    "http://180.97.219.76:8070/announce": 0.0,
-    "http://107.189.31.134:6969/announce": 0.0,
-    "udp://211.75.205.187:6969/announce": 0.2,
-    "http://109.121.134.121:1337/announce": 0.0,
-    "http://140.82.21.192:8080/announce": 0.0,
-    "http://107.189.10.20.sslip.io:7777/announce": 0.0,
-    "http://119.28.71.45:8080/announce": 0.0,
-    "http://147job.com:6969/announce": 0.0,
-    "http://13.115.115.32:6969/announce": 0.0,
-    "http://107.152.127.9:6969/announce": 0.0,
     "http://echostar.ddnsfree.com:8080/announce": 0.0,
-    "http://129.146.193.240:6699/announce": 0.0,
-    "http://141.144.224.250:2710/announce": 0.0,
-    "udp://211.75.205.187:80/announce": 0.2,
-    "http://141.144.224.250:6969/announce": 0.0,
-    "http://116.9.207.121:6969/announce": 0.0,
-    "http://144.202.33.210:6961/announce": 0.0,
-    "http://104.28.1.30:8080/announce": 0.0,
-    "http://107.189.7.143:6969/announce": 0.0,
-    "http://128.199.70.66:5944/announce": 0.0,
-    "http://125.227.35.196:6969/announce": 0.0,
-    "http://104.143.10.186:8000/announce": 0.0,
-    "http://00.xxtor.com:443/announce": 0.0,
-    "http://00.mercax.com:443/announce": 0.0,
-    "http://114.55.113.60:6969/announce": 0.0,
-    "http://116.9.207.164:6969/announce": 0.0
+    "http://160.251.78.190:6969/announce": 0.0,
+    "http://171.104.111.20:6969/announce": 0.0,
+    "http://171.104.110.88:6969/announce": 0.0,
+    "http://171.104.110.95:6969/announce": 0.0,
+    "http://open.demonii.si:80/announce": 0.2,
+    "http://151.115.49.115:1337/announce": 0.0,
+    "http://158.101.137.177:6969/announce": 0.0,
+    "http://180.139.151.58:6969/announce": 0.0,
+    "http://156.234.201.18:80/announce": 0.0,
+    "http://171.104.110.21:6969/announce": 0.0,
+    "udp://tracker.cn.nyaa.net:6969/announce": 0.2,
+    "http://171.104.111.30:6969/announce": 0.0,
+    "http://159.69.65.157:6969/announce": 0.0,
+    "http://171.104.110.193:6969/announce": 0.0,
+    "http://163.172.209.40:80/announce": 0.0,
+    "http://158.69.146.212:7777/announce": 0.0,
+    "http://171.104.111.14:6969/announce": 0.0,
+    "http://171.104.226.31:6969/announce": 0.0,
+    "http://171.104.226.15:6969/announce": 0.0,
+    "http://171.104.111.201:6969/announce": 0.0,
+    "http://171.104.226.87:6969/announce": 0.0,
+    "http://171.104.111.250:6969/announce": 0.0,
+    "udp://tr4ck3r.duckdns.org:6969/announce": 0.2,
+    "http://167.235.245.209:80/announce": 0.0,
+    "http://171.104.226.25:6969/announce": 0.0,
+    "http://167.253.78.20:8080/announce": 0.0,
+    "http://171.104.111.89:6969/announce": 0.0,
+    "http://171.104.111.83:6969/announce": 0.0,
+    "http://157.90.169.123:80/announce": 0.0,
+    "http://163.172.29.130:80/announce": 0.0,
+    "udp://211.75.205.188:80/announce": 0.2,
+    "http://173.254.204.71:1096/announce": 0.0,
+    "http://179.100.24.134:6969/announce": 0.0,
+    "http://155.248.200.105:80/announce": 0.0,
+    "http://171.104.226.221:6969/announce": 0.0,
+    "http://178.175.143.27:80/announce": 0.0,
+    "http://157.7.202.64:8080/announce": 0.0,
+    "udp://208.83.20.20:6969/announce": 0.0,
+    "http://178.33.73.26:2710/announce": 0.0
   },
   "dead_streak": {
-    "http://yggtracker.i2p.rocks:80/announce": 32,
-    "https://tracker.pmman.tech:443/announce": 19,
-    "udp://6ahddutb1ucc3cp.ru:6969/announce": 19,
-    "udp://tracker.alaskantf.com:6969/announce": 19,
-    "http://www.wareztorrent.com:80/announce": 19,
-    "udp://open.dstud.io:6969/announce": 19,
-    "https://tracker.bt4g.com:443/announce": 19,
-    "https://tr.burnabyhighstar.com:443/announce": 19,
-    "udp://torrentclub.online:54123/announce": 19,
-    "https://tracker.kuroy.me:443/announce": 19,
-    "udp://torrents.tmtime.dev:6969/announce": 19,
-    "https://tr.abiir.top:443/announce": 19,
-    "https://tracker.zhuqiy.com:443/announce": 17,
-    "http://bittorrent.kali.org:80/announce": 16,
-    "udp://opentor.org:2710/announce": 16,
-    "http://ehtracker.org:80/2496841/announce": 16,
-    "http://ehtracker.org:80/2566145/1159106xUfsJkT9Btg/announce": 16,
-    "udp://wepzone.net:6969/announce": 16,
-    "http://ehtracker.org:80/1104308/announce": 16,
-    "udp://tracker1.itzmx.com:8080/announce": 16,
-    "udp://tracker1.myporn.club:9337/announce": 16,
-    "udp://tracker.srv00.com:6969/announce": 16,
-    "udp://p4p.arenabg.com:1337/announce": 16,
-    "udp://open.tracker.ink:6969/announce": 16,
-    "http://ehtracker.org:80/1226599/1080494xo5eXcwFOBq/announce": 16,
-    "http://ehtracker.org:80/1113709/announce": 16,
-    "http://ehtracker.org:80/2541477/announce": 16,
-    "udp://tracker.wepzone.net:6969/announce": 16,
-    "udp://retracker.hotplug.ru:2710/announce": 16,
-    "udp://tracker.theoks.net:6969/announce": 15,
-    "https://ht.therarbg.to:443/announce": 15,
-    "https://tr.abir.ga:443/announce": 9,
-    "http://34.66.57.33:443/announce": 6,
-    "http://34.66.57.33:1337/announce": 6,
-    "http://79.111.12.213:6969/announce": 6,
-    "wss://tracker.openwebtorrent.com:443/announce": 5,
-    "http://34.66.57.33:2701/announce": 5,
-    "https://tracker.midnightprogrammer.net:443/announce": 4,
-    "http://104.244.77.14:1337/announce": 1,
-    "http://retracker.hotplug.ru:2710/announce": 1,
-    "http://106.14.254.164:6969/announce": 1,
-    "http://107.150.14.110:6969/announce": 1,
-    "http://104.28.16.69:80/announce": 1,
-    "udp://tracker.filemail.com:6969/announce": 1,
-    "http://0205.uptm.ch:6969/announce": 1,
-    "http://116.252.176.125:6969/announce": 1,
-    "http://107.152.127.9:6969/announce": 1,
-    "http://echostar.ddnsfree.com:8080/announce": 1,
-    "http://129.146.193.240:6699/announce": 1,
-    "http://141.144.224.250:2710/announce": 1,
-    "http://144.76.118.107:6969/announce": 1,
-    "http://141.144.224.250:6969/announce": 1,
-    "http://116.9.207.121:6969/announce": 1,
-    "http://116.9.207.198:6969/announce": 1,
-    "http://116.9.207.226:6969/announce": 1,
-    "http://144.202.33.210:6961/announce": 1,
-    "http://180.97.219.76:8070/announce": 1,
-    "http://107.189.31.134:6969/announce": 1,
-    "http://104.28.1.30:8080/announce": 1,
-    "http://107.189.7.143:6969/announce": 1,
-    "http://109.121.134.121:1337/announce": 1,
-    "http://128.199.70.66:5944/announce": 1,
-    "http://125.227.35.196:6969/announce": 1,
-    "http://140.82.21.192:8080/announce": 1,
-    "http://107.189.10.20.sslip.io:7777/announce": 1,
-    "http://119.28.71.45:8080/announce": 1,
-    "http://147job.com:6969/announce": 1,
-    "http://13.115.115.32:6969/announce": 1,
-    "http://104.143.10.186:8000/announce": 1,
-    "http://00.xxtor.com:443/announce": 1,
-    "http://00.mercax.com:443/announce": 1,
-    "http://114.55.113.60:6969/announce": 1,
-    "http://116.9.207.164:6969/announce": 1
+    "http://yggtracker.i2p.rocks:80/announce": 33,
+    "https://tracker.pmman.tech:443/announce": 20,
+    "udp://6ahddutb1ucc3cp.ru:6969/announce": 20,
+    "udp://tracker.alaskantf.com:6969/announce": 20,
+    "http://www.wareztorrent.com:80/announce": 20,
+    "udp://open.dstud.io:6969/announce": 20,
+    "https://tracker.bt4g.com:443/announce": 20,
+    "https://tr.burnabyhighstar.com:443/announce": 20,
+    "udp://torrentclub.online:54123/announce": 20,
+    "https://tracker.kuroy.me:443/announce": 20,
+    "udp://torrents.tmtime.dev:6969/announce": 20,
+    "https://tr.abiir.top:443/announce": 20,
+    "https://tracker.zhuqiy.com:443/announce": 18,
+    "http://bittorrent.kali.org:80/announce": 17,
+    "udp://opentor.org:2710/announce": 17,
+    "http://ehtracker.org:80/2496841/announce": 17,
+    "http://ehtracker.org:80/2566145/1159106xUfsJkT9Btg/announce": 17,
+    "udp://wepzone.net:6969/announce": 17,
+    "http://ehtracker.org:80/1104308/announce": 17,
+    "udp://tracker1.itzmx.com:8080/announce": 17,
+    "udp://tracker1.myporn.club:9337/announce": 17,
+    "udp://tracker.srv00.com:6969/announce": 17,
+    "udp://p4p.arenabg.com:1337/announce": 17,
+    "udp://open.tracker.ink:6969/announce": 17,
+    "http://ehtracker.org:80/1226599/1080494xo5eXcwFOBq/announce": 17,
+    "http://ehtracker.org:80/1113709/announce": 17,
+    "http://ehtracker.org:80/2541477/announce": 17,
+    "udp://tracker.wepzone.net:6969/announce": 17,
+    "udp://retracker.hotplug.ru:2710/announce": 17,
+    "udp://tracker.theoks.net:6969/announce": 16,
+    "https://ht.therarbg.to:443/announce": 16,
+    "https://tr.abir.ga:443/announce": 10,
+    "http://34.66.57.33:443/announce": 7,
+    "http://34.66.57.33:1337/announce": 7,
+    "http://79.111.12.213:6969/announce": 7,
+    "wss://tracker.openwebtorrent.com:443/announce": 6,
+    "http://34.66.57.33:2701/announce": 6,
+    "https://tracker.midnightprogrammer.net:443/announce": 5,
+    "http://retracker.hotplug.ru:2710/announce": 2,
+    "http://echostar.ddnsfree.com:8080/announce": 2,
+    "http://160.251.78.190:6969/announce": 1,
+    "http://171.104.111.250:6969/announce": 1,
+    "http://171.104.111.20:6969/announce": 1,
+    "http://171.104.110.88:6969/announce": 1,
+    "http://171.104.110.95:6969/announce": 1,
+    "http://167.235.245.209:80/announce": 1,
+    "http://171.104.226.25:6969/announce": 1,
+    "http://167.253.78.20:8080/announce": 1,
+    "http://171.104.111.89:6969/announce": 1,
+    "http://151.115.49.115:1337/announce": 1,
+    "http://158.101.137.177:6969/announce": 1,
+    "http://180.139.151.58:6969/announce": 1,
+    "http://156.234.201.18:80/announce": 1,
+    "http://171.104.111.83:6969/announce": 1,
+    "http://171.104.110.21:6969/announce": 1,
+    "http://157.90.169.123:80/announce": 1,
+    "http://163.172.29.130:80/announce": 1,
+    "http://171.104.111.30:6969/announce": 1,
+    "http://159.69.65.157:6969/announce": 1,
+    "http://173.254.204.71:1096/announce": 1,
+    "http://171.104.110.193:6969/announce": 1,
+    "http://179.100.24.134:6969/announce": 1,
+    "udp://explodie.org:6969/announce": 1,
+    "http://155.248.200.105:80/announce": 1,
+    "http://163.172.209.40:80/announce": 1,
+    "http://171.104.226.221:6969/announce": 1,
+    "http://158.69.146.212:7777/announce": 1,
+    "http://171.104.111.14:6969/announce": 1,
+    "http://178.175.143.27:80/announce": 1,
+    "http://171.104.226.31:6969/announce": 1,
+    "http://157.7.202.64:8080/announce": 1,
+    "udp://tracker.tryhackx.org:6969/announce": 1,
+    "udp://208.83.20.20:6969/announce": 1,
+    "http://171.104.226.15:6969/announce": 1,
+    "http://171.104.111.201:6969/announce": 1,
+    "http://171.104.226.87:6969/announce": 1,
+    "http://178.33.73.26:2710/announce": 1
   },
   "last_outcomes": {
     "udp://52.58.128.163:6969/announce": [
@@ -373,9 +381,11 @@
       1,
       1,
       0,
+      1,
       1
     ],
     "http://004430.xyz:80/announce": [
+      1,
       1,
       1,
       1,
@@ -387,9 +397,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://43.154.112.29:17272/announce": [
+      1,
       1,
       1,
       1,
@@ -401,9 +413,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://tracker.qu.ax:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -415,9 +429,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://tracker.auctor.tv:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -429,9 +445,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://tracker.qu.ax:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -443,9 +461,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.dler.org:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -457,9 +477,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://kolankoalastree.newtrackon.co.nz:1337/announce": [
+      1,
       1,
       1,
       1,
@@ -471,9 +493,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://ipv4announce.sktorrent.eu:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -485,9 +509,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker2.dler.org:80/announce": [
+      1,
       1,
       1,
       1,
@@ -499,9 +525,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "wss://tracker.openwebtorrent.com:443/announce": [
+      0,
       0,
       0,
       0,
@@ -513,9 +541,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://tracker.corpscorp.online:80/announce": [
+      1,
       1,
       1,
       1,
@@ -527,9 +557,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "https://tr.abir.ga:443/announce": [
+      0,
       0,
       0,
       0,
@@ -541,9 +573,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://209.141.59.25:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -555,9 +589,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://announce.sktorrent.eu:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -569,9 +605,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://94.23.207.177:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -583,9 +621,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://ehtracker.org:80/1104308/announce": [
+      0,
       0,
       0,
       0,
@@ -597,9 +637,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://79.111.12.213:6969/announce": [
+      0,
       0,
       0,
       0,
@@ -611,9 +653,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://ehtracker.org:80/1226599/1080494xo5eXcwFOBq/announce": [
+      0,
       0,
       0,
       0,
@@ -625,9 +669,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://193.148.251.93:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -639,9 +685,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://89.234.156.205:451/announce": [
+      1,
       1,
       1,
       1,
@@ -653,9 +701,11 @@
       1,
       0,
       1,
+      1,
       1
     ],
     "udp://tracker1.itzmx.com:8080/announce": [
+      0,
       0,
       0,
       0,
@@ -667,9 +717,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://135.125.198.235:80/announce": [
+      1,
       1,
       1,
       1,
@@ -681,9 +733,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "https://337hhh.xyz:443/announce": [
+      1,
       1,
       1,
       1,
@@ -695,9 +749,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://132.226.6.145:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -709,9 +765,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.srv00.com:6969/announce": [
+      0,
       0,
       0,
       0,
@@ -723,9 +781,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "https://tr.abiir.top:443/announce": [
+      0,
       0,
       0,
       0,
@@ -737,9 +797,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "https://tr.nyacat.pw:443/announce": [
+      1,
       1,
       1,
       1,
@@ -751,9 +813,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://yggtracker.i2p.rocks:80/announce": [
+      0,
       0,
       0,
       0,
@@ -765,9 +829,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://51.81.222.188:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -779,9 +845,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "https://tracker.nekomi.cn:443/announce": [
+      1,
       1,
       1,
       1,
@@ -793,6 +861,7 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://explodie.org:6969/announce": [
@@ -800,9 +869,11 @@
       1,
       1,
       1,
-      1
+      1,
+      0
     ],
     "udp://tracker.skynetcloud.site:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -814,9 +885,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.nyaa.vc:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -828,9 +901,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://opentor.org:2710/announce": [
+      0,
       0,
       0,
       0,
@@ -842,9 +917,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://65.109.28.33:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -856,9 +933,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://211.75.210.221:80/announce": [
+      1,
       1,
       1,
       1,
@@ -870,9 +949,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "http://211.75.205.187:80/announce": [
+      1,
       1,
       1,
       1,
@@ -884,9 +965,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "http://207.241.231.226:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -898,9 +981,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://retracker.hotplug.ru:2710/announce": [
+      0,
       0,
       0,
       0,
@@ -912,9 +997,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.opentrackr.org:1337/announce": [
+      1,
       1,
       1,
       1,
@@ -926,9 +1013,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://216.144.239.90:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -940,9 +1029,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://ehtracker.org:80/2541477/announce": [
+      0,
       0,
       0,
       0,
@@ -954,9 +1045,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://bittorrent.kali.org:80/announce": [
+      0,
       0,
       0,
       0,
@@ -968,9 +1061,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://tracker.waaa.moe:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -982,9 +1077,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce": [
+      1,
       1,
       1,
       1,
@@ -996,9 +1093,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "https://3.tracker.eu.org:443/announce": [
+      1,
       1,
       1,
       1,
@@ -1010,6 +1109,7 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.tryhackx.org:6969/announce": [
@@ -1017,9 +1117,11 @@
       0,
       1,
       1,
-      1
+      1,
+      0
     ],
     "http://34.66.57.33:443/announce": [
+      0,
       0,
       0,
       0,
@@ -1031,9 +1133,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "http://ehtracker.org:80/1113709/announce": [
+      0,
       0,
       0,
       0,
@@ -1045,9 +1149,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://211.75.205.188:80/announce": [
+      1,
       1,
       1,
       1,
@@ -1059,9 +1165,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "https://t.213891.xyz:443/announce": [
+      1,
       1,
       1,
       1,
@@ -1073,9 +1181,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://tracker2.dler.org:80/announce": [
+      1,
       1,
       1,
       1,
@@ -1087,6 +1197,7 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://exodus.desync.com:6969/announce": [
@@ -1094,9 +1205,11 @@
       1,
       0,
       1,
+      1,
       1
     ],
     "udp://193.34.92.5:80/announce": [
+      1,
       1,
       1,
       1,
@@ -1108,9 +1221,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.gmi.gd:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -1122,9 +1237,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://93.158.213.92:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -1136,9 +1253,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "https://tracker.bt4g.com:443/announce": [
+      0,
       0,
       0,
       0,
@@ -1150,6 +1269,7 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.filemail.com:6969/announce": [
@@ -1157,9 +1277,11 @@
       0,
       0,
       1,
-      0
+      0,
+      1
     ],
     "http://140.235.237.23:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -1171,9 +1293,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://95.217.80.22:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -1185,9 +1309,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker1.myporn.club:9337/announce": [
+      0,
       0,
       0,
       0,
@@ -1199,9 +1325,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://151.242.104.187:80/announce": [
+      1,
       1,
       1,
       1,
@@ -1213,9 +1341,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://martin-gebhardt.eu:25/announce": [
+      1,
       1,
       1,
       1,
@@ -1227,9 +1357,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://opentracker.lain.moscow:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -1241,9 +1373,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "http://ehtracker.org:80/2496841/announce": [
+      0,
       0,
       0,
       0,
@@ -1255,9 +1389,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://34.66.57.33:2701/announce": [
+      0,
       0,
       0,
       0,
@@ -1269,9 +1405,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "http://211.75.210.221:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -1283,9 +1421,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker-udp.gbitt.info:80/announce": [
+      1,
       1,
       1,
       1,
@@ -1297,9 +1437,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "udp://evan.im:6969/announce": [
+      1,
       1,
       1,
       1,
@@ -1311,9 +1453,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://tracker.004430.xyz:1337/announce": [
+      1,
       1,
       1,
       1,
@@ -1325,9 +1469,11 @@
       0,
       0,
       0,
+      0,
       0
     ],
     "http://tracker.opentrackr.org:1337/announce": [
+      1,
       1,
       1,
       1,
@@ -1339,9 +1485,11 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "http://135.125.198.235:2710/announce": [
+      1,
       1,
       1,
       1,
@@ -1353,125 +1501,141 @@
       1,
       1,
       1,
+      1,
       1
     ],
     "udp://31.38.161.123:6969/announce": [
       1,
       1,
       1,
+      1,
       1
-    ],
-    "http://104.244.77.14:1337/announce": [
-      0
     ],
     "http://retracker.hotplug.ru:2710/announce": [
-      0
-    ],
-    "http://106.14.254.164:6969/announce": [
-      0
-    ],
-    "http://107.150.14.110:6969/announce": [
-      0
-    ],
-    "http://104.28.16.69:80/announce": [
-      0
-    ],
-    "http://0205.uptm.ch:6969/announce": [
-      0
-    ],
-    "http://116.252.176.125:6969/announce": [
-      0
-    ],
-    "udp://23.157.120.14:6969/announce": [
-      1
-    ],
-    "http://144.76.118.107:6969/announce": [
-      0
-    ],
-    "http://116.9.207.198:6969/announce": [
-      0
-    ],
-    "http://116.9.207.226:6969/announce": [
-      0
-    ],
-    "http://180.97.219.76:8070/announce": [
-      0
-    ],
-    "http://107.189.31.134:6969/announce": [
-      0
-    ],
-    "udp://211.75.205.187:6969/announce": [
-      1
-    ],
-    "http://109.121.134.121:1337/announce": [
-      0
-    ],
-    "http://140.82.21.192:8080/announce": [
-      0
-    ],
-    "http://107.189.10.20.sslip.io:7777/announce": [
-      0
-    ],
-    "http://119.28.71.45:8080/announce": [
-      0
-    ],
-    "http://147job.com:6969/announce": [
-      0
-    ],
-    "http://13.115.115.32:6969/announce": [
-      0
-    ],
-    "http://107.152.127.9:6969/announce": [
+      0,
       0
     ],
     "http://echostar.ddnsfree.com:8080/announce": [
+      0,
       0
     ],
-    "http://129.146.193.240:6699/announce": [
+    "http://160.251.78.190:6969/announce": [
       0
     ],
-    "http://141.144.224.250:2710/announce": [
+    "http://171.104.111.20:6969/announce": [
       0
     ],
-    "udp://211.75.205.187:80/announce": [
+    "http://171.104.110.88:6969/announce": [
+      0
+    ],
+    "http://171.104.110.95:6969/announce": [
+      0
+    ],
+    "http://open.demonii.si:80/announce": [
       1
     ],
-    "http://141.144.224.250:6969/announce": [
+    "http://151.115.49.115:1337/announce": [
       0
     ],
-    "http://116.9.207.121:6969/announce": [
+    "http://158.101.137.177:6969/announce": [
       0
     ],
-    "http://144.202.33.210:6961/announce": [
+    "http://180.139.151.58:6969/announce": [
       0
     ],
-    "http://104.28.1.30:8080/announce": [
+    "http://156.234.201.18:80/announce": [
       0
     ],
-    "http://107.189.7.143:6969/announce": [
+    "http://171.104.110.21:6969/announce": [
       0
     ],
-    "http://128.199.70.66:5944/announce": [
+    "udp://tracker.cn.nyaa.net:6969/announce": [
+      1
+    ],
+    "http://171.104.111.30:6969/announce": [
       0
     ],
-    "http://125.227.35.196:6969/announce": [
+    "http://159.69.65.157:6969/announce": [
       0
     ],
-    "http://104.143.10.186:8000/announce": [
+    "http://171.104.110.193:6969/announce": [
       0
     ],
-    "http://00.xxtor.com:443/announce": [
+    "http://163.172.209.40:80/announce": [
       0
     ],
-    "http://00.mercax.com:443/announce": [
+    "http://158.69.146.212:7777/announce": [
       0
     ],
-    "http://114.55.113.60:6969/announce": [
+    "http://171.104.111.14:6969/announce": [
       0
     ],
-    "http://116.9.207.164:6969/announce": [
+    "http://171.104.226.31:6969/announce": [
+      0
+    ],
+    "http://171.104.226.15:6969/announce": [
+      0
+    ],
+    "http://171.104.111.201:6969/announce": [
+      0
+    ],
+    "http://171.104.226.87:6969/announce": [
+      0
+    ],
+    "http://171.104.111.250:6969/announce": [
+      0
+    ],
+    "udp://tr4ck3r.duckdns.org:6969/announce": [
+      1
+    ],
+    "http://167.235.245.209:80/announce": [
+      0
+    ],
+    "http://171.104.226.25:6969/announce": [
+      0
+    ],
+    "http://167.253.78.20:8080/announce": [
+      0
+    ],
+    "http://171.104.111.89:6969/announce": [
+      0
+    ],
+    "http://171.104.111.83:6969/announce": [
+      0
+    ],
+    "http://157.90.169.123:80/announce": [
+      0
+    ],
+    "http://163.172.29.130:80/announce": [
+      0
+    ],
+    "udp://211.75.205.188:80/announce": [
+      1
+    ],
+    "http://173.254.204.71:1096/announce": [
+      0
+    ],
+    "http://179.100.24.134:6969/announce": [
+      0
+    ],
+    "http://155.248.200.105:80/announce": [
+      0
+    ],
+    "http://171.104.226.221:6969/announce": [
+      0
+    ],
+    "http://178.175.143.27:80/announce": [
+      0
+    ],
+    "http://157.7.202.64:8080/announce": [
+      0
+    ],
+    "udp://208.83.20.20:6969/announce": [
+      0
+    ],
+    "http://178.33.73.26:2710/announce": [
       0
     ]
   },
-  "last_update": "2026-10-13T09:07:46.532799+00:00"
+  "last_update": "2026-10-13T09:59:50.409351+00:00"
 }

@@ -1,97 +1,97 @@
 # Tracker 活性测试 + 综合评分排序报告
 
-- 测试时间: 2026-10-13 09:07:46 UTC
+- 测试时间: 2026-10-13 09:59:50 UTC
 - 总 Tracker 数: 320
 - 存活 (alive): **110** (34%)
-- 失效 (dead): **182**
+- 失效 (dead): **186**
 - 不安全 (unsafe): **7**
-- 无法测试 (untestable): 21
-- 低速淘汰 (low-speed >5s): 0
+- 无法测试 (untestable): 17
+- 低速淘汰 (low-speed >5s): 2
 - 同网段/同域名去重 (kept fastest): 56
-- 综合评分后保留前 25 个，淘汰 29 个
+- 综合评分后保留前 25 个，淘汰 27 个
 - 评分维度: 速度 50% + 历史稳定性 20% + 响应质量 15%（含 peers 计数与 scrape 热度） + 跨源一致性 10% + 近期成功率 5%（速度标度自适应 + 经典高可用加分 + 反退化）
 - 配额: 保底 4 条非 UDP + 保底 4 条经典高可用
-- 协议多样性配额: 保底 4 条非 UDP，实际保留 9 条
-- 耗时: 96.3 秒
+- 协议多样性配额: 保底 4 条非 UDP，实际保留 7 条
+- 耗时: 94.0 秒
 
 ## 协议分布
 
-- udp: 59
-- http: 40
+- udp: 58
+- http: 41
 - https: 11
 
 ## 最终订阅列表（前 25 个，按综合评分降序）
 
-1. `https://t.213891.xyz:443/announce` — score=96.1, 49ms, 存活率100%, 质量90, 经典+0
-2. `udp://explodie.org:6969/announce` — score=95.4, 81ms, 存活率97%, 质量60, 经典+6
-3. `udp://tracker.opentrackr.org:1337/announce` — score=94.5, 110ms, 存活率100%, 质量60, 经典+6
-4. `udp://open.stealth.si:80/announce` — score=94.1, 118ms, 存活率100%, 质量60, 经典+6
-5. `http://tracker.renfei.net:8080/announce` — score=93.4, 117ms, 存活率100%, 质量95, 经典+0
-6. `udp://tracker.corpscorp.online:80/announce` — score=93.1, 18ms, 存活率100%, 质量60, 经典+0
-7. `udp://open.ftorrent.com:443/announce` — score=92.3, 19ms, 存活率96%, 质量60, 经典+0
-8. `http://207.241.226.111:6969/announce` — score=92.3, 78ms, 存活率100%, 质量95, 经典+0
-9. `http://207.241.231.226:6969/announce` — score=92.1, 90ms, 存活率100%, 质量98, 经典+0
-10. `udp://open.demonii.com:1337/announce` — score=91.6, 159ms, 存活率98%, 质量60, 经典+6
-11. `https://tracker.nekomi.cn:443/announce` — score=91.4, 156ms, 存活率100%, 质量95, 经典+0
-12. `https://004430.xyz:443/announce` — score=91.3, 158ms, 存活率100%, 质量95, 经典+0
-13. `udp://exodus.desync.com:6969/announce` — score=89.7, 53ms, 存活率68%, 质量60, 经典+6
-14. `https://tracker.7471.top:443/announce` — score=89.6, 178ms, 存活率100%, 质量90, 经典+0
-15. `udp://tracker.torrent.eu.org:451/announce` — score=89.1, 129ms, 存活率84%, 质量60, 经典+6
-16. `udp://tracker-udp.gbitt.info:80/announce` — score=89.0, 99ms, 存活率100%, 质量60, 经典+0
-17. `udp://martin-gebhardt.eu:25/announce` — score=88.7, 92ms, 存活率96%, 质量60, 经典+0
-18. `udp://evan.im:6969/announce` — score=88.5, 36ms, 存活率96%, 质量60, 经典+0
-19. `udp://tracker.ducks.party:1984/announce` — score=88.2, 117ms, 存活率100%, 质量60, 经典+0
-20. `udp://opentracker.lain.moscow:6969/announce` — score=87.7, 112ms, 存活率96%, 质量60, 经典+0
-21. `udp://retracker01-msk-virt.corbina.net:80/announce` — score=86.2, 156ms, 存活率100%, 质量60, 经典+0
-22. `https://3.tracker.eu.org:443/announce` — score=85.9, 49ms, 存活率99%, 质量90, 经典+0
-23. `udp://tracker2.dler.org:80/announce` — score=85.7, 166ms, 存活率100%, 质量60, 经典+0
-24. `http://tracker.waaa.moe:6969/announce` — score=85.4, 217ms, 存活率100%, 质量95, 经典+0
-25. `udp://193.148.251.93:6969/announce` — score=85.1, 23ms, 存活率96%, 质量60, 经典+0
+1. `https://t.213891.xyz:443/announce` — score=95.7, 57ms, 存活率100%, 质量90, 经典+0
+2. `udp://open.stealth.si:80/announce` — score=93.8, 123ms, 存活率100%, 质量60, 经典+6
+3. `http://tracker.renfei.net:8080/announce` — score=93.7, 111ms, 存活率100%, 质量95, 经典+0
+4. `https://1.tracker.eu.org:443/announce` — score=93.2, 46ms, 存活率100%, 质量90, 经典+0
+5. `udp://tracker.corpscorp.online:80/announce` — score=93.0, 19ms, 存活率100%, 质量60, 经典+0
+6. `udp://open.ftorrent.com:443/announce` — score=92.5, 18ms, 存活率97%, 质量60, 经典+0
+7. `http://207.241.231.226:6969/announce` — score=92.0, 93ms, 存活率100%, 质量98, 经典+0
+8. `http://tracker.dhitechnical.com:6969/announce` — score=91.8, 149ms, 存活率100%, 质量95, 经典+0
+9. `udp://exodus.desync.com:6969/announce` — score=91.2, 53ms, 存活率74%, 质量60, 经典+6
+10. `https://tracker.nekomi.cn:443/announce` — score=90.8, 168ms, 存活率100%, 质量95, 经典+0
+11. `udp://open.demonii.com:1337/announce` — score=90.5, 182ms, 存活率98%, 质量60, 经典+6
+12. `udp://evan.im:6969/announce` — score=89.0, 29ms, 存活率97%, 质量60, 经典+0
+13. `udp://tracker-udp.gbitt.info:80/announce` — score=88.5, 111ms, 存活率100%, 质量60, 经典+0
+14. `udp://tracker.nyaa.vc:6969/announce` — score=88.4, 111ms, 存活率100%, 质量60, 经典+0
+15. `udp://tracker.qu.ax:6969/announce` — score=88.3, 113ms, 存活率100%, 质量60, 经典+0
+16. `udp://martin-gebhardt.eu:25/announce` — score=87.3, 122ms, 存活率97%, 质量60, 经典+0
+17. `udp://opentracker.lain.moscow:6969/announce` — score=87.2, 124ms, 存活率97%, 质量60, 经典+0
+18. `udp://retracker01-msk-virt.corbina.net:80/announce` — score=86.3, 153ms, 存活率100%, 质量60, 经典+0
+19. `udp://tracker2.dler.org:80/announce` — score=85.7, 166ms, 存活率100%, 质量60, 经典+0
+20. `udp://tracker.dler.org:6969/announce` — score=85.6, 168ms, 存活率100%, 质量60, 经典+0
+21. `udp://193.148.251.93:6969/announce` — score=85.4, 21ms, 存活率97%, 质量60, 经典+0
+22. `udp://tracker.004430.xyz:1337/announce` — score=85.0, 40ms, 存活率100%, 质量60, 经典+0
+23. `udp://89.234.156.205:451/announce` — score=84.6, 117ms, 存活率97%, 质量60, 经典+0
+24. `udp://t.overflow.biz:6969/announce` — score=84.5, 149ms, 存活率90%, 质量60, 经典+0
+25. `https://3.tracker.eu.org:443/announce` — score=83.8, 91ms, 存活率99%, 质量90, 经典+0
 
 ## 失效 Tracker
 
-- `http://00.mercax.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
-- `http://00.xxtor.com:443/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
-- `http://0205.uptm.ch:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
-- `http://104.143.10.186:8000/announce` — URLError: <urlopen error timed out>
-- `http://104.244.77.14:1337/announce` — URLError: <urlopen error [Errno 111] Connection refused>
-- `http://104.28.1.30:8080/announce` — URLError: <urlopen error timed out>
-- `http://104.28.16.69:80/announce` — URLError: <urlopen error timed out>
-- `http://106.14.254.164:6969/announce` — URLError: <urlopen error timed out>
-- `http://107.150.14.110:6969/announce` — URLError: <urlopen error timed out>
-- `http://107.152.127.9:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
-- `http://107.189.10.20.sslip.io:7777/announce` — URLError: <urlopen error timed out>
-- `http://107.189.31.134:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
-- `http://107.189.7.143:6969/announce` — URLError: <urlopen error timed out>
-- `http://109.121.134.121:1337/announce` — URLError: <urlopen error timed out>
-- `http://114.55.113.60:6969/announce` — URLError: <urlopen error timed out>
-- `http://116.252.176.125:6969/announce` — URLError: <urlopen error timed out>
-- `http://116.9.207.121:6969/announce` — URLError: <urlopen error timed out>
-- `http://116.9.207.164:6969/announce` — URLError: <urlopen error timed out>
-- `http://116.9.207.198:6969/announce` — URLError: <urlopen error timed out>
-- `http://116.9.207.226:6969/announce` — URLError: <urlopen error timed out>
-- `http://119.28.71.45:8080/announce` — URLError: <urlopen error timed out>
-- `http://125.227.35.196:6969/announce` — URLError: <urlopen error timed out>
-- `http://128.199.70.66:5944/announce` — URLError: <urlopen error timed out>
-- `http://129.146.193.240:6699/announce` — URLError: <urlopen error timed out>
-- `http://13.115.115.32:6969/announce` — URLError: <urlopen error timed out>
-- `http://140.82.21.192:8080/announce` — URLError: <urlopen error timed out>
-- `http://141.144.224.250:2710/announce` — URLError: <urlopen error timed out>
-- `http://141.144.224.250:6969/announce` — URLError: <urlopen error timed out>
-- `http://144.202.33.210:6961/announce` — URLError: <urlopen error timed out>
-- `http://144.76.118.107:6969/announce` — URLError: <urlopen error timed out>
-- `http://147job.com:6969/announce` — URLError: <urlopen error timed out>
-- `http://180.97.219.76:8070/announce` — URLError: <urlopen error timed out>
-- `http://34.66.57.33:1337/announce` — URLError: <urlopen error timed out>
+- `http://151.115.49.115:1337/announce` — URLError: <urlopen error timed out>
+- `http://155.248.200.105:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://156.234.201.18:80/announce` — URLError: <urlopen error timed out>
+- `http://157.7.202.64:8080/announce` — URLError: <urlopen error timed out>
+- `http://157.90.169.123:80/announce` — HTTPError: HTTP Error 404: Not Found
+- `http://158.101.137.177:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://158.69.146.212:7777/announce` — URLError: <urlopen error timed out>
+- `http://159.69.65.157:6969/announce` — URLError: <urlopen error timed out>
+- `http://160.251.78.190:6969/announce` — URLError: <urlopen error timed out>
+- `http://163.172.209.40:80/announce` — URLError: <urlopen error timed out>
+- `http://163.172.29.130:80/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://167.235.245.209:80/announce` — HTTPError: HTTP Error 404: Not Found
+- `http://167.253.78.20:8080/announce` — URLError: <urlopen error timed out>
+- `http://171.104.110.193:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.110.21:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.110.88:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.110.95:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.111.14:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.201:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.111.20:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.250:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.111.30:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.111.83:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.111.89:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://171.104.226.15:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.221:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.25:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.31:6969/announce` — URLError: <urlopen error timed out>
+- `http://171.104.226.87:6969/announce` — URLError: <urlopen error timed out>
+- `http://173.254.204.71:1096/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://178.175.143.27:80/announce` — URLError: <urlopen error timed out>
+- `http://178.33.73.26:2710/announce` — URLError: <urlopen error timed out>
+- `http://179.100.24.134:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
+- `http://180.139.151.58:6969/announce` — URLError: <urlopen error timed out>
+- `http://34.66.57.33:1337/announce` — timeout
 - `http://34.66.57.33:2701/announce` — timeout
 - `http://34.66.57.33:443/announce` — timeout
 - `http://504e163a.host.njalla.net:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
-- `http://60-fps.org:80/bt:80/announce.php` — HTTPError: HTTP Error 410: Gone
 - `http://66691337.xyz:6969/announce` — URLError: <urlopen error timed out>
-- `http://79.111.12.213:6969/announce` — restricted (failure reason)
+- `http://79.111.12.213:6969/announce` — timeout
 - `http://aaa.army:8866/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://aboutbeautifulgallopinghorsesinthegreenpasture.online:80/announce` — HTTPError: HTTP Error 404: Not Found
-- `http://alltorrents.net:80/bt:80/announce.php` — HTTPError: HTTP Error 404: Not Found
 - `http://anisource.spb.ru:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://asiatorrent.ddns.net:51413/announce` — URLError: <urlopen error [Errno -5] No address associated with hostname>
 - `http://asiatorrent.giize.com:51413/announce` — URLError: <urlopen error timed out>
@@ -139,7 +139,7 @@
 - `http://fxtt.ru:80/announce` — URLError: <urlopen error timed out>
 - `http://grifon.info:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://h4.trakx.nibba.trade:80/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
-- `http://highteahop.top:6960/announce` — ConnectionResetError: [Errno 104] Connection reset by peer
+- `http://highteahop.top:6960/announce` — RemoteDisconnected: Remote end closed connection without response
 - `http://home.kray.pw:6969/announce` — URLError: <urlopen error timed out>
 - `http://houniao.ddns.net:8888/announce` — URLError: <urlopen error [Errno -5] No address associated with hostname>
 - `http://hzzwly.gq:6969/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
@@ -160,7 +160,6 @@
 - `http://mkfs.ru:80/announce` — invalid bencoded response
 - `http://montreal.nyap2p.com:8080/announce` — timeout
 - `http://movies.zsw.ca:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
-- `http://mvgforumtracker.mvgroup.org:80/tracker.php:80/announce` — HTTPError: HTTP Error 403: Forbidden
 - `http://ns3109441.mypdns.org:6969/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://open.8a.is:6969/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://open.acgnxtracker.com:80/announce` — URLError: <urlopen error [Errno -5] No address associated with hostname>
@@ -180,7 +179,7 @@
 - `http://reisub.nsupdate.info:6969/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://retracker.gorcomnet.ru:80/announce` — invalid bencoded response
 - `http://retracker.hotplug.ru:2710/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
-- `http://retracker.joxnet.ru:80/announce` — HTTPError: HTTP Error 500: Internal Server Error
+- `http://retracker.joxnet.ru:80/announce` — URLError: <urlopen error timed out>
 - `http://retracker.krs-ix.ru:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://retracker.ohys.net:80/announce` — URLError: <urlopen error timed out>
 - `http://rfc5746.mywaifu.best:6969/announce` — URLError: <urlopen error [Errno 111] Connection refused>
@@ -206,17 +205,22 @@
 - `http://thitgaluoc.dynu.net:6969/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
 - `http://tk.greedland.net:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://tk2.greedland.net:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://torrent-tracker.ru:80/announce.php` — URLError: <urlopen error [Errno -3] Temporary failure in name resolution>
+- `http://torrent.gresille.org:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
+- `http://torrent.nwps.ws:80/announce` — URLError: <urlopen error [Errno -2] Name or service not known>
 - `http://www.wareztorrent.com:80/announce` — RemoteDisconnected: Remote end closed connection without response
 - `https://ht.therarbg.to:443/announce` — HTTPError: HTTP Error 404: Not Found
-- `https://tr.abiir.top:443/announce` — URLError: <urlopen error [Errno 104] Connection reset by peer>
-- `https://tr.abir.ga:443/announce` — URLError: <urlopen error [Errno 101] Network is unreachable>
+- `https://tr.abiir.top:443/announce` — URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)>
+- `https://tr.abir.ga:443/announce` — URLError: <urlopen error _ssl.c:993: The handshake operation timed out>
 - `https://tr.burnabyhighstar.com:443/announce` — URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'tr.burnabyhighstar.com'. (_ssl.c:1010)>
 - `https://tracker.bt4g.com:443/announce` — timeout
 - `https://tracker.kuroy.me:443/announce` — timeout
 - `https://tracker.midnightprogrammer.net:443/announce` — HTTPError: HTTP Error 502: Bad Gateway
 - `https://tracker.pmman.tech:443/announce` — HTTPError: HTTP Error 404: Not Found
 - `https://tracker.zhuqiy.com:443/announce` — timeout
+- `udp://208.83.20.20:6969/announce` — no connect response
 - `udp://6ahddutb1ucc3cp.ru:6969/announce` — no connect response
+- `udp://explodie.org:6969/announce` — no connect response
 - `udp://open.tracker.ink:6969/announce` — no connect response
 - `udp://opentor.org:2710/announce` — no connect response
 - `udp://p4p.arenabg.com:1337/announce` — no connect response
@@ -224,9 +228,9 @@
 - `udp://torrentclub.online:54123/announce` — no connect response
 - `udp://torrents.tmtime.dev:6969/announce` — no connect response
 - `udp://tracker.alaskantf.com:6969/announce` — no connect response
-- `udp://tracker.filemail.com:6969/announce` — no connect response
 - `udp://tracker.srv00.com:6969/announce` — no connect response
 - `udp://tracker.theoks.net:6969/announce` — no connect response
+- `udp://tracker.tryhackx.org:6969/announce` — no connect response
 - `udp://tracker.wepzone.net:6969/announce` — no connect response
 - `udp://tracker1.itzmx.com:8080/announce` — no connect response
 - `udp://tracker1.myporn.club:9337/announce` — no connect response
@@ -245,8 +249,6 @@
 
 ## 无法测试（特殊网络）
 
-- `http://[2605:6400:30:fad6::dead:c0d3]:1337/announce` — IPv6 unavailable here
-- `http://[2a04:ac00:1:3dd8::1:2710]:2710/announce` — IPv6 unavailable here
 - `http://btrackrqkjp6kgelov5a3uxisis77ofxqt5nvy5hvvtoybjpmq4q.b32.i2p:80/announce` — I2P network required
 - `http://freetracker.i2p:7331/announce` — I2P network required
 - `http://nyaaplus.i2p:80/announce` — I2P network required
@@ -261,36 +263,39 @@
 - `http://tracker.insulaocculta.i2p:80/a` — I2P network required
 - `http://tracker.nyaa2p.i2p:80/announce` — I2P network required
 - `http://yet-another-public-tracker.i2p:80/announce` — I2P network required
-- `udp://[2a03:7220:8083:cd00::1]:451/announce` — IPv6 unavailable here
-- `udp://[2a04:ac00:1:3dd8::1:2710]:2710/announce` — IPv6 unavailable here
 - `udp://freetracker.i2p:1337/announce` — I2P network required
 - `udp://opentracker.simp.i2p:6969/a` — I2P network required
 - `udp://opentracker.skank.i2p:6969/a` — I2P network required
 
+## 低速 Tracker（>5s，已排除）
+
+- `http://tracker.waaa.moe:6969/announce` — 6411ms
+- `http://216.144.239.90:6969/announce` — 6911ms
+
 ## 同网段/同域名去重（保留响应最快）
 
-- `http://004430.xyz:80/announce`
 - `http://107.189.2.131:1337/announce`
 - `http://135.125.198.235:2710/announce`
 - `http://135.125.198.235:80/announce`
+- `http://140.235.237.23:6969/announce`
 - `http://211.75.205.187:6969/announce`
 - `http://211.75.205.187:80/announce`
 - `http://211.75.205.188:6969/announce`
 - `http://211.75.205.188:80/announce`
 - `http://211.75.210.221:6969/announce`
-- `http://216.144.239.90:6969/announce`
+- `http://211.75.210.221:80/announce`
 - `http://31.38.161.123:6969/announce`
 - `http://43.250.54.126:6969/announce`
 - `http://93.158.213.92:1337/announce`
 - `http://94.23.207.177:6969/announce`
 - `http://announce.sktorrent.eu:6969/announce`
 - `http://ipv4announce.sktorrent.eu:6969/announce`
+- `http://open.demonii.si:80/announce`
 - `http://open.tracker.cl:1337/announce`
 - `http://opentracker.xyz:80/announce`
 - `http://retracker01-msk-virt.corbina.net:80/announce`
 - `http://t.overflow.biz:6969/announce`
 - `http://tracker.auctor.tv:6969/announce`
-- `http://tracker.dhitechnical.com:6969/announce`
 - `http://tracker.dler.com:6969/announce`
 - `http://tracker.dler.org:6969/announce`
 - `http://tracker.mywaifu.best:6969/announce`
@@ -298,39 +303,41 @@
 - `http://tracker.opentrackr.org:1337/announce`
 - `http://tracker.qu.ax:6969/announce`
 - `http://tracker2.dler.org:80/announce`
-- `https://1.tracker.eu.org:443/announce`
+- `https://004430.xyz:443/announce`
 - `https://2.tracker.eu.org:443/announce`
 - `https://337hhh.xyz:443/announce`
+- `https://4.tracker.eu.org:443/announce`
 - `udp://109.201.134.183:80/announce`
-- `udp://135.125.198.235:1984/announce`
 - `udp://151.242.104.187:80/announce`
 - `udp://185.121.168.96:1337/announce`
-- `udp://211.75.205.187:6969/announce`
-- `udp://211.75.205.187:80/announce`
-- `udp://23.157.120.14:6969/announce`
+- `udp://211.75.205.188:80/announce`
 - `udp://34.66.57.33:1337/announce`
 - `udp://34.66.57.33:80/announce`
+- `udp://43.250.54.126:6969/announce`
+- `udp://45.137.199.107:6969/announce`
 - `udp://65.109.28.17:6969/announce`
 - `udp://65.109.28.33:6969/announce`
 - `udp://83.102.180.21:80/announce`
 - `udp://93.158.213.92:1337/announce`
-- `udp://93.158.213.92:6969/announce`
-- `udp://95.217.80.20:6969/announce`
+- `udp://95.217.80.22:6969/announce`
 - `udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce`
 - `udp://tracker.bittor.pw:1337/announce`
-- `udp://tracker.dler.org:6969/announce`
+- `udp://tracker.ducks.party:1984/announce`
 - `udp://tracker.farted.net:6969/announce`
+- `udp://tracker.filemail.com:6969/announce`
 - `udp://tracker.gmi.gd:6969/announce`
-- `udp://tracker.nyaa.vc:6969/announce`
+- `udp://tracker.opentrackr.org:1337/announce`
 - `udp://tracker.peerfect.org:6969/announce`
-- `udp://tracker.qu.ax:6969/announce`
 - `udp://tracker.skynetcloud.site:6969/announce`
+- `udp://tracker.torrent.eu.org:451/announce`
 
 ## Discovery（自动发现的候选，Phase 1 隔离，不进 best/all）
 
-- 候选总数: 157
+- 候选总数: 158
 - 通过探活: 7
-- 若允许参与排名会入选的（前 1 条）:
+- 若允许参与排名会入选的（前 3 条）:
+  - `udp://tr4ck3r.duckdns.org:6969/announce`
+  - `udp://tracker.cn.nyaa.net:6969/announce`
   - `http://t.nyaatracker.com:80/announce`
 
 转正方式：人工 review 后加入 `scripts/update_trackers.py` 的 SOURCES，或写进 `trackers/discovered/PROMOTE.md`（Phase 2）。
@@ -339,9 +346,9 @@
 ## 备选库（trackers_reserve.txt，前 7 条，按评分降序）
 
 独立于 best/all 的候选订阅源，供人工审查转正。
-1. `udp://211.75.205.187:80/announce`
-2. `udp://211.75.205.187:6969/announce`
-3. `udp://23.157.120.14:6969/announce`
+1. `udp://tr4ck3r.duckdns.org:6969/announce`
+2. `udp://tracker.cn.nyaa.net:6969/announce`
+3. `udp://211.75.205.188:80/announce`
 4. `http://t.nyaatracker.com:80/announce`
 5. `http://t.overflow.biz:6969/announce`
 6. `http://open.tracker.cl:1337/announce`

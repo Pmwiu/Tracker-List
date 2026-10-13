@@ -4,13 +4,13 @@
     "last_score": 68.3,
     "first_seen": "2026-10-13T07:20:46.774546+00:00",
     "last_seen": "2026-10-13T07:20:46.774546+00:00",
-    "dead_streak": 0
+    "dead_streak": 1
   },
   "udp://tr4ck3r.duckdns.org:6969/announce": {
-    "alive_runs": 1,
-    "last_score": 68.3,
+    "alive_runs": 2,
+    "last_score": 67.7,
     "first_seen": "2026-10-13T07:20:46.774546+00:00",
-    "last_seen": "2026-10-13T07:20:46.774546+00:00",
+    "last_seen": "2026-10-13T09:59:50.400265+00:00",
     "dead_streak": 0
   },
   "udp://211.75.205.187:80/announce": {
@@ -35,31 +35,45 @@
     "dead_streak": 0
   },
   "http://t.nyaatracker.com:80/announce": {
-    "alive_runs": 1,
+    "alive_runs": 2,
     "last_score": 53.5,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:59:50.400265+00:00",
     "dead_streak": 0
   },
   "http://t.overflow.biz:6969/announce": {
-    "alive_runs": 1,
-    "last_score": 52.5,
+    "alive_runs": 2,
+    "last_score": 52.0,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:59:50.400265+00:00",
     "dead_streak": 0
   },
   "http://open.tracker.cl:1337/announce": {
-    "alive_runs": 1,
-    "last_score": 35.0,
+    "alive_runs": 2,
+    "last_score": 46.1,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:59:50.400265+00:00",
     "dead_streak": 0
   },
   "http://opentracker.xyz:80/announce": {
-    "alive_runs": 1,
-    "last_score": 29.0,
+    "alive_runs": 2,
+    "last_score": 33.4,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:59:50.400265+00:00",
+    "dead_streak": 0
+  },
+  "udp://tracker.cn.nyaa.net:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 62.4,
+    "first_seen": "2026-10-13T09:59:50.400265+00:00",
+    "last_seen": "2026-10-13T09:59:50.400265+00:00",
+    "dead_streak": 0
+  },
+  "udp://211.75.205.188:80/announce": {
+    "alive_runs": 1,
+    "last_score": 59.5,
+    "first_seen": "2026-10-13T09:59:50.400265+00:00",
+    "last_seen": "2026-10-13T09:59:50.400265+00:00",
     "dead_streak": 0
   }
 }
