@@ -22,6 +22,21 @@ def test(fn):
 
 
 @test
+def test_dynamic_blacklist_skips_protected():
+    import os
+    import tempfile
+    import test_trackers as tt
+    dead = {"udp://tracker.opentrackr.org:1337/announce": 25,   # 经典受保护
+            "udp://random-bad.example.com:6969/announce": 25,   # 普通坏 tracker
+            "udp://lone.example.com:6969/announce": 3}          # 未达阈值
+    tmp = os.path.join(tempfile.mkdtemp(), "bl.txt")
+    urls = tt.write_dynamic_blacklist(dead, threshold=20, path=tmp)
+    assert "udp://tracker.opentrackr.org:1337/announce" not in urls  # 防误杀
+    assert "udp://random-bad.example.com:6969/announce" in urls
+    assert "udp://lone.example.com:6969/announce" not in urls        # 未达阈值
+
+
+@test
 def test_is_blacklisted_protected():
     import update_trackers as ut
     domain = {"evil.com", "tracker.opentrackr.org"}   # 某经典主机也在域名黑名单里（测防误杀）

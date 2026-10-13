@@ -718,10 +718,26 @@ def save_history(alive_trackers, dead_trackers=None, candidates=None):
     return new_dead_streak
 
 
-def write_dynamic_blacklist(dead_streak, threshold=DEAD_BLACKLIST_RUNS):
-    """连续失效 ≥ threshold 次的 tracker 写入动态黑名单（精确 URL）。"""
-    urls = sorted(t for t, n in dead_streak.items() if n >= threshold)
-    path = os.path.join(ut.OUTPUT_DIR, 'blacklist_dynamic.txt')
+def write_dynamic_blacklist(dead_streak, threshold=DEAD_BLACKLIST_RUNS, path=None):
+    """连续失效 ≥ threshold 次的 tracker 写入动态黑名单（精确 URL）。
+
+    防误杀：受保护主机（经典/高可信）即使偶发连续失效也**不**自动拉黑——
+    经典 tracker 短暂下线不应被永久排除，交由人工/域名黑名单处理。
+    """
+    if path is None:
+        path = os.path.join(ut.OUTPUT_DIR, 'blacklist_dynamic.txt')
+    urls = []
+    for t, n in dead_streak.items():
+        if n < threshold:
+            continue
+        try:
+            host = (urllib.parse.urlparse(t).hostname or "").lower()
+        except ValueError:
+            host = ""
+        if host and host in ut.PROTECTED_HOSTS:
+            continue  # 防误杀：保护主机不进动态黑名单
+        urls.append(t)
+    urls = sorted(urls)
     try:
         with open(path, 'w', encoding='utf-8') as f:
             f.write("# 动态黑名单：连续失效 >= %d 次，由 test_trackers.py 自动生成\n" % threshold)
