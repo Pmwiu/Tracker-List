@@ -1017,11 +1017,13 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic, *,
 RESERVE_MAX = ut.RESERVE_MAX  # 备选库条数上限（单一真相源在 update_trackers）
 
 
-def build_reserve(results, discovered_set, uptime_map, sa_map, ro_map, cap=None):
-    """备选库：从 results 里的 alive discovered 候选独立评分，按分降序取前 cap。
+def build_reserve(results, discovered_set, uptime_map, sa_map, ro_map):
+    """备选库评分：从 results 里的 alive discovered 候选独立评分，返回 [(tracker, score)]
+    按分降序的全量列表（不截断；调用方 reserve_list 取前 RESERVE_MAX，
+    promote 队列用全量分数，二者同源，避免"慢但活"的候选进不了转正跟踪）。
 
     备选库是独立于 best/all 的候选订阅源（供人工审查转正）。它**不套用** best/all
-    的低速淘汰与同网段/同域名去重（那些是 best 名额的curator），只要 discovered
+    的低速淘汰与同网段/同域名去重（那些是 best 名额的 curator），只要 discovered
     候选通过探活即参与，慢的也保留（由人判断）。白名单条目永不进备选库。
     """
     if not discovered_set:
@@ -1041,9 +1043,7 @@ def build_reserve(results, discovered_set, uptime_map, sa_map, ro_map, cap=None)
                            recent_outcomes=ro)
         scored.append((t, sc))
     scored.sort(key=lambda x: -x[1])
-    if cap is None:
-        cap = RESERVE_MAX
-    return [t for t, _ in scored[:cap]]
+    return scored
 
 
 def select_reserve(scored, discovered_set, cap=None):
@@ -1617,7 +1617,9 @@ def main():
         print(f'[INFO] discovered candidates excluded from best/all: {len(discovered_set)}')
 
     # ---- 备选库：从 results 的 alive discovered 独立评分（不套用 best/all 的低速/去重）----
-    reserve_list = build_reserve(results, discovered_set, uptime_map, sa_map, ro_map)
+    # reserve_list（发布前 RESERVE_MAX 条）与 promote 分数同源，避免慢但活的候选漏跟踪
+    reserve_scored = build_reserve(results, discovered_set, uptime_map, sa_map, ro_map)
+    reserve_list = [t for t, _ in reserve_scored[:RESERVE_MAX]]
     write_result_file("trackers_reserve.txt", reserve_list)
     if reserve_list:
         print(f'[INFO] reserve pool: {len(reserve_list)} discovered candidates '
@@ -1634,7 +1636,7 @@ def main():
                         old_q = json.load(f)
                 except (json.JSONDecodeError, IOError):
                     old_q = {}
-            reserve_scores = {t: score for t, score, *_ in scored if t in discovered_set}
+            reserve_scores = dict(reserve_scored)   # 全量 alive discovered，与 reserve 同源
             dead_disc = _promote_dead_urls(results, discovered_set)
             now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
             new_q = update_promote_queue(old_q, reserve_scores, dead_disc, now_iso)

@@ -592,9 +592,21 @@ def load_discovered_candidates(out_dir=None, max_age_days=7):
     synthetic_name 形如 "discovered-<sha1[:8]>"，基于文件名哈希保证唯一稳定。
     每个 URL 经 is_valid_tracker 严格校验。
     """
+def load_discovered_candidates(out_dir=None, max_age_days=7,
+                               blacklist=None, url_blacklist=None):
+    """读取 out_dir 中 mtime 在 max_age_days 内的 candidates_*.txt。
+
+    返回 [(synthetic_name, [url, ...]), ...]，每个文件 = 一个合成源。
+    synthetic_name 形如 "discovered-<sha1[:8]>"，基于文件名哈希保证唯一稳定。
+    每个 URL 经 is_valid_tracker 严格校验，并套用与白名单源相同的黑名单过滤
+    （blacklist 域名集合 / url_blacklist 精确 URL 集合）——防止被拉黑的坏
+    tracker 经"all 列表"进入 discovered 池并出现在公开的 reserve.txt。
+    """
     import glob
     if out_dir is None:
         out_dir = DISCOVERED_DIR
+    blacklist = blacklist or set()
+    url_blacklist = url_blacklist or set()
     if not os.path.isdir(out_dir):
         return []
     cutoff = time.time() - max_age_days * 86400
@@ -613,8 +625,14 @@ def load_discovered_candidates(out_dir=None, max_age_days=7):
                     if not line or line.startswith("#"):
                         continue
                     normalized = normalize_tracker(line)
-                    if normalized and is_valid_tracker(normalized):
-                        urls.append(normalized)
+                    if not (normalized and is_valid_tracker(normalized)):
+                        continue
+                    if normalized in url_blacklist:
+                        continue
+                    host = (urllib.parse.urlparse(normalized).hostname or "").lower()
+                    if host and host in blacklist:
+                        continue
+                    urls.append(normalized)
         except OSError:
             continue
         if not urls:
@@ -1068,8 +1086,9 @@ def main():
         fingerprints = {}        # {short_name: 内容指纹}，用于源新鲜度检测
 
         # 加载发现模块（discover_trackers.py）产出的候选，作为"报告源"参与 merge pool；
-        # 不会进入 best/all（Task 10 在 select_top_with_quotas 过滤 discovered_set.json）
-        discovered_sources = load_discovered_candidates()
+        # 套用与白名单源相同的黑名单过滤，不会进入 best/all（select_top_with_quotas 排除）
+        discovered_sources = load_discovered_candidates(
+            blacklist=blacklist, url_blacklist=url_blacklist)
         if discovered_sources:
             total_disc = sum(len(u) for _, u in discovered_sources)
             print(f"[INFO] discovered candidates: {total_disc} URLs "

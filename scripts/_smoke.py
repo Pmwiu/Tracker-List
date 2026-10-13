@@ -226,6 +226,28 @@ def test_dedup_against_known():
 
 
 @test
+def test_load_discovered_filters_blacklist():
+    import os, shutil, tempfile
+    import update_trackers as ut
+    tmp = tempfile.mkdtemp(prefix="disc_bl_")
+    try:
+        p = os.path.join(tmp, "candidates_20261013.txt")
+        with open(p, "w", encoding="utf-8") as f:
+            f.write("udp://good.example.com:6969/announce\n"
+                    "udp://evil.example.net:6969/announce\n"
+                    "http://urlbl.example.org/announce\n")
+        # evil.example.net 域名黑名单；urlbl URL 精确黑名单（normalize 后带 :80）
+        res = ut.load_discovered_candidates(
+            out_dir=tmp,
+            blacklist={"evil.example.net"},
+            url_blacklist={"http://urlbl.example.org:80/announce"})
+        urls = [u for _, us in res for u in us]
+        assert urls == ["udp://good.example.com:6969/announce"], urls
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+@test
 def test_load_discovered_caps_age():
     import shutil
     import tempfile
@@ -373,14 +395,19 @@ def test_build_reserve_from_alive_discovered():
     ]
     discovered = {"udp://slow-disc/announce", "udp://fast-disc/announce",
                   "udp://dead-disc/announce"}
-    out = tt.build_reserve(results, discovered, {}, {}, {}, cap=20)
-    # alive discovered 都进备选（含慢的，备选库不套用 best/all 的低速淘汰）
-    assert "udp://fast-disc/announce" in out
-    assert "udp://slow-disc/announce" in out
-    assert "udp://dead-disc/announce" not in out
-    assert "udp://whitelist/announce" not in out
+    scored = tt.build_reserve(results, discovered, {}, {}, {})
+    # 返回 [(tracker, score)]，含所有 alive discovered（慢的也在）
+    pairs = dict(scored)
+    assert "udp://fast-disc/announce" in pairs
+    assert "udp://slow-disc/announce" in pairs   # 备选库不套用 best/all 的低速淘汰
+    assert "udp://dead-disc/announce" not in pairs
+    assert "udp://whitelist/announce" not in pairs
     # 评分降序：快的在前
-    assert out[0] == "udp://fast-disc/announce"
+    assert scored[0][0] == "udp://fast-disc/announce"
+    # reserve 列表与 promote 分数同源：截断只影响列表，不影响分数全集
+    reserve_list = [t for t, _ in scored[:1]]
+    assert reserve_list == ["udp://fast-disc/announce"]
+    assert set(pairs.keys()) >= set(reserve_list)
 
 
 @test
