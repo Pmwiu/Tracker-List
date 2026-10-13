@@ -138,6 +138,18 @@ def test_jitter_penalty():
     assert eff == 42
 
 
+@test
+def test_detect_dual_stack():
+    import test_trackers as tt
+    # dns.google 同时有 A 和 AAAA 记录
+    v4, v6 = tt.detect_dual_stack("dns.google")
+    assert v4 is True
+    assert isinstance(v6, bool)
+    # 不存在的域名：两条都应为 False（不抛异常）
+    v4n, v6n = tt.detect_dual_stack("definitely-does-not-exist-987654.invalid")
+    assert v4n is False and v6n is False
+
+
 def main():
     failed = 0
     for name, fn in TESTS:

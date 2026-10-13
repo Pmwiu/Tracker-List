@@ -83,6 +83,17 @@ def _is_ipv6_literal(host):
         return False
 
 
+def detect_dual_stack(host):
+    """返回 (has_ipv4, has_ipv6)。不抛异常（解析失败 → (False, False)）。"""
+    try:
+        infos = cached_getaddrinfo(host, None)
+    except (socket.gaierror, Exception):
+        return False, False
+    has_v4 = any(fam == socket.AF_INET for fam, _, _, _, _ in infos)
+    has_v6 = any(fam == socket.AF_INET6 for fam, _, _, _, _ in infos)
+    return has_v4, has_v6
+
+
 _ipv6_available = None
 
 
@@ -394,8 +405,31 @@ def test_one(tracker, timeout):
         if scheme == 'udp':
             if port is None:
                 return tracker, 'dead', 'missing port', 0.0
-            # DNS 重绑定防护：UDP 连接固定使用 is_safe_tracker 已校验并缓存的解析 IP，
-            # 避免发送时被 OS 重新解析到不同（可能是内网）地址
+            # 双栈：若 v4+v6 都有，并行各跑一次取较优；任一成功即 alive
+            v4, v6 = detect_dual_stack(host)
+            results_stack = []
+            for family_name, want in (('v4', v4), ('v6', v6)):
+                if not want:
+                    continue
+                try:
+                    infos = cached_getaddrinfo(host, None)
+                except Exception:
+                    continue
+                resolved_ip = None
+                target_family = socket.AF_INET6 if family_name == 'v6' else socket.AF_INET
+                for fam, _, _, _, sockaddr in infos:
+                    if fam == target_family:
+                        resolved_ip = sockaddr[0]
+                        break
+                if not resolved_ip:
+                    continue
+                ok, elapsed, detail = test_udp(resolved_ip, port, timeout)
+                if ok:
+                    results_stack.append((elapsed, f"{detail} ({family_name})"))
+            if results_stack:
+                results_stack.sort(key=lambda x: x[0])
+                return tracker, 'alive', results_stack[0][1], results_stack[0][0]
+            # fallback：单栈（用第一个解析到的 IP）
             try:
                 infos = cached_getaddrinfo(host, None)  # 复用校验过的缓存条目
                 resolved_ip = infos[0][4][0]
@@ -407,12 +441,58 @@ def test_one(tracker, timeout):
         if scheme == 'wss':
             if port is None:
                 port = 443
+            v4, v6 = detect_dual_stack(host)
+            results_stack = []
+            for family_name, want in (('v4', v4), ('v6', v6)):
+                if not want:
+                    continue
+                try:
+                    infos = cached_getaddrinfo(host, None)
+                except Exception:
+                    continue
+                resolved_ip = None
+                target_family = socket.AF_INET6 if family_name == 'v6' else socket.AF_INET
+                for fam, _, _, _, sockaddr in infos:
+                    if fam == target_family:
+                        resolved_ip = sockaddr[0]
+                        break
+                if not resolved_ip:
+                    continue
+                ok, elapsed, detail = test_wss(resolved_ip, port, timeout)
+                if ok:
+                    results_stack.append((elapsed, f"{detail} ({family_name})"))
+            if results_stack:
+                results_stack.sort(key=lambda x: x[0])
+                return tracker, 'alive', results_stack[0][1], results_stack[0][0]
             ok, elapsed, detail = test_wss(host, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
 
         if scheme == 'ws':
             if port is None:
                 port = 80
+            v4, v6 = detect_dual_stack(host)
+            results_stack = []
+            for family_name, want in (('v4', v4), ('v6', v6)):
+                if not want:
+                    continue
+                try:
+                    infos = cached_getaddrinfo(host, None)
+                except Exception:
+                    continue
+                resolved_ip = None
+                target_family = socket.AF_INET6 if family_name == 'v6' else socket.AF_INET
+                for fam, _, _, _, sockaddr in infos:
+                    if fam == target_family:
+                        resolved_ip = sockaddr[0]
+                        break
+                if not resolved_ip:
+                    continue
+                ok, elapsed, detail = test_ws(resolved_ip, port, timeout)
+                if ok:
+                    results_stack.append((elapsed, f"{detail} ({family_name})"))
+            if results_stack:
+                results_stack.sort(key=lambda x: x[0])
+                return tracker, 'alive', results_stack[0][1], results_stack[0][0]
             ok, elapsed, detail = test_ws(host, port, timeout)
             return tracker, 'alive' if ok else 'dead', detail, elapsed
 
