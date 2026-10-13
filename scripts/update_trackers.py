@@ -412,11 +412,53 @@ def normalize_tracker(url):
     )
 
 
+# 严格"写法规范"校验：拒绝合法但写法奇特的 URL（IPv6 字面量、query/fragment、
+# 百分号编码、大写 scheme、双斜杠、单标签无点子域、端口越界）——这些形态 BT 客户端
+# 处理不一，且畸形 IPv6 曾导致 urlparse 崩溃。保留 IPv4 字面量（常见，非"奇特"）。
+_CANON_SCHEMES = ("udp", "http", "https", "wss", "ws")
+_PATH_OK = re.compile(r'^[A-Za-z0-9/_.\-~]*$')
+
+
+def is_well_formed_tracker(url):
+    """是否为写法规范的 tracker URL（在宽松正则基础上的严格校验）。"""
+    if not url or len(url) > 500 or "://" not in url:
+        return False
+    # scheme 必须是小写规范形态（urlparse 会把大写转小写，故先查原始串）
+    raw_scheme = url.split("://", 1)[0]
+    if raw_scheme != raw_scheme.lower() or raw_scheme not in _CANON_SCHEMES:
+        return False
+    if "%" in url:                       # 百分号编码
+        return False
+    try:
+        p = urllib.parse.urlparse(url)
+        port = p.port                    # 越界/非数字会抛 ValueError
+    except ValueError:
+        return False
+    host = p.hostname
+    if not host:
+        return False
+    if ":" in host:                      # IPv6 字面量（带括号会被 urlparse 去括号留冒号）
+        return False
+    if "." not in host:                  # 单标签主机（localhost / tracker 等）
+        return False
+    if p.query or p.fragment:            # query / fragment
+        return False
+    if "//" in (p.path or ""):           # 路径里的双斜杠
+        return False
+    if not _PATH_OK.match(p.path or ""):  # 路径仅允许安全字符
+        return False
+    if port is not None and not (1 <= port <= 65535):
+        return False
+    return True
+
+
 def is_valid_tracker(url):
-    """校验是否为合法的 tracker URL。"""
+    """校验是否为合法且写法规范的 tracker URL。"""
     if not url or len(url) > 500:
         return False
-    return bool(TRACKER_PATTERN.match(url))
+    if not TRACKER_PATTERN.match(url):
+        return False
+    return is_well_formed_tracker(url)
 
 
 def cleanup_legacy_files():

@@ -31,7 +31,8 @@ def test_source_counts_shape():
         data = json.load(f)
     assert isinstance(data, dict) and data
     for url, count in data.items():
-        assert isinstance(url, str) and ut.is_valid_tracker(url)
+        # 纯形状校验（不与演进中的严格 validator 绑定，避免旧 artifact 误报）
+        assert isinstance(url, str) and "://" in url
         assert isinstance(count, int) and 1 <= count <= 20
 
 
@@ -211,7 +212,7 @@ def test_extract_tracker_urls():
     assert "http://tracker.example.com:80/announce" in urls
     assert "not a url" not in urls
     # 重复应去重
-    text2 = "udp://x/announce\nudp://x/announce\nudp://y/announce\n"
+    text2 = "udp://a.example.com/announce\nudp://a.example.com/announce\nudp://b.example.com/announce\n"
     urls2 = dt.extract_tracker_urls(text2)
     assert len(urls2) == 2
     # 畸形 IPv6（[ 无匹配 ]）被拒绝，不写入候选
@@ -227,6 +228,37 @@ def test_dedup_against_known():
     fresh = {"udp://known.example/announce", "udp://new.example/announce"}
     out = dt.filter_known(fresh, known)
     assert out == {"udp://new.example/announce"}
+
+
+@test
+def test_is_well_formed_tracker_rejects_odd():
+    import update_trackers as ut
+    # 合法但"写法奇特"的形态必须被拒（当前宽松正则会放过）
+    odd = [
+        "udp://[::1]:6969/announce",                       # IPv6 字面量
+        "http://[2605:6400:30::1]:1337/announce",          # IPv6 字面量
+        "udp://1.2.3.4:6969/announce?key=1",               # query
+        "http://tracker.example.com/announce#frag",        # fragment
+        "http://tracker.example.com/a%20b",                # 百分号编码
+        "UDP://tracker.example.com/announce",              # 大写 scheme
+        "http://tracker.example.com//announce",            # 双斜杠
+        "http://tracker:80/announce",                      # 单标签无点
+        "http://tracker.example.com:99999/announce",       # 端口越界
+    ]
+    for u in odd:
+        assert not ut.is_well_formed_tracker(u), f"should reject: {u}"
+    # 正常形态必须保留
+    ok = [
+        "udp://tracker.example.com:6969/announce",
+        "http://1.2.3.4:80/announce",                      # IPv4 字面量常见，保留
+        "wss://tracker.example.com/announce",
+        "https://tracker.example.com:443/announce",
+        "udp://open.stealth.si:80/announce",
+    ]
+    for u in ok:
+        assert ut.is_well_formed_tracker(u), f"should accept: {u}"
+    # is_valid_tracker 现在必须与严格校验一致（拒绝畸形 IPv6）
+    assert not ut.is_valid_tracker("udp://[::1:6969/announce")
 
 
 @test
