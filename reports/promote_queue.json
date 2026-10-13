@@ -12,5 +12,54 @@
     "first_seen": "2026-10-13T07:20:46.774546+00:00",
     "last_seen": "2026-10-13T07:20:46.774546+00:00",
     "dead_streak": 0
+  },
+  "udp://211.75.205.187:80/announce": {
+    "alive_runs": 1,
+    "last_score": 60.1,
+    "first_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "dead_streak": 0
+  },
+  "udp://211.75.205.187:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 60.0,
+    "first_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "dead_streak": 0
+  },
+  "udp://23.157.120.14:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 59.1,
+    "first_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "dead_streak": 0
+  },
+  "http://t.nyaatracker.com:80/announce": {
+    "alive_runs": 1,
+    "last_score": 53.5,
+    "first_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "dead_streak": 0
+  },
+  "http://t.overflow.biz:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 52.5,
+    "first_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "dead_streak": 0
+  },
+  "http://open.tracker.cl:1337/announce": {
+    "alive_runs": 1,
+    "last_score": 35.0,
+    "first_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "dead_streak": 0
+  },
+  "http://opentracker.xyz:80/announce": {
+    "alive_runs": 1,
+    "last_score": 29.0,
+    "first_seen": "2026-10-13T09:07:46.525291+00:00",
+    "last_seen": "2026-10-13T09:07:46.525291+00:00",
+    "dead_streak": 0
   }
 }
