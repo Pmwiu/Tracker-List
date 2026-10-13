@@ -1,0 +1,18 @@
+# wrangler 配置 — tracker-proxy Worker（Cloudflare 免费额度）
+# 部署：cd cloudflare && npx wrangler deploy   （需一个含写权限的 API token，见 DEPLOY.md）
+
+name = "tracker-proxy"
+main = "tracker-proxy.js"
+compatibility_date = "2026-01-01"
+
+# 现有路由 tracker.pmwiu.com/* 已在 zone 上绑定该 Worker；workers_dev 关闭避免额外公开子域
+workers_dev = false
+
+# KV：last-known-good 缓存（先在 Dashboard 或用有权限的 token 建 tracker-cache，再回填 id）
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_WITH_TRACKER_CACHE_NAMESPACE_ID"
+
+# 每日 03:17 UTC 预热 KV（1 次/天，远低于免费额度）
+[triggers]
+crons = ["17 3 * * *"]
