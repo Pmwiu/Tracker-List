@@ -2,6 +2,27 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-14] - feat
+- **测活增强**：HTTP/HTTPS announce 解析 compact peers/peers6 字节长度得节点数
+  （`announce with peers:N`），质量分档 N≥3→100/1-2→95/0→90；新增 BEP 15 `scrape`
+  热度探针（http/https 存活者，截断读 64KB 正则累计种子数，禁用/失败不惩罚），
+  与 announce 质量取较高者——对齐 ngosang「按 popularity + latency 排序」
+- **筛选增强**：同域名去重（跨端口/协议，ngosang 方法）连同 /24 网段一起去重，各留最快
+- **备选库 reserve（新订阅源）**：discovered 候选通过探活+评分后前 20 条写入
+  `trackers/trackers_reserve.txt`，发布为 `/reserve.txt`（Worker alias + docs 镜像 +
+  MIRRORS），与 best/all 严格不相交；health_check 校验数量与不相交不变量
+- **自动发现扩充**：新增公开全量列表源（cf.trackerslist.com/all.txt + ngosang
+  `trackers_all*` 经 jsDelivr）；CI 环境读取 `GITHUB_TOKEN` 提升 API 限额
+- **转正队列（B3）**：`reports/promote_queue.json` 跟踪 discovered 候选连续存活轮数
+  （活+1 / 连续死 3 次剔除 / 30 天未见裁剪）；连续存活 ≥5 轮进
+  `trackers/discovered/PROMOTE.md`，月度 workflow 自动开/更新 `tracker-promotion`
+  Issue 供人工审查转正（`issues: write`）
+- **修复**：CI run #122 因 `contribution` 在 discovered 循环里先于定义被引用而失败
+  （本机网络屏蔽 discovered=0 掩盖了该路径，CI 有真实候选才暴露）→ 提取
+  `append_discovered_sources` 并前置初始化，加回归测试
+- 文档：README 可靠性/安全/订阅表更新（此前权重描述停留在 60/25/15 未同步，一并修正）；
+  RUNBOOK 补 peers/scrape/同域名去重/备选库/转正队列；Phase 2 设计计划入库
+
 ## [2026-10-13] - feat
 - **评分 v2：5 维加权 + 反退化**。权重 速度50% + 稳定性EMA20% + 响应质量15%
   + 跨源一致性10% + 近期成功率5%（此前 60/25/15）；经典高可用 +6 不变。
