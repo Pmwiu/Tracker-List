@@ -28,3 +28,7 @@ tmp_*
 *.tmp
 *.log
 .update.lock
+
+# ===== 探测 / 缓存 =====
+trackers/cache/asn_cache.json
+trackers/discovered/candidates_*.txt

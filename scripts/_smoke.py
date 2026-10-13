@@ -150,6 +150,53 @@ def test_detect_dual_stack():
     assert v4n is False and v6n is False
 
 
+@test
+def test_ip_to_prefix():
+    import test_trackers as tt
+    # /24 for IPv4
+    assert tt._ip_to_prefix("192.0.2.5") == "192.0.2.0/24"
+    assert tt._ip_to_prefix("10.1.2.3") == "10.1.2.0/24"
+    # /48 for IPv6
+    assert tt._ip_to_prefix("2001:db8:1234:5678::1") == "2001:db8:1234::/48"
+    # 无法解析的字符串原样返回
+    assert tt._ip_to_prefix("not-an-ip") == "not-an-ip"
+
+
+@test
+def test_diversity_demote_basic():
+    import test_trackers as tt
+    # 4 个同 /24 + 1 个不同 /24：demote 后同 /24 至多 3
+    cache = {
+        "h1": "10.0.0.0/24", "h2": "10.0.0.0/24", "h3": "10.0.0.0/24", "h4": "10.0.0.0/24",
+        "h5": "192.168.0.0/24",
+    }
+    picked = ["h1", "h2", "h3", "h4", "h5"]
+    out = tt._enforce_asn_diversity(picked, cache, max_per_prefix=3)
+    assert "h4" not in out
+    assert out.count("h1") == 1 and out.count("h2") == 1 and out.count("h3") == 1
+    assert "h5" in out
+    assert len(out) == 4
+
+
+@test
+def test_cold_seed_bias_prefers_high_uptime():
+    import test_trackers as tt
+    # 3 个非 UDP，quota 至少 2；high-uptime 的 c 应当被选
+    scored = [
+        ("udp://a", 90, 10, 0.5, "valid connect + announce"),
+        ("udp://b", 95, 10, 0.9, "valid connect + announce"),
+        ("http://c", 80, 10, 0.95, "announce with peers"),
+        ("https://d", 70, 10, 0.3, "announce with peers"),
+        ("ws://e", 60, 10, 0.2, "TCP reachable"),
+    ]
+    picked, _ = tt.select_top_with_quotas(
+        scored, max_total=5, min_non_udp=2, min_classic=0
+    )
+    urls = [t for t, *_ in picked]
+    assert "http://c" in urls
+    assert sum(1 for t in urls if not t.startswith("udp://")) >= 2
+
+
 def main():
     failed = 0
     for name, fn in TESTS:

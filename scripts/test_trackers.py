@@ -94,6 +94,89 @@ def detect_dual_stack(host):
     return has_v4, has_v6
 
 
+ASN_CACHE_PATH = os.path.join(ut.OUTPUT_DIR, "cache", "asn_cache.json")
+ASN_CACHE_TTL_SEC = 7 * 24 * 3600
+ASN_MAX_PER_PREFIX = 3
+
+
+def _ip_to_prefix(host):
+    """IPv4 → /24 前缀；IPv6 → /48 前缀；非 IP 字符串原样返回。"""
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return host
+    if ip.version == 4:
+        net = ipaddress.ip_network(f"{ip}/24", strict=False)
+        return f"{net.network_address}/24"
+    net = ipaddress.ip_network(f"{ip}/48", strict=False)
+    return f"{net.network_address.compressed}/48"
+
+
+def _load_asn_cache():
+    """读取 asn_cache.json，TTL=7d。过期或缺失返回 None（调用方决定是否重建）。"""
+    if not os.path.exists(ASN_CACHE_PATH):
+        return None
+    try:
+        mtime = os.path.getmtime(ASN_CACHE_PATH)
+        if (time.time() - mtime) > ASN_CACHE_TTL_SEC:
+            return None
+        with open(ASN_CACHE_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else None
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _build_asn_cache(alive_urls):
+    """对每个 URL 解析主机名得到前缀，写入 asn_cache.json。失败静默。"""
+    out = {}
+    for url in alive_urls:
+        try:
+            host = (urllib.parse.urlparse(url).hostname or "").lower()
+            port = (urllib.parse.urlparse(url).port
+                    or (443 if url.startswith(("https://", "wss://"))
+                        else 80 if url.startswith(("http://", "ws://")) else 0))
+            if not host or _ip_to_prefix(host) == host:  # 已是 IP
+                key = f"{host}:{port}"
+                infos = cached_getaddrinfo(host, None)
+                ip = infos[0][4][0] if infos else host
+                out[key] = _ip_to_prefix(ip)
+                continue
+            infos = cached_getaddrinfo(host, None)
+            for fam, _, _, _, sockaddr in infos:
+                out[f"{host}:{port}"] = _ip_to_prefix(sockaddr[0])
+        except Exception:
+            continue
+    try:
+        os.makedirs(os.path.dirname(ASN_CACHE_PATH), exist_ok=True)
+        with open(ASN_CACHE_PATH, "w", encoding="utf-8") as f:
+            json.dump(out, f, ensure_ascii=False, indent=2)
+    except OSError:
+        pass
+    return out
+
+
+def _enforce_asn_diversity(picked, prefix_cache, max_per_prefix=ASN_MAX_PER_PREFIX):
+    """对 picked 应用多样性 demotion：同一前缀至多 max_per_prefix 个。
+
+    picked 是按评分降序的列表（来自 select_top_with_quotas）；同前缀时
+    保留靠前（评分高）的，demote 靠后的。返回 demote 后的 picked。
+    prefix_cache: {host_or_hostport: prefix}。无缓存的 host 当作独立前缀。
+    """
+    if not prefix_cache:
+        return list(picked)
+    by_prefix = {}
+    kept = []
+    for h in picked:
+        # 优先用 host:port，fallback host
+        prefix = prefix_cache.get(h) or prefix_cache.get(h.split(":")[0]) or f"_solo:{h}"
+        if len(by_prefix.get(prefix, [])) >= max_per_prefix:
+            continue  # demote
+        kept.append(h)
+        by_prefix.setdefault(prefix, []).append(h)
+    return kept
+
+
 _ipv6_available = None
 
 
@@ -753,7 +836,8 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic):
     - min_non_udp 条非 UDP（协议多样性）
     - min_classic 条经典高可用 tracker（冷门/死种/老种子优化：经典 tracker 长期稳定、
       拥有深厚 peer 数据库、真正开放，对老资源加速显著）
-    按「经典保底 → 非 UDP 保底 → 评分填充」三阶段选取；不足配额时有多少取多少。
+    按「经典保底 → 非 UDP 保底（冷门命中偏好 uptime≥0.7）→ 评分填充」三阶段选取；
+    不足配额时有多少取多少。完成后应用 ASN /24 多样性 demotion（每前缀至多 3）。
     返回 (selected, capped)，selected 仍按评分降序。
     """
     picked = []
@@ -774,19 +858,55 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic):
         if classic_bonus(e[0]) > 0 and _pick(e):
             classic_count += 1
 
-    # Stage 2：非 UDP 保底（协议多样性）
+    # Stage 2：非 UDP 保底（协议多样性）。冷门命中偏好：uptime_ema ≥ 0.7 的优先
     non_udp_count = sum(1 for e in picked if not e[0].startswith('udp://'))
-    for e in scored:
-        if non_udp_count >= min_non_udp:
-            break
-        if not e[0].startswith('udp://') and _pick(e):
-            non_udp_count += 1
+    if non_udp_count < min_non_udp:
+        non_udp_high = [e for e in scored
+                        if not e[0].startswith('udp://') and e[3] >= 0.7]
+        non_udp_rest = [e for e in scored
+                        if not e[0].startswith('udp://') and e[3] < 0.7]
+        for e in non_udp_high + non_udp_rest:
+            if non_udp_count >= min_non_udp:
+                break
+            if _pick(e):
+                non_udp_count += 1
 
     # Stage 3：按评分填充至 max_total
     for e in scored:
         if len(picked) >= max_total:
             break
         _pick(e)
+
+    # 多样性 demotion：同 /24（或 IPv6 /48）至多 ASN_MAX_PER_PREFIX 条
+    cache = _load_asn_cache()
+    if cache is None:
+        cache = _build_asn_cache([e[0] for e in scored])
+    host_to_prefix = {}
+    for url in (e[0] for e in scored):
+        try:
+            host = (urllib.parse.urlparse(url).hostname or "").lower()
+            port = urllib.parse.urlparse(url).port
+        except Exception:
+            continue
+        if not host:
+            continue
+        for key in (f"{host}:{port}", host):
+            if key in cache:
+                host_to_prefix[url] = cache[key]
+                break
+    if host_to_prefix:
+        picked_urls = [e[0] for e in picked]
+        kept = _enforce_asn_diversity(picked_urls, host_to_prefix,
+                                     max_per_prefix=ASN_MAX_PER_PREFIX)
+        if len(kept) < len(picked_urls):
+            kept_set = set(kept)
+            # 把 demote 的条目按评分降序放回 capped；从 scored 找漏掉的
+            for e in scored:
+                if e[0] in picked_urls and e[0] not in kept_set:
+                    picked.remove(e)
+            for e in scored:
+                if e[0] in kept_set and e not in picked:
+                    picked.append(e)
 
     picked.sort(key=lambda x: (-x[1], x[2]))
     chosen = {e[0] for e in picked}
