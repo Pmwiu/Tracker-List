@@ -38,7 +38,6 @@ PUBLIC_ALL_LISTS = [
     "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_http.txt",
     "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_https.txt",
     "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_ws.txt",
-    "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_wss.txt",
 ]
 PUBLIC_LIST_CAP = 20  # 单次发现最多抓取的公开列表数（防失控）
 
