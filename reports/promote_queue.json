@@ -1,1 +1,16 @@
-{}
+{
+  "udp://208.83.20.20:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 68.3,
+    "first_seen": "2026-10-13T07:20:46.774546+00:00",
+    "last_seen": "2026-10-13T07:20:46.774546+00:00",
+    "dead_streak": 0
+  },
+  "udp://tr4ck3r.duckdns.org:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 68.3,
+    "first_seen": "2026-10-13T07:20:46.774546+00:00",
+    "last_seen": "2026-10-13T07:20:46.774546+00:00",
+    "dead_streak": 0
+  }
+}
