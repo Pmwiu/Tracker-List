@@ -1,5 +1,5 @@
 # Tracker 订阅地址清单
-# Generated: 2026-10-13 05:18:42 UTC
+# Generated: 2026-10-13 06:34:22 UTC
 # 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr
 # 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)
 
@@ -34,6 +34,18 @@ https://tracker-list-edj.pages.dev/all.txt
 https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt
 # [jsDelivr 直链]
 https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt
+
+# === reserve 备选库 (trackers_reserve.txt, 自动发现候选, 供审查转正) ===
+# [短链接]
+https://tracker.pmwiu.com/reserve.txt
+# [加速短链接 (jsDelivr)]
+https://tracker.pmwiu.com/jsd/reserve.txt
+# [Pages 直链]
+https://pmwiu.github.io/Tracker-List/reserve.txt
+# [GitHub Raw]
+https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_reserve.txt
+# [jsDelivr 直链]
+https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_reserve.txt
 
 # === merged 原始候选池 (trackers_merged.txt) ===
 # [短链接]

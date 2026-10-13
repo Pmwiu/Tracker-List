@@ -1,0 +1,9 @@
+# 转正建议（自动发现候选，人工 review 后加入 SOURCES）
+
+达标线：连续存活 ≥ 5 轮。以下候选通过探活且稳定，建议评估转正。
+
+更新时间：2026-10-13 06:35 UTC
+
+_（暂无达标候选）_
+
+转正方式：把选定 tracker 加入 `scripts/update_trackers.py` 的 SOURCES。
