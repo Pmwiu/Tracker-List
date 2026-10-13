@@ -622,6 +622,18 @@ def load_discovered_candidates(out_dir=None, max_age_days=7):
     return out
 
 
+def append_discovered_sources(per_source, results, contribution, discovered_sources):
+    """把 discover 模块发现的候选作为额外源并入 merge pool（Phase 1 隔离）。
+
+    计入 MAX_CANDIDATES 与跨源统计（contribution），但不写 per-source 文件、
+    不进首页统计（results 不追加）；discovered 只参与测试与报告，
+    best/all 由 test_trackers.py 的 whitelist_only_set 排除。
+    """
+    for short_name, urls in discovered_sources:
+        per_source.append((short_name, urls))
+        contribution[short_name] = len(urls)
+
+
 PROTOCOL_SUBLISTS = {
     "udp": "udp://",
     "http": "http://",
@@ -1089,12 +1101,10 @@ def main():
             fingerprints[short_name] = hashlib.sha1(NL.join(trackers).encode("utf-8")).hexdigest()[:12]
             print(f"[OK]   {len(trackers)} unique")
 
-        # 把 discovered candidates 作为额外源（合成 short_name）追加到 per_source；
-        # 它们计入 MAX_CANDIDATES 但不写 trackers/trackers_<name>.txt（不进文件系统）
-        for short_name, urls in discovered_sources:
-            per_source.append((short_name, urls))
-            results.append((f"discovered/{short_name}", len(urls)))
-            contribution[short_name] = len(urls)
+        # 把 discovered candidates 作为额外源（合成 short_name）并入 merge pool；
+        # 计入 MAX_CANDIDATES 与跨源统计，但不写 per-source 文件、不进首页统计。
+        contribution = {}
+        append_discovered_sources(per_source, results, contribution, discovered_sources)
 
         if failures:
             print(f"{NL}[WARN] {len(failures)} source(s) failed:")
@@ -1111,7 +1121,6 @@ def main():
         # 填满 all 列表。
         seen_merged = set()
         valid_prefixes = ("http://", "https://", "udp://", "wss://", "ws://")
-        contribution = {}
 
         def _pick(t, src):
             if t in seen_merged or not t.startswith(valid_prefixes):

@@ -253,6 +253,20 @@ def test_load_discovered_caps_age():
 
 
 @test
+def test_append_discovered_sources_no_nameerror():
+    import update_trackers as ut
+    per_source = [("ngosang-best", ["udp://a/announce"])]
+    results = [("trackers_ngosang_best.txt", 1)]
+    contribution = {}
+    disc = [("discovered-abcd1234", ["udp://new1/announce", "udp://a/announce"])]
+    ut.append_discovered_sources(per_source, results, contribution, disc)
+    assert ("discovered-abcd1234", ["udp://new1/announce", "udp://a/announce"]) in per_source
+    assert contribution["discovered-abcd1234"] == 2
+    # 不污染首页统计（results 不追加 discovered 行）
+    assert len(results) == 1
+
+
+@test
 def test_discovered_excluded_from_best():
     import test_trackers as tt
     scored = [
