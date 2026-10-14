@@ -5,9 +5,8 @@ udp://151.242.104.187:80/announce
 udp://185.121.168.96:1337/announce
 udp://193.148.251.93:6969/announce
 udp://193.34.92.5:80/announce
-udp://208.83.20.20:6969/announce
-udp://209.141.59.25:6969/announce
-udp://211.75.205.188:80/announce
+udp://211.75.205.188:6969/announce
+udp://23.157.120.14:6969/announce
 udp://31.38.161.123:6969/announce
 udp://31.56.179.159:6969/announce
 udp://34.66.57.33:1337/announce
@@ -23,6 +22,7 @@ udp://65.109.28.33:6969/announce
 udp://6ahddutb1ucc3cp.ru:6969/announce
 udp://83.102.180.21:80/announce
 udp://89.234.156.205:451/announce
+udp://91.216.110.53:451/announce
 udp://93.158.213.92:1337/announce
 udp://93.158.213.92:6969/announce
 udp://95.217.80.20:6969/announce
@@ -52,12 +52,10 @@ udp://t.overflow.biz:6969/announce
 udp://torrentclub.online:54123/announce
 udp://torrents.tmtime.dev:6969/announce
 udp://tr.btube3.com:2010/announce
-udp://tr4ck3r.duckdns.org:6969/announce
 udp://tracker-udp.gbitt.info:80/announce
 udp://tracker.004430.xyz:1337/announce
 udp://tracker.alaskantf.com:6969/announce
 udp://tracker.bittor.pw:1337/announce
-udp://tracker.cn.nyaa.net:6969/announce
 udp://tracker.corpscorp.online:80/announce
 udp://tracker.dler.org:6969/announce
 udp://tracker.ducks.party:1984/announce
@@ -65,11 +63,13 @@ udp://tracker.farted.net:6969/announce
 udp://tracker.filemail.com:6969/announce
 udp://tracker.gmi.gd:6969/announce
 udp://tracker.nyaa.vc:6969/announce
+udp://tracker.opentrackr.com:6969/announce
 udp://tracker.opentrackr.org:1337/announce
 udp://tracker.peerfect.org:6969/announce
 udp://tracker.qu.ax:6969/announce
 udp://tracker.skynetcloud.site:6969/announce
 udp://tracker.srv00.com:6969/announce
+udp://tracker.theoks.net:6969/announce
 udp://tracker.torrent.eu.org:451/announce
 udp://tracker.tryhackx.org:6969/announce
 udp://tracker.wepzone.net:6969/announce

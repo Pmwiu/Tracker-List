@@ -28,24 +28,24 @@
     "dead_streak": 0
   },
   "udp://23.157.120.14:6969/announce": {
-    "alive_runs": 2,
-    "last_score": 57.4,
+    "alive_runs": 3,
+    "last_score": 63.7,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T10:37:33.216121+00:00",
+    "last_seen": "2026-10-14T12:11:50.683857+00:00",
     "dead_streak": 0
   },
   "http://t.nyaatracker.com:80/announce": {
-    "alive_runs": 4,
-    "last_score": 55.5,
+    "alive_runs": 5,
+    "last_score": 50.9,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T22:58:45.180323+00:00",
+    "last_seen": "2026-10-14T12:11:50.683857+00:00",
     "dead_streak": 0
   },
   "http://t.overflow.biz:6969/announce": {
-    "alive_runs": 4,
-    "last_score": 53.7,
+    "alive_runs": 5,
+    "last_score": 49.8,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T22:58:45.180323+00:00",
+    "last_seen": "2026-10-14T12:11:50.683857+00:00",
     "dead_streak": 0
   },
   "http://open.tracker.cl:1337/announce": {
@@ -336,10 +336,10 @@
     "dead_streak": 0
   },
   "udp://tracker.opentrackr.com:6969/announce": {
-    "alive_runs": 1,
-    "last_score": 50.6,
+    "alive_runs": 2,
+    "last_score": 62.8,
     "first_seen": "2026-10-14T05:07:19.173341+00:00",
-    "last_seen": "2026-10-14T05:07:19.173341+00:00",
+    "last_seen": "2026-10-14T12:11:50.683857+00:00",
     "dead_streak": 0
   },
   "udp://tracker.k.vu:6969/announce": {
@@ -417,6 +417,20 @@
     "last_score": 17.2,
     "first_seen": "2026-10-14T05:07:19.173341+00:00",
     "last_seen": "2026-10-14T05:07:19.173341+00:00",
+    "dead_streak": 0
+  },
+  "udp://91.216.110.53:451/announce": {
+    "alive_runs": 1,
+    "last_score": 60.2,
+    "first_seen": "2026-10-14T12:11:50.683857+00:00",
+    "last_seen": "2026-10-14T12:11:50.683857+00:00",
+    "dead_streak": 0
+  },
+  "udp://211.75.205.188:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 57.1,
+    "first_seen": "2026-10-14T12:11:50.683857+00:00",
+    "last_seen": "2026-10-14T12:11:50.683857+00:00",
     "dead_streak": 0
   }
 }
