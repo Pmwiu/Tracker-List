@@ -1,6 +1,5 @@
-udp://23.157.120.14:6969/announce
-udp://tracker.opentrackr.com:6969/announce
-udp://91.216.110.53:451/announce
-udp://211.75.205.188:6969/announce
-http://t.nyaatracker.com:80/announce
-http://t.overflow.biz:6969/announce
+udp://tr4ck3r.duckdns.org:6969/announce
+http://tracker.novaopcj.eu.org:6969/announce
+http://tracker.coppersurfer.site:2710/announce
+http://tr.nyacat.pw:80/announce
+http://tracker.zhuqiy.dgj055.icu:80/announce
