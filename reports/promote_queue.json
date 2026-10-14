@@ -147,10 +147,10 @@
     "dead_streak": 0
   },
   "https://tr.torland.ga:443/announce": {
-    "alive_runs": 1,
-    "last_score": 47.0,
+    "alive_runs": 2,
+    "last_score": 53.5,
     "first_seen": "2026-10-13T22:58:45.180323+00:00",
-    "last_seen": "2026-10-13T22:58:45.180323+00:00",
+    "last_seen": "2026-10-14T21:51:24.858118+00:00",
     "dead_streak": 0
   },
   "https://tracker.bug38.com:443/announce": {
@@ -431,6 +431,20 @@
     "last_score": 57.1,
     "first_seen": "2026-10-14T12:11:50.683857+00:00",
     "last_seen": "2026-10-14T12:11:50.683857+00:00",
+    "dead_streak": 0
+  },
+  "http://189.18.97.208:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 60.0,
+    "first_seen": "2026-10-14T21:51:24.858118+00:00",
+    "last_seen": "2026-10-14T21:51:24.858118+00:00",
+    "dead_streak": 0
+  },
+  "http://asiatorrent.giize.com:51413/announce": {
+    "alive_runs": 1,
+    "last_score": 48.4,
+    "first_seen": "2026-10-14T21:51:24.858118+00:00",
+    "last_seen": "2026-10-14T21:51:24.858118+00:00",
     "dead_streak": 0
   }
 }
