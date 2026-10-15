@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-15 17:12:38 UTC",
+  "timestamp": "2026-10-15 21:34:02 UTC",
   "status": "success",
-  "duration_sec": 2.2,
+  "duration_sec": 0.9,
   "sources": {
     "ngosang-best": {
       "http_code": 200,
@@ -50,7 +50,7 @@
     },
     "pexcn-best": {
       "http_code": 200,
-      "lines": 58,
+      "lines": 61,
       "ok": true
     },
     "opentracker": {
