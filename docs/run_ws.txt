@@ -17,7 +17,6 @@ https://tracker.foreverpirates.co:443/announce
 https://tracker.nekomi.cn:443/announce
 https://tracker.pmman.tech:443/announce
 https://tracker.zhuqiy.com:443/announce
-udp://132.226.6.145:6969/announce
 udp://193.148.251.93:6969/announce
 udp://193.34.92.5:80/announce
 udp://31.38.161.123:6969/announce

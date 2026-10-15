@@ -70,10 +70,10 @@
     "dead_streak": 0
   },
   "udp://211.75.205.188:80/announce": {
-    "alive_runs": 2,
-    "last_score": 61.6,
+    "alive_runs": 3,
+    "last_score": 56.5,
     "first_seen": "2026-10-13T09:59:50.400265+00:00",
-    "last_seen": "2026-10-13T14:27:37.173242+00:00",
+    "last_seen": "2026-10-15T04:56:03.731413+00:00",
     "dead_streak": 0
   },
   "https://open.ftorrent.com:443/announce": {
@@ -445,6 +445,41 @@
     "last_score": 48.4,
     "first_seen": "2026-10-14T21:51:24.858118+00:00",
     "last_seen": "2026-10-14T21:51:24.858118+00:00",
+    "dead_streak": 0
+  },
+  "http://h4.trakx.nibba.trade:80/announce": {
+    "alive_runs": 1,
+    "last_score": 64.5,
+    "first_seen": "2026-10-15T04:56:03.731413+00:00",
+    "last_seen": "2026-10-15T04:56:03.731413+00:00",
+    "dead_streak": 0
+  },
+  "http://34.66.57.33:1337/announce": {
+    "alive_runs": 1,
+    "last_score": 64.4,
+    "first_seen": "2026-10-15T04:56:03.731413+00:00",
+    "last_seen": "2026-10-15T04:56:03.731413+00:00",
+    "dead_streak": 0
+  },
+  "udp://189.18.97.208:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 60.2,
+    "first_seen": "2026-10-15T04:56:03.731413+00:00",
+    "last_seen": "2026-10-15T04:56:03.731413+00:00",
+    "dead_streak": 0
+  },
+  "https://tracker.midnightprogrammer.net:443/announce": {
+    "alive_runs": 1,
+    "last_score": 31.5,
+    "first_seen": "2026-10-15T04:56:03.731413+00:00",
+    "last_seen": "2026-10-15T04:56:03.731413+00:00",
+    "dead_streak": 0
+  },
+  "udp://coeus.torrentonline.cc:42069/announce": {
+    "alive_runs": 1,
+    "last_score": 9.0,
+    "first_seen": "2026-10-15T04:56:03.731413+00:00",
+    "last_seen": "2026-10-15T04:56:03.731413+00:00",
     "dead_streak": 0
   }
 }

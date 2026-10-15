@@ -1,3 +1,6 @@
-http://189.18.97.208:6969/announce
-https://tr.torland.ga:443/announce
-http://asiatorrent.giize.com:51413/announce
+http://h4.trakx.nibba.trade:80/announce
+http://34.66.57.33:1337/announce
+udp://189.18.97.208:6969/announce
+udp://211.75.205.188:80/announce
+https://tracker.midnightprogrammer.net:443/announce
+udp://coeus.torrentonline.cc:42069/announce
