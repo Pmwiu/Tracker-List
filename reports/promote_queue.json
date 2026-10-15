@@ -7,10 +7,10 @@
     "dead_streak": 0
   },
   "udp://tr4ck3r.duckdns.org:6969/announce": {
-    "alive_runs": 4,
-    "last_score": 68.3,
+    "alive_runs": 5,
+    "last_score": 57.8,
     "first_seen": "2026-10-13T07:20:46.774546+00:00",
-    "last_seen": "2026-10-14T17:25:03.583104+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
     "dead_streak": 0
   },
   "udp://211.75.205.187:80/announce": {
@@ -49,24 +49,24 @@
     "dead_streak": 0
   },
   "http://open.tracker.cl:1337/announce": {
-    "alive_runs": 3,
-    "last_score": 48.7,
+    "alive_runs": 4,
+    "last_score": 53.2,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T10:37:33.216121+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
     "dead_streak": 0
   },
   "http://opentracker.xyz:80/announce": {
-    "alive_runs": 3,
-    "last_score": 43.3,
+    "alive_runs": 4,
+    "last_score": 26.6,
     "first_seen": "2026-10-13T09:07:46.525291+00:00",
-    "last_seen": "2026-10-13T10:37:33.216121+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
     "dead_streak": 0
   },
   "udp://tracker.cn.nyaa.net:6969/announce": {
-    "alive_runs": 2,
-    "last_score": 63.6,
+    "alive_runs": 3,
+    "last_score": 49.6,
     "first_seen": "2026-10-13T09:59:50.400265+00:00",
-    "last_seen": "2026-10-13T22:58:45.180323+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
     "dead_streak": 0
   },
   "udp://211.75.205.188:80/announce": {
@@ -84,10 +84,10 @@
     "dead_streak": 0
   },
   "udp://tracker.aruku.ovh:8081/announce": {
-    "alive_runs": 2,
-    "last_score": 62.8,
+    "alive_runs": 3,
+    "last_score": 48.7,
     "first_seen": "2026-10-13T10:37:33.216121+00:00",
-    "last_seen": "2026-10-13T22:58:45.180323+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
     "dead_streak": 0
   },
   "http://tr.nyacat.pw:80/announce": {
@@ -133,10 +133,10 @@
     "dead_streak": 0
   },
   "udp://tracker.ilibr.org:6969/announce": {
-    "alive_runs": 1,
-    "last_score": 63.6,
+    "alive_runs": 2,
+    "last_score": 52.5,
     "first_seen": "2026-10-13T22:58:45.180323+00:00",
-    "last_seen": "2026-10-13T22:58:45.180323+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
     "dead_streak": 0
   },
   "udp://admin.52ywp.com:6969/announce": {
@@ -445,7 +445,7 @@
     "last_score": 48.4,
     "first_seen": "2026-10-14T21:51:24.858118+00:00",
     "last_seen": "2026-10-14T21:51:24.858118+00:00",
-    "dead_streak": 0
+    "dead_streak": 1
   },
   "http://h4.trakx.nibba.trade:80/announce": {
     "alive_runs": 1,
@@ -480,6 +480,27 @@
     "last_score": 9.0,
     "first_seen": "2026-10-15T04:56:03.731413+00:00",
     "last_seen": "2026-10-15T04:56:03.731413+00:00",
+    "dead_streak": 0
+  },
+  "udp://tracker.cyberia.is:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 58.0,
+    "first_seen": "2026-10-15T11:49:05.334542+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
+    "dead_streak": 0
+  },
+  "udp://tracker.ilibr.org:80/announce": {
+    "alive_runs": 1,
+    "last_score": 52.6,
+    "first_seen": "2026-10-15T11:49:05.334542+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
+    "dead_streak": 0
+  },
+  "udp://obey.torrentonline.cc:42069/announce": {
+    "alive_runs": 1,
+    "last_score": 9.0,
+    "first_seen": "2026-10-15T11:49:05.334542+00:00",
+    "last_seen": "2026-10-15T11:49:05.334542+00:00",
     "dead_streak": 0
   }
 }
