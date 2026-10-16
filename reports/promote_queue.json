@@ -7,10 +7,10 @@
     "dead_streak": 0
   },
   "udp://tr4ck3r.duckdns.org:6969/announce": {
-    "alive_runs": 5,
-    "last_score": 57.8,
+    "alive_runs": 6,
+    "last_score": 65.6,
     "first_seen": "2026-10-13T07:20:46.774546+00:00",
-    "last_seen": "2026-10-15T11:49:05.334542+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
     "dead_streak": 0
   },
   "udp://211.75.205.187:80/announce": {
@@ -77,10 +77,10 @@
     "dead_streak": 0
   },
   "https://open.ftorrent.com:443/announce": {
-    "alive_runs": 3,
-    "last_score": 59.1,
+    "alive_runs": 4,
+    "last_score": 57.9,
     "first_seen": "2026-10-13T10:37:33.216121+00:00",
-    "last_seen": "2026-10-14T05:07:19.173341+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
     "dead_streak": 0
   },
   "udp://tracker.aruku.ovh:8081/announce": {
@@ -161,10 +161,10 @@
     "dead_streak": 0
   },
   "udp://tr.btube3.com:2010/announce": {
-    "alive_runs": 1,
-    "last_score": 60.9,
+    "alive_runs": 2,
+    "last_score": 49.6,
     "first_seen": "2026-10-14T05:07:19.173341+00:00",
-    "last_seen": "2026-10-14T05:07:19.173341+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
     "dead_streak": 0
   },
   "udp://180.131.145.175:6969/announce": {
@@ -455,11 +455,11 @@
     "dead_streak": 1
   },
   "http://34.66.57.33:1337/announce": {
-    "alive_runs": 1,
-    "last_score": 64.4,
+    "alive_runs": 2,
+    "last_score": 62.5,
     "first_seen": "2026-10-15T04:56:03.731413+00:00",
-    "last_seen": "2026-10-15T04:56:03.731413+00:00",
-    "dead_streak": 1
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
+    "dead_streak": 0
   },
   "udp://189.18.97.208:6969/announce": {
     "alive_runs": 1,
@@ -518,10 +518,10 @@
     "dead_streak": 0
   },
   "http://34.66.57.33:6969/announce": {
-    "alive_runs": 1,
-    "last_score": 59.1,
+    "alive_runs": 2,
+    "last_score": 17.2,
     "first_seen": "2026-10-15T21:35:22.088063+00:00",
-    "last_seen": "2026-10-15T21:35:22.088063+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
     "dead_streak": 0
   },
   "udp://118.196.100.63:6969/announce": {
@@ -536,6 +536,41 @@
     "last_score": 14.2,
     "first_seen": "2026-10-15T21:35:22.088063+00:00",
     "last_seen": "2026-10-15T21:35:22.088063+00:00",
+    "dead_streak": 0
+  },
+  "udp://209.141.59.25:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 65.4,
+    "first_seen": "2026-10-16T04:46:48.849835+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
+    "dead_streak": 0
+  },
+  "http://34.66.57.33:443/announce": {
+    "alive_runs": 1,
+    "last_score": 61.8,
+    "first_seen": "2026-10-16T04:46:48.849835+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
+    "dead_streak": 0
+  },
+  "udp://211.75.210.221:80/announce": {
+    "alive_runs": 1,
+    "last_score": 59.0,
+    "first_seen": "2026-10-16T04:46:48.849835+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
+    "dead_streak": 0
+  },
+  "udp://91.211.5.21:6969/announce": {
+    "alive_runs": 1,
+    "last_score": 50.4,
+    "first_seen": "2026-10-16T04:46:48.849835+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
+    "dead_streak": 0
+  },
+  "http://34.66.57.33:2701/announce": {
+    "alive_runs": 1,
+    "last_score": 17.2,
+    "first_seen": "2026-10-16T04:46:48.849835+00:00",
+    "last_seen": "2026-10-16T04:46:48.849835+00:00",
     "dead_streak": 0
   }
 }
