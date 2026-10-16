@@ -2,13 +2,13 @@
 
 达标线：连续存活 ≥ 5 轮。以下候选通过探活且稳定，建议评估转正。
 
-更新时间：2026-10-16 11:42 UTC
+更新时间：2026-10-16 16:50 UTC
 
 | tracker | 连续存活轮数 | 最近评分 | 首次发现 |
 |---|---|---|---|
 | `udp://tr4ck3r.duckdns.org:6969/announce` | 6 | 65.6 | 2026-10-13 |
-| `http://t.nyaatracker.com:80/announce` | 5 | 50.9 | 2026-10-13 |
-| `http://t.overflow.biz:6969/announce` | 5 | 49.8 | 2026-10-13 |
+| `http://t.nyaatracker.com:80/announce` | 6 | 51.4 | 2026-10-13 |
+| `http://t.overflow.biz:6969/announce` | 6 | 49.3 | 2026-10-13 |
 | `http://open.tracker.cl:1337/announce` | 5 | 48.1 | 2026-10-13 |
 | `http://opentracker.xyz:80/announce` | 5 | 17.2 | 2026-10-13 |
 

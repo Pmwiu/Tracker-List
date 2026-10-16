@@ -37,7 +37,6 @@ udp://retracker01-msk-virt.corbina.net:80/announce
 udp://tr4ck3r.duckdns.org:6969/announce
 udp://tracker-udp.gbitt.info:80/announce
 udp://tracker.cn.nyaa.net:6969/announce
-udp://tracker.dler.org:6969/announce
 udp://tracker.ducks.party:1984/announce
 udp://tracker.opentrackr.org:1337/announce
 udp://tracker.torrent.eu.org:451/announce
@@ -49,4 +48,3 @@ wss://tracker.btorrent.xyz:443/announce
 wss://tracker.dnlab.net:443/announce
 wss://tracker.files.fm:7073/announce
 wss://tracker.magnetoo.io:443/announce
-wss://tracker.openwebtorrent.com:443/announce
