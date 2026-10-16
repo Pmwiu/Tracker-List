@@ -1008,124 +1008,7 @@ def select_top_with_quotas(scored, max_total, min_non_udp, min_classic, *,
     return picked, capped
 
 
-RESERVE_MAX = ut.RESERVE_MAX  # 备选库条数上限（单一真相源在 update_trackers）
-
-
-def build_reserve(results, discovered_set, uptime_map, sa_map, ro_map):
-    """备选库评分：从 results 里的 alive discovered 候选独立评分，返回 [(tracker, score)]
-    按分降序的全量列表（不截断；调用方 reserve_list 取前 RESERVE_MAX，
-    promote 队列用全量分数，二者同源，避免"慢但活"的候选进不了转正跟踪）。
-
-    备选库是独立于 best/all 的候选订阅源（供人工审查转正）。它**不套用** best/all
-    的低速淘汰与同网段/同域名去重（那些是 best 名额的 curator），只要 discovered
-    候选通过探活即参与，慢的也保留（由人判断）。白名单条目永不进备选库。
-    """
-    if not discovered_set:
-        return []
-    alive = [(t, d, e) for t, s, d, e in results if s == 'alive' and t in discovered_set]
-    if not alive:
-        return []
-    speed_score = make_speed_scorer([e for _, _, e in alive])
-    scored = []
-    for t, d, e in alive:
-        up = uptime_map.get(t, 0.0)
-        sa = sa_map.get(t, 0)
-        ro = ro_map.get(t, [])
-        rsr = (sum(ro) / len(ro)) if ro else 0.0
-        sc = compute_score(t, speed_score(e), up, d,
-                           source_agreement=sa, recent_success_rate=rsr,
-                           recent_outcomes=ro)
-        scored.append((t, sc))
-    scored.sort(key=lambda x: -x[1])
-    return scored
-
-
-def select_reserve(scored, discovered_set, cap=None):
-    """（保留：从已排序 scored 池取 discovered 子集，供测试与兼容）"""
-    if not discovered_set:
-        return []
-    if cap is None:
-        cap = RESERVE_MAX
-    reserve = [t for t, *_ in scored if t in discovered_set]
-    return reserve[:cap]
-
-
-PROMOTE_ALIVE_RUNS = 5    # 连续存活轮数达标才进转正建议
-PROMOTE_DEAD_TOLERANCE = 3  # 连续死 N 次从队列剔除
-PROMOTE_STALE_DAYS = 30   # 超过 N 天未再出现则从队列裁剪
-
-
-def update_promote_queue(old_queue, reserve_scores, dead_urls, now_iso):
-    """更新转正队列（reports/promote_queue.json 的内容）。
-
-    reserve_scores: {url: score} 本轮存活的 discovered 候选
-    dead_urls: set 本轮探活失败的 discovered 候选
-    返回新队列 {url: {alive_runs, last_score, first_seen, last_seen, dead_streak}}。
-    存活累加 alive_runs 并清零 dead_streak；连续死满 PROMOTE_DEAD_TOLERANCE 次剔除；
-    超过 PROMOTE_STALE_DAYS 天未再出现的裁剪。
-    """
-    q = {u: dict(v) for u, v in (old_queue or {}).items()}
-    for u, score in reserve_scores.items():
-        e = q.get(u, {})
-        e["alive_runs"] = e.get("alive_runs", 0) + 1
-        e["last_score"] = round(float(score), 1)
-        e["first_seen"] = e.get("first_seen", now_iso)
-        e["last_seen"] = now_iso
-        e["dead_streak"] = 0
-        q[u] = e
-    for u in dead_urls:
-        if u in q:
-            q[u]["dead_streak"] = q[u].get("dead_streak", 0) + 1
-            if q[u]["dead_streak"] >= PROMOTE_DEAD_TOLERANCE:
-                del q[u]
-    try:
-        now_dt = datetime.datetime.fromisoformat(now_iso)
-        cutoff = now_dt - datetime.timedelta(days=PROMOTE_STALE_DAYS)
-        pruned = {}
-        for u, e in q.items():
-            try:
-                if datetime.datetime.fromisoformat(e["last_seen"]) >= cutoff:
-                    pruned[u] = e
-            except (KeyError, ValueError):
-                pruned[u] = e
-        q = pruned
-    except ValueError:
-        pass
-    return q
-
-
-def render_promote_md(queue, threshold=PROMOTE_ALIVE_RUNS):
-    """把转正队列渲染成 PROMOTE.md 文本（达标候选按分数降序）。"""
-    rows = [(u, e) for u, e in (queue or {}).items()
-            if e.get("alive_runs", 0) >= threshold]
-    rows.sort(key=lambda x: -x[1].get("last_score", 0))
-    lines = [
-        "# 转正建议（自动发现候选，人工 review 后加入 SOURCES）",
-        "",
-        f"达标线：连续存活 ≥ {threshold} 轮。以下候选通过探活且稳定，建议评估转正。",
-        "",
-        f"更新时间：{datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
-        "",
-    ]
-    if not rows:
-        lines.append("_（暂无达标候选）_")
-    else:
-        lines.append("| tracker | 连续存活轮数 | 最近评分 | 首次发现 |")
-        lines.append("|---|---|---|---|")
-        for u, e in rows:
-            lines.append(f"| `{u}` | {e['alive_runs']} | {e.get('last_score', 0)} | "
-                         f"{str(e.get('first_seen', ''))[:10]} |")
-    lines += ["", "转正方式：把选定 tracker 加入 `scripts/update_trackers.py` 的 SOURCES。", ""]
-    return "\n".join(lines)
-
-
-def _promote_dead_urls(results, discovered_set):
-    """本轮探活失败（dead/unsafe）的 discovered 候选集合。"""
-    return {t for t, s, _, _ in results
-            if s in ('dead', 'unsafe') and t in discovered_set}
-
-
-DISCOVERED_TEST_CAP = 120  # 为备选库额外测活的 discovered 样本上限
+DISCOVERED_TEST_CAP = 120  # 额外测活的 discovered 样本上限
 
 
 def load_discovered_set():
@@ -1154,7 +1037,7 @@ def _is_ip_literal(url):
 
 def select_discovered_to_test(discovered_set, merged, cap=DISCOVERED_TEST_CAP,
                               tested_state=None):
-    """为备选库挑选 merged 之外、需额外测活的 discovered 候选。
+    """挑选 merged 之外、需额外测活的 discovered 候选。
 
     merged 池受 MAX_CANDIDATES 上限约束且按字母序，discovered 里排前的往往是
     IP 字面量（多为死/私有 tracker），域名类好候选进不了被测试的 200 池。这里
@@ -1291,7 +1174,7 @@ def write_result_file(filename, trackers):
 # 写测试报告
 # ============================================================
 def write_report(results, alive_final, capped, elapsed, protocol_stats, low_speed=None,
-                 same_ip_removed=None, discovered_set=None, scored=None, reserve=None):
+                 same_ip_removed=None, discovered_set=None, scored=None):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
     unsafe = [(t, d, e) for t, s, d, e in results if s == 'unsafe']
@@ -1365,15 +1248,7 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
             for t in would_rank[:10]:
                 lines.append(f'  - `{t}`')
         lines.append('')
-        lines.append('转正方式：人工 review 后加入 `scripts/update_trackers.py` 的 SOURCES，'
-                     '或写进 `trackers/discovered/PROMOTE.md`（Phase 2）。')
-        lines.append('')
-
-    if reserve:
-        lines += ['', f'## 备选库（trackers_reserve.txt，前 {len(reserve)} 条，按评分降序）', '']
-        lines.append('独立于 best/all 的候选订阅源，供人工审查转正。')
-        for rank, t in enumerate(reserve, 1):
-            lines.append(f'{rank}. `{t}`')
+        lines.append('转正方式：人工 review 后加入 `scripts/update_trackers.py` 的 SOURCES。')
         lines.append('')
 
     ut.atomic_write(os.path.join(ut.OUTPUT_DIR, 'test_report.md'), ut.NL.join(lines) + ut.NL)
@@ -1433,8 +1308,8 @@ def main():
     total_available = len(merged_all)
     trackers = read_candidates(args.max_candidates)
 
-    # discovered 候选全集（Phase 2 备选库需要）：merged 池受 200 上限+字母序限制，
-    # discovered 里排前的多是死 IP 字面量，域名类好候选进不了被测池。这里为备选库
+    # discovered 候选全集（discovery 报告需要）：merged 池受 200 上限+字母序限制，
+    # discovered 里排前的多是死 IP 字面量，域名类好候选进不了被测池。这里
     # 额外取一批 merged 之外的 discovered 一起测活；轮换覆盖（最久未测优先）。
     discovered_set = load_discovered_set()
     tested_state_path = os.path.join(ut.PROJECT_ROOT, "reports", "discovered_tested.json")
@@ -1458,7 +1333,7 @@ def main():
                 json.dump(tested_state, f, ensure_ascii=False, indent=2)
         except IOError:
             pass
-        print(f'[INFO] reserve: +{len(extra)} discovered candidates for liveness test '
+        print(f'[INFO] discovery: +{len(extra)} discovered candidates for liveness test '
               f'(rotation, cap {DISCOVERED_TEST_CAP})')
 
     print(f'[INFO] Testing {len(trackers)} candidates '
@@ -1642,40 +1517,6 @@ def main():
         whitelist_only_set = {t for t, *_ in scored if t not in discovered_set}
         print(f'[INFO] discovered candidates excluded from best/all: {len(discovered_set)}')
 
-    # ---- 备选库：从 results 的 alive discovered 独立评分（不套用 best/all 的低速/去重）----
-    # reserve_list（发布前 RESERVE_MAX 条）与 promote 分数同源，避免慢但活的候选漏跟踪
-    reserve_scored = build_reserve(results, discovered_set, uptime_map, sa_map, ro_map)
-    reserve_list = [t for t, _ in reserve_scored[:RESERVE_MAX]]
-    write_result_file("trackers_reserve.txt", reserve_list)
-    if reserve_list:
-        print(f'[INFO] reserve pool: {len(reserve_list)} discovered candidates '
-              f'-> trackers_reserve.txt')
-
-    # ---- 转正队列：跟踪 discovered 候选的连续存活轮数，达标进 PROMOTE.md ----
-    if discovered_set:
-        try:
-            pq_path = os.path.join(ut.PROJECT_ROOT, "reports", "promote_queue.json")
-            old_q = {}
-            if os.path.exists(pq_path):
-                try:
-                    with open(pq_path, encoding="utf-8") as f:
-                        old_q = json.load(f)
-                except (json.JSONDecodeError, IOError):
-                    old_q = {}
-            reserve_scores = dict(reserve_scored)   # 全量 alive discovered，与 reserve 同源
-            dead_disc = _promote_dead_urls(results, discovered_set)
-            now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-            new_q = update_promote_queue(old_q, reserve_scores, dead_disc, now_iso)
-            ut.atomic_write(pq_path, json.dumps(new_q, ensure_ascii=False, indent=2) + ut.NL)
-            promote_path = os.path.join(ut.OUTPUT_DIR, "discovered", "PROMOTE.md")
-            os.makedirs(os.path.dirname(promote_path), exist_ok=True)
-            ut.atomic_write(promote_path, render_promote_md(new_q))
-            n_ready = sum(1 for e in new_q.values()
-                          if e.get("alive_runs", 0) >= PROMOTE_ALIVE_RUNS)
-            print(f'[INFO] promote queue: {len(new_q)} tracked, {n_ready} ready to promote')
-        except Exception as e:
-            print(f'[WARN] promote queue update failed: {e}')
-
     # 协议多样性 + 经典高可用配额：保底非 UDP 与经典 tracker，其余按评分填充
     selected, capped = select_top_with_quotas(
         scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS, MIN_CLASSIC_TRACKERS,
@@ -1705,8 +1546,7 @@ def main():
     write_result_file(ut.ALL_FILE, all_alive_list)
     write_result_file(ut.DEAD_FILE, dead_final)
     write_report(results, alive_final_detail, capped, total_elapsed, protocol_stats, low_speed,
-                 same_ip_removed, discovered_set=discovered_set, scored=scored,
-                 reserve=reserve_list)
+                 same_ip_removed, discovered_set=discovered_set, scored=scored)
 
     # 历史状态必须按「真实探活结果」记录：存活 = 本次响应成功，失效 = 本次响应失败。
     # capped / low_speed / same_ip_removed 都是「存活但被淘汰」的 tracker，绝不能记为失效，

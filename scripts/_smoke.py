@@ -431,47 +431,6 @@ def test_select_discovered_to_test():
 
 
 @test
-def test_update_promote_queue():
-    import test_trackers as tt
-    now = "2026-10-14T00:00:00+00:00"
-    q = {}
-    # 首轮：2 个 discovered alive
-    q = tt.update_promote_queue(q, {"udp://r1/announce": 88.5, "udp://r2/announce": 70.0},
-                                set(), now)
-    assert q["udp://r1/announce"]["alive_runs"] == 1
-    assert q["udp://r1/announce"]["last_score"] == 88.5
-    assert q["udp://r1/announce"]["first_seen"] == now
-    # 第二轮：r1 继续活（runs=2），r2 死一次（dead_streak=1，保留）
-    now2 = "2026-10-14T06:00:00+00:00"
-    q = tt.update_promote_queue(q, {"udp://r1/announce": 90.0}, {"udp://r2/announce"}, now2)
-    assert q["udp://r1/announce"]["alive_runs"] == 2
-    assert q["udp://r2/announce"]["dead_streak"] == 1
-    # 连续死 3 次 -> 剔除
-    for i in range(3):
-        q = tt.update_promote_queue(q, {}, {"udp://r2/announce"}, now2)
-    assert "udp://r2/announce" not in q
-    # 存活即清零 dead_streak
-    q = tt.update_promote_queue(q, {"udp://r1/announce": 91.0}, set(), now2)
-    assert q["udp://r1/announce"]["dead_streak"] == 0
-
-
-@test
-def test_render_promote_md():
-    import test_trackers as tt
-    q = {
-        "udp://a/announce": {"alive_runs": 6, "last_score": 95.0,
-                             "first_seen": "x", "last_seen": "y", "dead_streak": 0},
-        "udp://b/announce": {"alive_runs": 2, "last_score": 99.0,
-                             "first_seen": "x", "last_seen": "y", "dead_streak": 0},
-    }
-    md = tt.render_promote_md(q, threshold=5)
-    assert "udp://a/announce" in md   # 达标
-    assert "udp://b/announce" not in md  # 未达 5 轮
-    # 按分数排序：a 在 b 之前（b 被过滤，只剩 a）
-    assert md.index("udp://a/announce") < md.index("转正方式") or "udp://a" in md
-
-
-@test
 def test_fetch_public_lists_parses():
     import discover_trackers as dt
     fixture = {
@@ -504,23 +463,6 @@ def test_fetch_public_lists_all_fail_graceful():
 
 
 @test
-def test_select_reserve():
-    import test_trackers as tt
-    # discovered alive 按评分降序取前 cap；白名单条目绝不进备选
-    pool = [
-        ("udp://d1/announce", 90.0, 10.0, 0.9, "valid connect + announce"),
-        ("udp://w1/announce", 95.0, 10.0, 0.9, "valid connect + announce"),  # whitelist
-        ("udp://d2/announce", 80.0, 10.0, 0.9, "valid connect + announce"),
-        ("udp://d3/announce", 70.0, 10.0, 0.9, "valid connect + announce"),
-    ]
-    discovered = {"udp://d1/announce", "udp://d2/announce", "udp://d3/announce"}
-    out = tt.select_reserve(pool, discovered, cap=2)
-    assert out == ["udp://d1/announce", "udp://d2/announce"]
-    # discovered 为空 -> 空备选
-    assert tt.select_reserve(pool, set(), cap=2) == []
-
-
-@test
 def test_dual_stack_no_redundant_fallback():
     import socket
     import test_trackers as tt
@@ -544,33 +486,6 @@ def test_dual_stack_no_redundant_fallback():
     finally:
         (tt.is_safe_tracker, tt.detect_dual_stack,
          tt.cached_getaddrinfo, tt.test_udp) = orig
-
-
-@test
-def test_build_reserve_from_alive_discovered():
-    import test_trackers as tt
-    # results 含 discovered：1 alive 但慢(6s)，1 alive 快，1 dead；whitelist 一条
-    results = [
-        ("udp://slow-disc/announce", "alive", "valid connect + announce", 6000.0),
-        ("udp://fast-disc/announce", "alive", "valid connect + announce", 100.0),
-        ("udp://dead-disc/announce", "dead", "timeout", 0.0),
-        ("udp://whitelist/announce", "alive", "valid connect + announce", 90.0),
-    ]
-    discovered = {"udp://slow-disc/announce", "udp://fast-disc/announce",
-                  "udp://dead-disc/announce"}
-    scored = tt.build_reserve(results, discovered, {}, {}, {})
-    # 返回 [(tracker, score)]，含所有 alive discovered（慢的也在）
-    pairs = dict(scored)
-    assert "udp://fast-disc/announce" in pairs
-    assert "udp://slow-disc/announce" in pairs   # 备选库不套用 best/all 的低速淘汰
-    assert "udp://dead-disc/announce" not in pairs
-    assert "udp://whitelist/announce" not in pairs
-    # 评分降序：快的在前
-    assert scored[0][0] == "udp://fast-disc/announce"
-    # reserve 列表与 promote 分数同源：截断只影响列表，不影响分数全集
-    reserve_list = [t for t, _ in scored[:1]]
-    assert reserve_list == ["udp://fast-disc/announce"]
-    assert set(pairs.keys()) >= set(reserve_list)
 
 
 @test

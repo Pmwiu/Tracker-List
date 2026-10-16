@@ -72,8 +72,6 @@ MAX_ALL = 59        # all 合并，最多 59 条
 MAX_CANDIDATES = 200  # 候选池测试上限（merge 阶段），独立于 MAX_ALL，确保有足够存活填满 all=59
 MIN_NON_UDP_TRACKERS = 4  # best 列表保底非 UDP（http/https/wss/ws）条数，防止单一协议失效时订阅整体不可用
 
-RESERVE_MAX = 20  # 备选库（trackers_reserve.txt）条数上限：自动发现候选，供审查转正
-
 # all 列表协议保底：稀有协议（wss/ws）只要存在就保留；常见协议保证最小席位，其余由轮转填充
 ALL_PROTOCOL_FLOORS = {"wss": 1, "ws": 1, "https": 15, "http": 15, "udp": 20}
 
@@ -699,7 +697,7 @@ def load_discovered_candidates(out_dir=None, max_age_days=7,
     synthetic_name 形如 "discovered-<sha1[:8]>"，基于文件名哈希保证唯一稳定。
     每个 URL 经 is_valid_tracker 严格校验，并套用与白名单源相同的黑名单过滤
     （blacklist 域名集合 / url_blacklist 精确 URL 集合 / protected 防误杀保护集）
-    ——防止被拉黑的坏 tracker 经"all 列表"进入 discovered 池并出现在公开的 reserve.txt。
+    ——防止被拉黑的坏 tracker 经 discovered 池进入公开的 trackers_merged.txt。
     """
     import glob
     if out_dir is None:
@@ -823,13 +821,6 @@ def write_mirrors_file(repo):
         ("Cloudflare Pages 直链", f"{cf_pages}/all.txt"),
         ("GitHub Raw", f"{raw_base}/trackers/trackers_all.txt"),
         ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_all.txt"),
-    ])
-    lines += block("reserve 备选库 (trackers_reserve.txt, 自动发现候选, 供审查转正)", [
-        ("短链接", f"{cf}/reserve.txt"),
-        ("加速短链接 (jsDelivr)", f"{cf}/jsd/reserve.txt"),
-        ("Pages 直链", f"{pages}/reserve.txt"),
-        ("GitHub Raw", f"{raw_base}/trackers/trackers_reserve.txt"),
-        ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_reserve.txt"),
     ])
     lines += block("merged 原始候选池 (trackers_merged.txt)", [
         ("短链接", f"{cf}/merged.txt"),
@@ -1121,7 +1112,6 @@ def sync_plain_text_files():
     mapping = {
         "trackers_alive.txt": "alive.txt",
         "trackers_all.txt": "all.txt",
-        "trackers_reserve.txt": "reserve.txt",
         "trackers_merged.txt": "merged.txt",
         "trackers_ngosang_best.txt": "ngosang_best.txt",
         "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",

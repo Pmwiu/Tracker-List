@@ -20,11 +20,9 @@
 |:---:|:---:|---|---|
 | **best** 精选 | 25 | `https://tracker.pmwiu.com/best.txt` | `https://tracker.pmwiu.com/jsd/best.txt` |
 | **all** 存活 | 59 | `https://tracker.pmwiu.com/all.txt` | `https://tracker.pmwiu.com/jsd/all.txt` |
-| **reserve** 备选库 | ≤20 | `https://tracker.pmwiu.com/reserve.txt` | `https://tracker.pmwiu.com/jsd/reserve.txt` |
 
 > 短链接由 Cloudflare Worker 网关提供；加速短链接走 jsDelivr 全球 CDN。
 > qBittorrent、Aria2 等客户端直接粘贴短链接即可订阅。
-> **reserve 备选库**：自动发现的公开 tracker 候选，通过探活+评分但与 best/all 不相交，供进阶用户试用与人工转正审查。
 
 <details>
 <summary><b>按协议 / 按源订阅</b></summary>
@@ -43,7 +41,7 @@
 - **测活**：协议级活性测试（HTTP bencoded announce 校验 / UDP connect+announce 握手 / WSS TLS / WS TCP）、IPv4/IPv6 双栈、低速淘汰、announce peers 计数、BEP 15 scrape 热度探针
 - **筛选**：同网段(/24) + 同域名去重（ngosang 方法）、动态黑名单 + 知名项目远程黑名单（ngosang/XIU2，精确 URL 屏蔽）
 - **评分**：速度 50% + 历史稳定性 EMA 20% + 响应质量 15%（含 peers/scrape 热度）+ 跨源一致性 10% + 近期成功率 5%，速度标度自适应 + 经典高可用加分 + 反退化惩罚；best 保底 4 条经典 + 4 条非 UDP，ASN 多样性 demotion
-- **自动发现**：从 GitHub topic + 公开全量列表（cf.trackerslist / ngosang all）发现候选，探活评分后进入**备选库 reserve.txt**（与 best/all 隔离），连续存活达标者进转正队列（PROMOTE.md + 月度 Issue，人工审查转正）
+- **自动发现**：从 GitHub topic + 公开全量列表（cf.trackerslist / ngosang all）发现候选，探活评分后与 best/all 隔离，供人工审查转正
 - **监控**：心跳 + 运行摘要 + 失败自动告警 + 全量健康检查（3 轮全绿）
 
 ## 安全

@@ -202,16 +202,8 @@ CI 不跑它；改动评分/选优/发现逻辑后本地跑一遍。
 - **去重**：对 SOURCES 白名单 URL、当前 merged/alive/all 内容、过去 7 天发现结果去重
 - **CI**：`update-trackers.yml` 的 "Discover candidate trackers" 步骤，
   `continue-on-error: true`（失败不阻断主流程）
-- **备选库 reserve**：discovered 候选通过探活+评分后，前 20 条写入
-  `trackers/trackers_reserve.txt`（发布为 `/reserve.txt`），**与 best/all 严格不相交**；
-  供进阶用户试用。health_check 校验其数量与不相交性。
-- **转正队列 promote**：`reports/promote_queue.json` 跟踪每个 discovered 候选的连续存活
-  轮数（活 +1 / 连续死 3 次剔除 / 30 天未见裁剪）；连续存活 ≥5 轮者进
-  `trackers/discovered/PROMOTE.md`，月度 workflow 自动开/更新一个
-  `tracker-promotion` 标签 Issue 供人工审查，确认后手动加入 `SOURCES`。
 - **设计文档**：`docs/superpowers/specs/2026-10-13-tracker-discovery-design.md`
-- **实施计划**：Phase 1 `docs/superpowers/plans/2026-10-13-...`，
-  Phase 2 `docs/superpowers/plans/2026-10-14-tracker-reserve-pool-phase2.md`
+- **实施计划**：`docs/superpowers/plans/2026-10-13-...`
 - **本机限制**：国内网络对 `raw.githubusercontent.com` / `cdn.jsdelivr.net` 直连
   常被重置（WinError 10054），本地跑发现常得 0 条；CI（US runner）正常。
 
@@ -269,10 +261,6 @@ CI 不跑它；改动评分/选优/发现逻辑后本地跑一遍。
 | `DEAD_BLACKLIST_RUNS` | test_trackers.py | 20 | 连续失效入动态黑名单 |
 | `UPTIME_ALPHA` | test_trackers.py | 0.2 | 存活率 EMA 权重 |
 | `STALE_SOURCE_DAYS` | health_check.py | 7 | 源内容不变告警天数 |
-| `RESERVE_MAX` | update_trackers.py | 20 | 备选库条数上限 |
-| `PROMOTE_ALIVE_RUNS` | test_trackers.py | 5 | 转正达标连续存活轮数 |
-| `PROMOTE_DEAD_TOLERANCE` | test_trackers.py | 3 | 转正队列连续死 N 次剔除 |
-| `PROMOTE_STALE_DAYS` | test_trackers.py | 30 | 转正队列 N 天未见裁剪 |
 | `PUBLIC_ALL_LISTS` | discover_trackers.py | 8 条 | 公开全量发现列表 |
 | `PER_REPO_FILE_CAP` | discover_trackers.py | 10 | 每仓库最多抓文件数 |
 | `PER_REPO_FILE_CAP` | discover_trackers.py | 10 | 每仓库最多抓文件数 |

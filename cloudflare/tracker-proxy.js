@@ -4,7 +4,7 @@
 //
 // 端点:
 //   /best.txt /alive.txt -> trackers_alive.txt | /all.txt -> trackers_all.txt
-//   /reserve.txt -> trackers_reserve.txt | /merged.txt -> trackers_merged.txt
+//   /merged.txt -> trackers_merged.txt
 //   /p/<proto>.txt | /src/<name>.txt | /jsd/<路径> (jsDelivr 加速)
 //   / 或 /index.html | /s/alive /s/all | /mirrors.txt
 //   /health -> 200 ok / 502 degraded（探上游，供监控）
@@ -32,7 +32,6 @@ const KV_TTL_SEC = 7 * 86400;      // last-known-good 保留 7 天
 const PREWARM_KEYS = [
   "trackers/trackers_alive.txt",
   "trackers/trackers_all.txt",
-  "trackers/trackers_reserve.txt",
   "trackers/trackers_merged.txt",
   "trackers/trackers_udp.txt",
   "trackers/trackers_http.txt",
@@ -45,7 +44,6 @@ const ALIASES = {
   "alive.txt": "trackers/trackers_alive.txt",
   "best.txt": "trackers/trackers_alive.txt",
   "all.txt": "trackers/trackers_all.txt",
-  "reserve.txt": "trackers/trackers_reserve.txt",
   "merged.txt": "trackers/trackers_merged.txt",
   "udp.txt": "trackers/trackers_udp.txt",
   "http.txt": "trackers/trackers_http.txt",

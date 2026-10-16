@@ -331,13 +331,5 @@
   - `udp://tracker.aruku.ovh:8081/announce`
   - `http://tracker.zhuqiy.dgj055.icu:80/announce`
 
-转正方式：人工 review 后加入 `scripts/update_trackers.py` 的 SOURCES，或写进 `trackers/discovered/PROMOTE.md`（Phase 2）。
-
-
-## 备选库（trackers_reserve.txt，前 3 条，按评分降序）
-
-独立于 best/all 的候选订阅源，供人工审查转正。
-1. `udp://tracker.aruku.ovh:8081/announce`
-2. `http://tracker.novaopcj.eu.org:6969/announce`
-3. `http://tracker.zhuqiy.dgj055.icu:80/announce`
+转正方式：人工 review 后加入 `scripts/update_trackers.py` 的 SOURCES。
 

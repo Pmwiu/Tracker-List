@@ -2,6 +2,13 @@
 
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
+## [2026-10-17] - chore
+- **移除备选库 reserve 功能**：删除 `trackers_reserve.txt`、`docs/reserve.txt`、
+  `reports/promote_queue.json`、`trackers/discovered/PROMOTE.md` 及 Phase 2 计划文档；
+  清理 `build_reserve`/`select_reserve`/`update_promote_queue`/`check_reserve_pool` 函数、
+  `RESERVE_MAX`/`PROMOTE_*` 常量、Worker `/reserve.txt` 路由、MIRRORS 块、
+  monthly-check 转正 Issue 步骤及各文档中的相关描述。自动发现功能保留。
+
 ## [2026-10-14] - feat
 - **黑名单整合 + 去重 + 防误杀**：新增 `build_blacklists(source_counts)` 把域名级
   (`blacklist.txt`)、远程 URL 级 (ngosang+XIU2)、动态 URL 级 (连续失效) 三类整合为

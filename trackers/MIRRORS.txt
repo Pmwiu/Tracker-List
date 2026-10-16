@@ -35,18 +35,6 @@ https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.
 # [jsDelivr 直链]
 https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt
 
-# === reserve 备选库 (trackers_reserve.txt, 自动发现候选, 供审查转正) ===
-# [短链接]
-https://tracker.pmwiu.com/reserve.txt
-# [加速短链接 (jsDelivr)]
-https://tracker.pmwiu.com/jsd/reserve.txt
-# [Pages 直链]
-https://pmwiu.github.io/Tracker-List/reserve.txt
-# [GitHub Raw]
-https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_reserve.txt
-# [jsDelivr 直链]
-https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_reserve.txt
-
 # === merged 原始候选池 (trackers_merged.txt) ===
 # [短链接]
 https://tracker.pmwiu.com/merged.txt
