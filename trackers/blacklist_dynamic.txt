@@ -1,2 +1,3 @@
 # 动态黑名单：连续失效 >= 20 次，由 test_trackers.py 自动生成
 http://yggtracker.i2p.rocks:80/announce
+wss://tracker.openwebtorrent.com:443/announce
