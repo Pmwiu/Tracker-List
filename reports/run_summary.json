@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-16 16:48:52 UTC",
+  "timestamp": "2026-10-16 21:26:36 UTC",
   "status": "success",
   "duration_sec": 1.6,
   "sources": {
@@ -15,7 +15,7 @@
     },
     "cf-best": {
       "http_code": 200,
-      "lines": 60,
+      "lines": 61,
       "ok": true
     },
     "adysec-best": {
@@ -50,7 +50,7 @@
     },
     "pexcn-best": {
       "http_code": 200,
-      "lines": 60,
+      "lines": 61,
       "ok": true
     },
     "opentracker": {
@@ -60,7 +60,7 @@
     },
     "trackersrun-ws": {
       "http_code": 200,
-      "lines": 50,
+      "lines": 51,
       "ok": true
     },
     "ngosang-i2p": {

@@ -84,10 +84,10 @@
     "dead_streak": 0
   },
   "udp://tracker.aruku.ovh:8081/announce": {
-    "alive_runs": 3,
-    "last_score": 48.7,
+    "alive_runs": 4,
+    "last_score": 60.0,
     "first_seen": "2026-10-13T10:37:33.216121+00:00",
-    "last_seen": "2026-10-15T11:49:05.334542+00:00",
+    "last_seen": "2026-10-16T21:28:02.635895+00:00",
     "dead_streak": 0
   },
   "http://tr.nyacat.pw:80/announce": {
@@ -98,10 +98,10 @@
     "dead_streak": 0
   },
   "http://tracker.novaopcj.eu.org:6969/announce": {
-    "alive_runs": 2,
-    "last_score": 55.4,
+    "alive_runs": 3,
+    "last_score": 54.2,
     "first_seen": "2026-10-13T14:27:37.173242+00:00",
-    "last_seen": "2026-10-14T17:25:03.583104+00:00",
+    "last_seen": "2026-10-16T21:28:02.635895+00:00",
     "dead_streak": 0
   },
   "http://tracker.coppersurfer.site:2710/announce": {
@@ -112,10 +112,10 @@
     "dead_streak": 0
   },
   "http://tracker.zhuqiy.dgj055.icu:80/announce": {
-    "alive_runs": 3,
-    "last_score": 51.9,
+    "alive_runs": 4,
+    "last_score": 50.9,
     "first_seen": "2026-10-13T14:27:37.173242+00:00",
-    "last_seen": "2026-10-14T17:25:03.583104+00:00",
+    "last_seen": "2026-10-16T21:28:02.635895+00:00",
     "dead_streak": 0
   },
   "udp://tracker.wildkat.net:6969/announce": {

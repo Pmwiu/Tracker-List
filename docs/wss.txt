@@ -1,1 +1,1 @@
-wss://qot.abiir.top/announce
+wss://tracker.openwebtorrent.com:443/announce
