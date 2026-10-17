@@ -47,21 +47,8 @@ except ImportError:
 
 # 订阅源清单：每条为 (输出文件名, 源 URL, 短名)。
 # 顺序即优先级：靠前的源在合并 all 列表时优先入选。
+# 添加新源时在此追加，格式：("trackers_<名称>.txt", "https://源地址", "短名")
 SOURCES = [
-    ("trackers_ngosang_best.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best.txt", "ngosang-best"),
-    ("trackers_ngosang_best_ip.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_best_ip.txt", "ngosang-best-ip"),
-    ("trackers_cf_best.txt", "https://cf.trackerslist.com/best.txt", "cf-best"),
-    ("trackers_adysec_best.txt", "https://tracker.adysec.com/trackers_best.txt", "adysec-best"),
-    ("trackers_gonghailink_best.txt", "https://raw.githubusercontent.com/gonghailink/trackerslist/master/trackers_best.txt", "gonghailink-best"),
-    ("trackers_pandamen_best.txt", "https://raw.githubusercontent.com/panda-men/trackerslist/master/trackers_best.txt", "pandamen-best"),
-    ("trackers_gspu_best.txt", "https://raw.githubusercontent.com/gspu/trackerslist/master/trackers_best.txt", "gspu-best"),
-    ("trackers_linuxjin_best.txt", "https://raw.githubusercontent.com/linux-jin/trackerslist/master/trackers_best.txt", "linuxjin-best"),
-    ("trackers_alphacatmeow_best.txt", "https://raw.githubusercontent.com/AlphaCatMeow/trackerslist/master/trackers_best.txt", "alphacatmeow-best"),
-    ("trackers_pexcn_best.txt", "https://raw.githubusercontent.com/pexcn/daily/gh-pages/trackerlist/trackerlist-best.txt", "pexcn-best"),
-    ("trackers_opentracker.txt", "https://raw.githubusercontent.com/1265578519/OpenTracker/refs/heads/master/tracker.txt", "opentracker"),
-    ("trackers_run_ws.txt", "https://trackers.run/s/rw_ws_up_hp_hs_v4_v6.txt", "trackersrun-ws"),
-    ("trackers_ngosang_i2p.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_i2p.txt", "ngosang-i2p"),
-    ("trackers_ngosang_yggdrasil.txt", "https://cdn.jsdelivr.net/gh/ngosang/trackerslist@master/trackers_all_yggdrasil.txt", "ngosang-yggdrasil"),
 ]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
