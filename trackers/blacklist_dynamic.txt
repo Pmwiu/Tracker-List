@@ -1,2 +1,4 @@
 # 动态黑名单：连续失效 >= 20 次，由 test_trackers.py 自动生成
+http://echostar.ddnsfree.com:8080/announce
+http://retracker.hotplug.ru:2710/announce
 http://yggtracker.i2p.rocks:80/announce

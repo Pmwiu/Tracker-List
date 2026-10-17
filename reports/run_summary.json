@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-17 00:00:23 UTC",
+  "timestamp": "2026-10-17 00:21:19 UTC",
   "status": "success",
-  "duration_sec": 4.2,
+  "duration_sec": 1.5,
   "sources": {
     "ngosang-best": {
       "http_code": 200,
@@ -15,7 +15,7 @@
     },
     "cf-best": {
       "http_code": 200,
-      "lines": 61,
+      "lines": 62,
       "ok": true
     },
     "adysec-best": {
@@ -75,6 +75,6 @@
     }
   },
   "merged_lines": 200,
-  "alive_lines": 25,
+  "all_lines": 55,
   "failed_sources": []
 }
