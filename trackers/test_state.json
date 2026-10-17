@@ -1,0 +1,15 @@
+{
+  "alive_history": [
+    "udp://other.example/announce"
+  ],
+  "uptime_ema": {
+    "udp://other.example/announce": 0.2
+  },
+  "dead_streak": {},
+  "last_outcomes": {
+    "udp://other.example/announce": [
+      1
+    ]
+  },
+  "last_update": "2026-10-17T02:19:52.541550+00:00"
+}

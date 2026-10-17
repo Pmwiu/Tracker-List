@@ -49,6 +49,13 @@ except ImportError:
 # 顺序即优先级：靠前的源在合并 all 列表时优先入选。
 # 添加新源时在此追加，格式：("trackers_<名称>.txt", "https://源地址", "短名")
 SOURCES = [
+    ("trackers_ngosang_all.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt", "ngosang-all"),
+    ("trackers_ngosang_all_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_ip.txt", "ngosang-all-ip"),
+    ("trackers_ngosang_yggdrasil_ip.txt", "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all_yggdrasil_ip.txt", "ngosang-yggdrasil-ip"),
+    ("trackers_cf_all.txt", "https://cf.trackerslist.com/all.txt", "cf-all"),
+    ("trackers_adysec_all.txt", "https://tracker.adysec.com/trackers_all.txt", "adysec-all"),
+    ("trackers_kris3713_ultimate.txt", "https://raw.githubusercontent.com/kris3713/UltimateBTTrackersList/refs/heads/master/ultimate_trackers.txt", "kris3713-ultimate"),
+    ("trackers_entr0pia_https.txt", "https://raw.githubusercontent.com/entr0pia/TrackersListCollection-S/refs/heads/master/https.txt", "entr0pia-https"),
 ]
 
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
@@ -853,20 +860,13 @@ def generate_redirect_page(target_url, description=""):
 def generate_source_links():
     """从 SOURCES 动态生成 footer 中的来源链接。"""
     label_map = {
-        "ngosang-best": "ngosang/best",
-        "ngosang-best-ip": "ngosang/best-ip",
-        "cf-best": "trackerslist/best",
-        "adysec-best": "adysec/best",
-        "gonghailink-best": "gonghailink/best",
-        "pandamen-best": "panda-men/best",
-        "gspu-best": "gspu/best",
-        "linuxjin-best": "linux-jin/best",
-        "alphacatmeow-best": "AlphaCatMeow/best",
-        "pexcn-best": "pexcn/daily",
-        "opentracker": "OpenTracker",
-        "trackersrun-ws": "trackers.run/ws",
-        "ngosang-i2p": "ngosang/i2p",
-        "ngosang-yggdrasil": "ngosang/yggdrasil",
+        "ngosang-all": "ngosang/all",
+        "ngosang-all-ip": "ngosang/all-ip",
+        "ngosang-yggdrasil-ip": "ngosang/yggdrasil-ip",
+        "cf-all": "trackerslist/all",
+        "adysec-all": "adysec/all",
+        "kris3713-ultimate": "kris3713/ultimate",
+        "entr0pia-https": "entr0pia/https",
     }
     parts = []
     for _, url, short_name in SOURCES:
@@ -1076,20 +1076,13 @@ def sync_plain_text_files():
     mapping = {
         "trackers_all.txt": "all.txt",
         "trackers_merged.txt": "merged.txt",
-        "trackers_ngosang_best.txt": "ngosang_best.txt",
-        "trackers_ngosang_best_ip.txt": "ngosang_best_ip.txt",
-        "trackers_cf_best.txt": "cf_best.txt",
-        "trackers_adysec_best.txt": "adysec_best.txt",
-        "trackers_gonghailink_best.txt": "gonghailink_best.txt",
-        "trackers_pandamen_best.txt": "pandamen_best.txt",
-        "trackers_gspu_best.txt": "gspu_best.txt",
-        "trackers_linuxjin_best.txt": "linuxjin_best.txt",
-        "trackers_alphacatmeow_best.txt": "alphacatmeow_best.txt",
-        "trackers_pexcn_best.txt": "pexcn_best.txt",
-        "trackers_opentracker.txt": "opentracker.txt",
-        "trackers_run_ws.txt": "run_ws.txt",
-        "trackers_ngosang_i2p.txt": "ngosang_i2p.txt",
-        "trackers_ngosang_yggdrasil.txt": "ngosang_yggdrasil.txt",
+        "trackers_ngosang_all.txt": "ngosang_all.txt",
+        "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
+        "trackers_ngosang_yggdrasil_ip.txt": "ngosang_yggdrasil_ip.txt",
+        "trackers_cf_all.txt": "cf_all.txt",
+        "trackers_adysec_all.txt": "adysec_all.txt",
+        "trackers_kris3713_ultimate.txt": "kris3713_ultimate.txt",
+        "trackers_entr0pia_https.txt": "entr0pia_https.txt",
         "trackers_udp.txt": "udp.txt",
         "trackers_http.txt": "http.txt",
         "trackers_https.txt": "https.txt",
