@@ -3,6 +3,14 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-17] - chore
+- **移除 Cloudflare 全部基础设施**：删除 `cloudflare/` 目录（tracker-proxy.js、
+  wrangler.toml、DEPLOY.md、test.mjs、package.json）及 `docs/_headers`；
+  清理 `write_mirrors_file()`/`generate_index_page()` 中的 Worker 短链接与
+  CF Pages 链接、`health_check.py` 的 Worker 可达性检查、
+  `monthly_subscription_check.py` 的 Worker 验证；
+  订阅入口改为 GitHub Pages 直链 + jsDelivr CDN。
+
+## [2026-10-17] - feat
 - **移除 best 订阅分类**：删除 `trackers_alive.txt`、`docs/alive.txt`、
   `docs/s/alive.html` 及 7 个 alive 备份文件；清理 `select_top_with_quotas`/
   `MIN_CLASSIC_TRACKERS`/`MAX_TRACKERS`/`MIN_NON_UDP_TRACKERS` 及 ASN 多样性

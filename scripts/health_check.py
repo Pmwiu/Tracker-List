@@ -11,7 +11,6 @@
   5. GitHub Raw 直链 URL 的 HTTP 可达性
   6. GitHub Pages 短链接页面可达性
   7. Tracker URL 格式校验
-  8. Cloudflare Worker 短链接 + jsDelivr 加速短链接可达性
 
 用法:
   python scripts/health_check.py              单次检查
@@ -42,7 +41,6 @@ OWNER = REPO.split("/")[0]
 REPO_NAME = REPO.split("/")[-1]
 PAGES_BASE = f"https://{OWNER}.github.io/{REPO_NAME}"
 RAW_BASE = f"https://raw.githubusercontent.com/{REPO}/main"
-WORKER_BASE = "https://tracker.pmwiu.com"
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRACKERS_DIR = os.path.join(PROJECT_ROOT, "trackers")
@@ -334,24 +332,6 @@ def check_pages_links(results):
             results.append(("WARN", f"Pages short: /s/{sp}", f"unreachable: {content[:80]}"))
 
 
-def check_worker_links(results):
-    """检查 Cloudflare Worker 短链接与 jsDelivr 加速短链接可达性。"""
-    checks = [
-        ("Worker all 短链", f"{WORKER_BASE}/all.txt"),
-        ("Worker all 加速", f"{WORKER_BASE}/jsd/all.txt"),
-    ]
-    for name, url in checks:
-        ok, content, status = fetch_url(url)
-        if ok:
-            count = count_trackers_in_text(content)
-            if count <= 0:
-                results.append(("FAIL", name, f"{count} trackers (empty)"))
-            else:
-                results.append(("PASS", name, f"HTTP {status}, {count} trackers"))
-        else:
-            results.append(("WARN", name, f"unreachable: {content[:80]}"))
-
-
 def check_minimum_counts(results):
     """最低数量异常告警：merged 数量过低时告警，避免静默退化。"""
     def _count(filename):
@@ -396,7 +376,6 @@ def run_single_check(round_num, skip_net=False):
     if not skip_net:
         check_raw_mirrors(results)
         check_pages_links(results)
-        check_worker_links(results)
     check_minimum_counts(results)
     if HAS_SOURCES:
         check_source_freshness(results)

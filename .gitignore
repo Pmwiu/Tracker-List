@@ -33,5 +33,3 @@ tmp_*
 trackers/cache/asn_cache.json
 trackers/discovered/candidates_*.txt
 
-# ===== Cloudflare 本地部署快照（回滚用，不入库）=====
-.cf-backup/

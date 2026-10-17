@@ -5,7 +5,7 @@
   - all  类地址：期望 条数 > 0
 任一失败则退出码非 0，供 monthly-check.yml 判定失败。
 
-地址清单覆盖：Worker 短链接 / jsDelivr 加速 / GitHub Pages / GitHub Raw / jsDelivr 直链。
+地址清单覆盖：GitHub Pages / GitHub Raw / jsDelivr 直链。
 """
 
 import os
@@ -21,8 +21,6 @@ TIMEOUT = 20
 USER_AGENT = "monthly-subscription-check/1.0"
 
 CHECKS = [
-    ("all 短链接 (Worker)", "https://tracker.pmwiu.com/all.txt"),
-    ("all 加速 (jsDelivr)", "https://tracker.pmwiu.com/jsd/all.txt"),
     ("all Pages 直链", "https://pmwiu.github.io/Tracker-List/all.txt"),
     ("all Raw", "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt"),
     ("all jsDelivr 直链", "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt"),

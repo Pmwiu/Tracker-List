@@ -14,8 +14,8 @@ UDP connect+announce 握手 / WSS TLS），按综合评分排序，产出两个�
 |---|---|---|---|
 | **all** 存活 | ≤ 59 | `trackers/trackers_all.txt` | 全部通过完整 announce 握手的存活 tracker，按评分降序 |
 
-用户通过短链接 `https://tracker.pmwiu.com/all.txt` 订阅
-（Cloudflare Worker 网关；加 `/jsd/` 前缀走 jsDelivr 全球加速）。
+用户通过直链 `https://pmwiu.github.io/Tracker-List/all.txt` 订阅
+（GitHub Pages 托管；jsDelivr CDN 加速直链可选）。
 
 **技术要点：纯 Python 标准库，零外部依赖；仓库不存储任何密钥。**
 
@@ -35,9 +35,8 @@ scripts/health_check.py           本地完整性 + Raw/Pages/Worker 全链路�
         │
         ▼  git commit & push (bot)
 分发链路:
-  GitHub Raw ──► Cloudflare Worker (tracker.pmwiu.com 短链接, 限流120次/60s/IP)
-  GitHub Pages (docs/) ──► 回退链: raw → CF Pages → GH Pages
-  jsDelivr CDN (/jsd/ 加速)
+  GitHub Raw ──► jsDelivr CDN (全球加速)
+  GitHub Pages (docs/) ──► 直链订阅
 监控: reports/run_summary.json · reports/health.json · reports/source_state.json · docs/ci-diag.md
 ```
 
@@ -96,25 +95,12 @@ uv venv --python 3.12 .venv
 2. `scripts/health_check.py` 的 `TRACKER_FILES` / `PLAIN_TEXT_FILES` / `CONSISTENCY_MAP`
 3. `sync_plain_text_files()` 的 mapping（docs/ 镜像文件名）
 4. `scripts/monthly_subscription_check.py` 的 `CHECKS`（仅当新增的是主订阅地址）
-5. `cloudflare/tracker-proxy.js` 的 `ALIASES`（可选；`/src/<名>.txt` 路由是
-   通用的，会自动覆盖）
-6. README 的源数量徽章与说明
+5. README 的源数量徽章与说明
 
 移除源：把条目从 `SOURCES` 删掉，并把其短名加入 `REMOVED_SOURCE_NAMES`，
 脚本会自动清理残留文件。
 
-### 3.4 修改 / 部署 Cloudflare Worker
-
-Worker 源码：`cloudflare/tracker-proxy.js`（路由 `tracker.pmwiu.com/*`）。
-
-- 方式 A（推荐）：Cloudflare Dashboard → Workers & Pages → 对应 Worker →
-  粘贴源码 → Deploy。
-- 方式 B：`npx wrangler deploy cloudflare/tracker-proxy.js --name tracker-proxy
-  --compatibility-date <date>`（需 `wrangler` 登录，Node ≥ 18）。
-
-Worker 是手工部署的，**改完仓库里的 js 不会自动上线**，需要手动同步。
-
-### 3.5 回滚
+### 3.4 回滚
 
 ```bash
 bash rollback.sh          # 交互式：列出最近 10 条提交，输入 hash 恢复

@@ -17,9 +17,9 @@
 
 | 计划 | 条数 | 短链接 (txt) | 加速短链接 (txt) |
 |:---:|:---:|---|---|
-| **all** 存活 | 59 | `https://tracker.pmwiu.com/all.txt` | `https://tracker.pmwiu.com/jsd/all.txt` |
+| **all** 存活 | 59 | `https://pmwiu.github.io/Tracker-List/all.txt` | `https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt` |
 
-> 短链接由 Cloudflare Worker 网关提供；加速短链接走 jsDelivr 全球 CDN。
+> GitHub Pages 提供直链订阅；jsDelivr 提供全球 CDN 加速直链。
 > qBittorrent、Aria2 等客户端直接粘贴短链接即可订阅。
 
 <details>
@@ -27,7 +27,7 @@
 
 **按协议** `/p/<协议>.txt`（加速：前缀加 `/jsd/`）
 
-`tracker.pmwiu.com/p/udp.txt` · `/p/http.txt` · `/p/https.txt` · `/p/wss.txt` · `/p/ws.txt`
+`pmwiu.github.io/Tracker-List/p/udp.txt` · `/p/http.txt` · `/p/https.txt` · `/p/wss.txt` · `/p/ws.txt`
 
 **按源** `/src/<源>.txt`（覆盖全部 14 个源，如 `/src/ngosang_best.txt`、`/src/adysec_best.txt`、`/src/pexcn_best.txt`）
 
@@ -51,7 +51,7 @@
 
 ## 链接
 
-- 订阅主页：`https://tracker.pmwiu.com/`
+- 订阅主页：`https://pmwiu.github.io/Tracker-List/`
 - 完整地址清单：[`trackers/MIRRORS.txt`](trackers/MIRRORS.txt)
 - 变更记录：[`CHANGELOG.md`](CHANGELOG.md) · 安全策略：[`SECURITY.md`](SECURITY.md)
-- Worker 源码：[`cloudflare/tracker-proxy.js`](cloudflare/tracker-proxy.js)
+

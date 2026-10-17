@@ -767,17 +767,15 @@ def write_protocol_sublists(merged):
 
 
 def write_mirrors_file(repo):
-    """生成完整订阅地址清单：短链接（Worker）、jsDelivr 加速、双托管直链。
+    """生成完整订阅地址清单：GitHub Pages 直链、GitHub Raw 与 jsDelivr 直链。
 
-    首页只展示短链接；本文件是全量参考（含长链接与镜像）。
+    首页只展示订阅入口；本文件是全量参考（含长链接与镜像）。
     """
     owner = repo.split("/")[0] if "/" in repo else repo
     repo_name = repo.split("/")[-1] if "/" in repo else repo
     pages = f"https://pmwiu.github.io/{repo_name}"
-    cf_pages = "https://tracker-list-edj.pages.dev"
     raw_base = f"https://raw.githubusercontent.com/{owner}/{repo_name}/main"
     jsd_base = f"https://cdn.jsdelivr.net/gh/{owner}/{repo_name}@main"
-    cf = "https://tracker.pmwiu.com"
 
     def block(title, pairs):
         out = [f"# === {title} ==="]
@@ -789,20 +787,14 @@ def write_mirrors_file(repo):
     lines = [
         "# Tracker 订阅地址清单",
         f"# Generated: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC",
-        "# 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr",
-        "# 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)",
         "",
     ]
     lines += block("all 存活 (trackers_all.txt, 完整 announce 握手)", [
-        ("短链接", f"{cf}/all.txt"),
-        ("加速短链接 (jsDelivr)", f"{cf}/jsd/all.txt"),
         ("Pages 直链", f"{pages}/all.txt"),
-        ("Cloudflare Pages 直链", f"{cf_pages}/all.txt"),
         ("GitHub Raw", f"{raw_base}/trackers/trackers_all.txt"),
         ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_all.txt"),
     ])
     lines += block("merged 原始候选池 (trackers_merged.txt)", [
-        ("短链接", f"{cf}/merged.txt"),
         ("Pages 直链", f"{pages}/merged.txt"),
         ("GitHub Raw", f"{raw_base}/trackers/trackers_merged.txt"),
         ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_merged.txt"),
@@ -810,18 +802,20 @@ def write_mirrors_file(repo):
     proto_pairs = []
     for proto in PROTOCOL_SUBLISTS:
         proto_pairs += [
-            (f"{proto} 短链接", f"{cf}/p/{proto}.txt"),
-            (f"{proto} 加速", f"{cf}/jsd/p/{proto}.txt"),
+            (f"{proto} Pages 直链", f"{pages}/{proto}.txt"),
+            (f"{proto} GitHub Raw", f"{raw_base}/trackers/trackers_{proto}.txt"),
+            (f"{proto} jsDelivr 直链", f"{jsd_base}/trackers/trackers_{proto}.txt"),
         ]
-    lines += block("按协议 /p/<协议>.txt", proto_pairs)
+    lines += block("按协议 <协议>.txt", proto_pairs)
     src_pairs = []
     for filename, url, short_name in SOURCES:
         base = filename[:-4].replace("trackers_", "")
         src_pairs += [
-            (f"{short_name} 短链接", f"{cf}/src/{base}.txt"),
-            (f"{short_name} 加速", f"{cf}/jsd/src/{base}.txt"),
+            (f"{short_name} Pages 直链", f"{pages}/{base}.txt"),
+            (f"{short_name} GitHub Raw", f"{raw_base}/trackers/{filename}"),
+            (f"{short_name} jsDelivr 直链", f"{jsd_base}/trackers/{filename}"),
         ]
-    lines += block("按源 /src/<源>.txt", src_pairs)
+    lines += block("按源 <源>.txt", src_pairs)
     atomic_write(os.path.join(OUTPUT_DIR, "MIRRORS.txt"), NL.join(lines))
     print("[OK]   MIRRORS.txt")
 
@@ -876,16 +870,18 @@ def generate_source_links():
 
 
 def generate_index_page(repo, tracker_counts):
-    """生成现代化订阅主页：卡片式订阅区（短链接 + jsDelivr 加速短链接）、
-    协议芯片、统计表。所有订阅入口均为 tracker.pmwiu.com 短链接（txt）。"""
+    """生成现代化订阅主页：卡片式订阅区（GitHub Pages 直链 + jsDelivr 直链）、
+    协议芯片、统计表。所有订阅入口均为 GitHub Pages 或 jsDelivr 直链（txt）。"""
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     repo_name = repo.split("/")[-1] if "/" in repo else "Tracker-List"
-    short_base = "https://tracker.pmwiu.com"
+    owner = repo.split("/")[0] if "/" in repo else "Pmwiu"
+    pages_base = f"https://{owner}.github.io/{repo_name}"
+    jsd_base = f"https://cdn.jsdelivr.net/gh/{owner}/{repo_name}@main"
     n_sources = len(SOURCES)
 
     def plan_card(key, name, count, desc, note):
-        short = f"{short_base}/{key}.txt"
-        accel = f"{short_base}/jsd/{key}.txt"
+        pages_url = f"{pages_base}/{key}.txt"
+        jsd_url = f"{jsd_base}/trackers/trackers_{key}.txt"
         return f'''    <div class="card">
       <div class="card-head">
         <span class="card-name">{name}</span>
@@ -893,14 +889,14 @@ def generate_index_page(repo, tracker_counts):
       </div>
       <p class="card-desc">{desc}</p>
       <div class="link-row">
-        <span class="link-label">短链接</span>
-        <code class="link-url" title="{short}">{short}</code>
-        <button class="copy" data-copy="{short}" type="button">复制</button>
+        <span class="link-label">Pages 直链</span>
+        <code class="link-url" title="{pages_url}">{pages_url}</code>
+        <button class="copy" data-copy="{pages_url}" type="button">复制</button>
       </div>
       <div class="link-row">
-        <span class="link-label">加速短链接</span>
-        <code class="link-url" title="{accel}">{accel}</code>
-        <button class="copy" data-copy="{accel}" type="button">复制</button>
+        <span class="link-label">jsDelivr 直链</span>
+        <code class="link-url" title="{jsd_url}">{jsd_url}</code>
+        <button class="copy" data-copy="{jsd_url}" type="button">复制</button>
       </div>
       <p class="card-note">{note}</p>
     </div>'''
@@ -910,7 +906,7 @@ def generate_index_page(repo, tracker_counts):
                       "追求覆盖面的完整列表")
 
     proto_chips = "".join(
-        f'      <a class="chip" href="{short_base}/p/{p}.txt">{p}.txt</a>\n'
+        f'      <a class="chip" href="{pages_base}/{p}.txt">{p}.txt</a>\n'
         for p in ("udp", "http", "https", "wss", "ws")
     )
 
@@ -1021,7 +1017,7 @@ def generate_index_page(repo, tracker_counts):
     <div class="badges">
       <span class="badge"><span class="dot"></span>每 6 小时自动更新</span>
       <span class="badge">{n_sources} 个精选源</span>
-      <span class="badge">txt 短链接直订</span>
+      <span class="badge">txt 直链直订</span>
     </div>
   </header>
 
@@ -1030,10 +1026,10 @@ def generate_index_page(repo, tracker_counts):
   </section>
 
   <section class="section">
-    <div class="section-title">按协议订阅 · /p/&lt;协议&gt;.txt</div>
+    <div class="section-title">按协议订阅 · &lt;协议&gt;.txt</div>
     <div class="chips">
 {proto_chips}    </div>
-    <p class="hint">加速方式：任意短链接前加 <code>/jsd/</code> 前缀，即走 jsDelivr 全球加速镜像（如 {short_base}/jsd/p/udp.txt）。</p>
+    <p class="hint">GitHub Pages 提供直链订阅；jsDelivr 直链（cdn.jsdelivr.net）作为全球加速镜像。</p>
   </section>
 
   <section class="section">
