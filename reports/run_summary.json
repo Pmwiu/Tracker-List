@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-17 04:10:38 UTC",
+  "timestamp": "2026-10-17 04:43:30 UTC",
   "status": "failure",
-  "duration_sec": 1.1,
+  "duration_sec": 0.9,
   "sources": {
     "ngosang-all": {
       "http_code": 200,
@@ -40,7 +40,7 @@
     }
   },
   "merged_lines": 200,
-  "all_lines": 45,
+  "all_lines": 55,
   "failed_sources": [
     "ngosang-yggdrasil-ip"
   ]
