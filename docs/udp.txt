@@ -33,12 +33,7 @@ udp://65.109.28.17:6969/announce
 udp://65.109.28.33:6969/announce
 udp://74.119.149.136:6969/announce
 udp://74.81.245.60:2010/announce
-udp://83.102.180.21:80/announce
-udp://91.216.110.53:451/announce
-udp://93.158.213.92:1337/announce
 udp://93.158.213.92:6969/announce
-udp://94.23.207.177:6969/announce
-udp://95.217.80.20:6969/announce
 udp://admin.52ywp.com:6969/announce
 udp://bittorrent-tracker.e-n-c-r-y-p-t.net:1337/announce
 udp://bt-tracker.de:6969/announce
@@ -60,6 +55,3 @@ udp://t.overflow.biz:6969/announce
 udp://tr.btube3.com:2010/announce
 udp://tr3.ysagin.top:2715/announce
 udp://tr4ck3r.duckdns.org:6969/announce
-udp://tracker-udp.gbitt.info:80/announce
-udp://tracker.004430.xyz:1337/announce
-udp://tracker.aruku.ovh:8081/announce
