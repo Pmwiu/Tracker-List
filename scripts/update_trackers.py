@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库，
-并生成 GitHub Pages 短链接重定向页面、服务主页与纯文本订阅文件。
+自动从订阅源下载 Tracker 列表，合并去重后写入本地仓库。
 
 订阅源（14 个，SOURCES 顺序即优先级）:
   - ngosang/trackerslist trackers_best.txt + trackers_best_ip.txt（经 jsDelivr 加速）
@@ -21,8 +20,6 @@
   - 下载内容校验（拒绝非 tracker 内容）
   - 原子写入（临时文件 + rename，防止中途崩溃损坏文件）
   - 文件锁防止并发运行
-  - 仅保留 GitHub Raw 直链与 Pages 短链接，无 CDN/代理加速链接
-  - 纯文本 .txt 直链供 BT 客户端直接订阅
 """
 
 import os
@@ -31,7 +28,6 @@ import sys
 import socket
 import tempfile
 import time
-import html
 import json
 import hashlib
 import urllib.request
@@ -67,11 +63,6 @@ MAX_CANDIDATES = 200  # 候选池测试上限（merge 阶段），独立于 MAX_
 # all 列表协议保底：稀有协议（wss/ws）只要存在就保留；常见协议保证最小席位，其余由轮转填充
 ALL_PROTOCOL_FLOORS = {"wss": 1, "ws": 1, "https": 15, "http": 15, "udp": 20}
 
-SHORT_LINKS = [
-    ("all", "合并总表", "合并去重总表",
-     "https://pmwiu.github.io/{repo}/merged.txt"),
-]
-
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, "trackers")
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
@@ -80,61 +71,11 @@ SOURCE_STATE_FILE = os.path.join(REPORTS_DIR, "source_state.json")
 SOURCE_COUNTS_FILE = os.path.join(REPORTS_DIR, "source_counts.json")
 DISCOVERED_SET_FILE = os.path.join(REPORTS_DIR, "discovered_set.json")
 DISCOVERED_DIR = os.path.join(OUTPUT_DIR, "discovered")
-BACKUP_DIR = os.path.join(OUTPUT_DIR, "backup")
 INVALID_LINES_LOG = os.path.join(PROJECT_ROOT, "invalid_lines.log")
-PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
-SHORT_LINKS_DIR = os.path.join(PAGES_DIR, "s")
 MERGED_FILE = "trackers_merged.txt"
 ALL_FILE = "trackers_all.txt"
 DEAD_FILE = "trackers_dead.txt"
 LOCK_FILE = os.path.join(PROJECT_ROOT, ".update.lock")
-
-# 已下线的订阅源短名（用于主动清理其残留文件）
-REMOVED_SOURCE_NAMES = [
-    "adysec_http", "adysec_https", "adysec_udp", "adysec_wss",
-    "adysec_all", "anime_best", "anime_ip", "ultimate", "ngosang_ip",
-    "ngosang_ygg", "ngosang_all_ip", "ngosang_ygg_ip",
-    "ngosang_all", "pkgforge_all", "pkgforge_general", "cf_all",
-    "run_best",
-]
-
-LEGACY_FILES = [
-    os.path.join(OUTPUT_DIR, "trackers_run.txt"),
-    os.path.join(OUTPUT_DIR, "trackers_alive.txt"),
-    os.path.join(PAGES_DIR, "full.txt"),
-    os.path.join(PAGES_DIR, "alive.txt"),
-    os.path.join(SHORT_LINKS_DIR, "http.html"),
-    os.path.join(SHORT_LINKS_DIR, "full.html"),
-    os.path.join(SHORT_LINKS_DIR, "run.html"),
-    os.path.join(SHORT_LINKS_DIR, "repo.html"),
-    os.path.join(SHORT_LINKS_DIR, "alive.html"),
-    os.path.join(SHORT_LINKS_DIR, "ngosang-ip.html"),
-    os.path.join(SHORT_LINKS_DIR, "alive-cdn.html"),
-    os.path.join(SHORT_LINKS_DIR, "all-cdn.html"),
-    os.path.join(SHORT_LINKS_DIR, "all-fastly.html"),
-    os.path.join(SHORT_LINKS_DIR, "all-gcore.html"),
-    os.path.join(SHORT_LINKS_DIR, "all-proxy.html"),
-    # 已移除的旧订阅源（XIU2 / newtrackon）
-    os.path.join(OUTPUT_DIR, "trackers_xiu2.txt"),
-    os.path.join(OUTPUT_DIR, "trackers_newtrackon.txt"),
-    os.path.join(PAGES_DIR, "xiu2.txt"),
-    os.path.join(PAGES_DIR, "newtrackon.txt"),
-    os.path.join(SHORT_LINKS_DIR, "xiu2.html"),
-    os.path.join(SHORT_LINKS_DIR, "newtrackon.html"),
-    # 旧的 all 三源（已替换为 best 源）
-    os.path.join(OUTPUT_DIR, "trackers_cf.txt"),
-    os.path.join(OUTPUT_DIR, "trackers_adysec.txt"),
-    os.path.join(OUTPUT_DIR, "trackers_ngosang.txt"),
-    os.path.join(PAGES_DIR, "cf.txt"),
-    os.path.join(PAGES_DIR, "adysec.txt"),
-    os.path.join(PAGES_DIR, "ngosang.txt"),
-    os.path.join(SHORT_LINKS_DIR, "cf.html"),
-    os.path.join(SHORT_LINKS_DIR, "adysec.html"),
-    os.path.join(SHORT_LINKS_DIR, "ngosang.html"),
-    # 已下线的订阅源文件（脚本会主动清理，避免残留）
-    *[os.path.join(OUTPUT_DIR, f"trackers_{n}.txt") for n in REMOVED_SOURCE_NAMES],
-    *[os.path.join(PAGES_DIR, f"{n}.txt") for n in REMOVED_SOURCE_NAMES],
-]
 
 TIMEOUT = 30
 MAX_RETRIES = 3
@@ -322,31 +263,6 @@ def write_run_summary(status, duration_sec, source_stats, merged_lines, failed_s
     atomic_write(RUN_SUMMARY_FILE, json.dumps(summary, ensure_ascii=False, indent=2) + NL)
 
 
-def _backup_file(filename):
-    """把成功生成的源文件复制到 trackers/backup/ 作为降级备份。"""
-    src = os.path.join(OUTPUT_DIR, filename)
-    if not os.path.exists(src):
-        return
-    os.makedirs(BACKUP_DIR, exist_ok=True)
-    with open(src, "r", encoding="utf-8") as f:
-        content = f.read()
-    atomic_write(os.path.join(BACKUP_DIR, filename), content)
-
-
-def _load_backup(filename):
-    """从备份文件读取 tracker 列表；无备份返回 None。"""
-    dst = os.path.join(BACKUP_DIR, filename)
-    if not os.path.exists(dst):
-        return None
-    trackers = set()
-    with open(dst, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#"):
-                trackers.add(line)
-    return sorted(trackers) if trackers else None
-
-
 def _log_invalid_line(line):
     """把无效行追加写入 invalid_lines.log（补丁 E）。"""
     try:
@@ -509,20 +425,6 @@ def is_valid_tracker(url):
     if not TRACKER_PATTERN.match(url):
         return False
     return is_well_formed_tracker(url)
-
-
-def cleanup_legacy_files():
-    removed = 0
-    for path in LEGACY_FILES:
-        if os.path.exists(path):
-            try:
-                os.remove(path)
-                print(f"[CLEAN] {os.path.relpath(path, PROJECT_ROOT)}")
-                removed += 1
-            except OSError as e:
-                print(f"[WARN]  {path}: {e}")
-    if removed:
-        print(f"[OK]   Cleaned {removed} legacy files.")
 
 
 def _fetch(url):
@@ -766,339 +668,6 @@ def write_protocol_sublists(merged):
         write_trackers(os.path.join(OUTPUT_DIR, f"trackers_{name}.txt"), subset)
 
 
-def write_mirrors_file(repo):
-    """生成完整订阅地址清单：GitHub Pages 直链、GitHub Raw 与 jsDelivr 直链。
-
-    首页只展示订阅入口；本文件是全量参考（含长链接与镜像）。
-    """
-    owner = repo.split("/")[0] if "/" in repo else repo
-    repo_name = repo.split("/")[-1] if "/" in repo else repo
-    pages = f"https://pmwiu.github.io/{repo_name}"
-    raw_base = f"https://raw.githubusercontent.com/{owner}/{repo_name}/main"
-    jsd_base = f"https://cdn.jsdelivr.net/gh/{owner}/{repo_name}@main"
-
-    def block(title, pairs):
-        out = [f"# === {title} ==="]
-        for name, url in pairs:
-            out += [f"# [{name}]", url]
-        out.append("")
-        return out
-
-    lines = [
-        "# Tracker 订阅地址清单",
-        f"# Generated: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC",
-        "",
-    ]
-    lines += block("all 存活 (trackers_all.txt, 完整 announce 握手)", [
-        ("Pages 直链", f"{pages}/all.txt"),
-        ("GitHub Raw", f"{raw_base}/trackers/trackers_all.txt"),
-        ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_all.txt"),
-    ])
-    lines += block("merged 原始候选池 (trackers_merged.txt)", [
-        ("Pages 直链", f"{pages}/merged.txt"),
-        ("GitHub Raw", f"{raw_base}/trackers/trackers_merged.txt"),
-        ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_merged.txt"),
-    ])
-    proto_pairs = []
-    for proto in PROTOCOL_SUBLISTS:
-        proto_pairs += [
-            (f"{proto} Pages 直链", f"{pages}/{proto}.txt"),
-            (f"{proto} GitHub Raw", f"{raw_base}/trackers/trackers_{proto}.txt"),
-            (f"{proto} jsDelivr 直链", f"{jsd_base}/trackers/trackers_{proto}.txt"),
-        ]
-    lines += block("按协议 <协议>.txt", proto_pairs)
-    src_pairs = []
-    for filename, url, short_name in SOURCES:
-        base = filename[:-4].replace("trackers_", "")
-        src_pairs += [
-            (f"{short_name} Pages 直链", f"{pages}/{base}.txt"),
-            (f"{short_name} GitHub Raw", f"{raw_base}/trackers/{filename}"),
-            (f"{short_name} jsDelivr 直链", f"{jsd_base}/trackers/{filename}"),
-        ]
-    lines += block("按源 <源>.txt", src_pairs)
-    atomic_write(os.path.join(OUTPUT_DIR, "MIRRORS.txt"), NL.join(lines))
-    print("[OK]   MIRRORS.txt")
-
-
-def generate_redirect_page(target_url, description=""):
-    eu = html.escape(target_url, quote=True)
-    ed = html.escape(description)
-    return f"""<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="refresh" content="0; url={eu}">
-<link rel="canonical" href="{eu}">
-<title>Redirect &mdash; Tracker List</title>
-<style>
-  body{{font-family:"SF Pro Display","Helvetica Neue",Arial,sans-serif;background:#fafafa;color:#666;
-       display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}}
-  .box{{text-align:center}}
-  .box p{{margin:8px 0;font-size:14px}}
-  a{{color:#2563eb;text-decoration:none}}
-  a:hover{{text-decoration:underline}}
-</style>
-</head>
-<body>
-<div class="box">
-  <p>{ed}</p>
-  <p><a href="{eu}">Continue &rarr;</a></p>
-</div>
-<script>window.location.replace("{eu}");</script>
-</body>
-</html>
-"""
-
-
-def generate_source_links():
-    """从 SOURCES 动态生成 footer 中的来源链接。"""
-    label_map = {
-        "ngosang-all": "ngosang/all",
-        "ngosang-all-ip": "ngosang/all-ip",
-        "ngosang-yggdrasil-ip": "ngosang/yggdrasil-ip",
-        "cf-all": "trackerslist/all",
-        "adysec-all": "adysec/all",
-        "kris3713-ultimate": "kris3713/ultimate",
-        "entr0pia-https": "entr0pia/https",
-    }
-    parts = []
-    for _, url, short_name in SOURCES:
-        label = label_map.get(short_name, short_name)
-        parts.append(f'<a href="{html.escape(url)}">{html.escape(label)}</a>')
-    return (" &middot;" + NL + "      ").join(parts)
-
-
-def generate_index_page(repo, tracker_counts):
-    """生成现代化订阅主页：卡片式订阅区（GitHub Pages 直链 + jsDelivr 直链）、
-    协议芯片、统计表。所有订阅入口均为 GitHub Pages 或 jsDelivr 直链（txt）。"""
-    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    repo_name = repo.split("/")[-1] if "/" in repo else "Tracker-List"
-    owner = repo.split("/")[0] if "/" in repo else "Pmwiu"
-    pages_base = f"https://{owner}.github.io/{repo_name}"
-    jsd_base = f"https://cdn.jsdelivr.net/gh/{owner}/{repo_name}@main"
-    n_sources = len(SOURCES)
-
-    def plan_card(key, name, count, desc, note):
-        pages_url = f"{pages_base}/{key}.txt"
-        jsd_url = f"{jsd_base}/trackers/trackers_{key}.txt"
-        return f'''    <div class="card">
-      <div class="card-head">
-        <span class="card-name">{name}</span>
-        <span class="card-count">{count}</span>
-      </div>
-      <p class="card-desc">{desc}</p>
-      <div class="link-row">
-        <span class="link-label">Pages 直链</span>
-        <code class="link-url" title="{pages_url}">{pages_url}</code>
-        <button class="copy" data-copy="{pages_url}" type="button">复制</button>
-      </div>
-      <div class="link-row">
-        <span class="link-label">jsDelivr 直链</span>
-        <code class="link-url" title="{jsd_url}">{jsd_url}</code>
-        <button class="copy" data-copy="{jsd_url}" type="button">复制</button>
-      </div>
-      <p class="card-note">{note}</p>
-    </div>'''
-
-    cards = plan_card("all", "all 存活", MAX_ALL,
-                      f"{n_sources} 个精选源按优先级合并去重",
-                      "追求覆盖面的完整列表")
-
-    proto_chips = "".join(
-        f'      <a class="chip" href="{pages_base}/{p}.txt">{p}.txt</a>\n'
-        for p in ("udp", "http", "https", "wss", "ws")
-    )
-
-    counts_rows = "".join(
-        f'        <tr><td>{html.escape(n)}</td><td class="num">{c}</td></tr>\n'
-        for n, c in tracker_counts
-    )
-
-    source_links = generate_source_links()
-
-    css = """
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{--accent:#2563eb;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;--bg:#f6f7f9}
-  html{-webkit-font-smoothing:antialiased}
-  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
-       background:var(--bg);color:var(--ink);line-height:1.7;font-size:15px;
-       background-image:radial-gradient(1200px 400px at 50% -10%,rgba(37,99,235,.08),transparent)}
-  .wrap{max-width:860px;margin:0 auto;padding:56px 24px 48px}
-  header{text-align:center;margin-bottom:40px}
-  .brand{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
-  h1{font-size:36px;font-weight:700;letter-spacing:-1px;margin-bottom:10px}
-  .tagline{color:var(--sub);max-width:560px;margin:0 auto;font-size:14px}
-  .badges{display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
-  .badge{font-size:12px;color:var(--sub);background:#fff;border:1px solid var(--line);
-         border-radius:999px;padding:4px 12px;display:inline-flex;align-items:center;gap:6px}
-  .badge .dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
-  .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin:8px 0 24px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;
-        box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05)}
-  .card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
-  .card-name{font-size:18px;font-weight:600}
-  .card-count{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;color:var(--accent);
-              background:rgba(37,99,235,.08);border-radius:999px;padding:2px 10px}
-  .card-desc{font-size:13px;color:var(--sub);margin-bottom:16px}
-  .link-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);
-            border-radius:10px;margin-bottom:10px;background:#fafafa}
-  .link-label{font-size:12px;color:var(--sub);flex-shrink:0;width:64px}
-  .link-url{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--ink);
-            flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .copy{flex-shrink:0;font-size:12px;color:var(--accent);background:#fff;border:1px solid var(--line);
-        border-radius:8px;padding:4px 10px;cursor:pointer;transition:all .15s}
-  .copy:hover{border-color:var(--accent);background:rgba(37,99,235,.06)}
-  .copy.done{color:#16a34a;border-color:#16a34a}
-  .card-note{font-size:12px;color:#9ca3af;margin-top:4px}
-  .section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-bottom:20px;
-           box-shadow:0 1px 2px rgba(0,0,0,.04)}
-  .section-title{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#9ca3af;margin-bottom:14px}
-  .chips{display:flex;gap:10px;flex-wrap:wrap}
-  .chip{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;color:var(--accent);
-        background:rgba(37,99,235,.08);border-radius:10px;padding:8px 14px;text-decoration:none;
-        transition:background .15s}
-  .chip:hover{background:rgba(37,99,235,.16)}
-  .hint{font-size:12px;color:#9ca3af;margin-top:12px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:9px 0;border-bottom:1px solid #f3f4f6}
-  th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;font-weight:500}
-  td.num{text-align:right;font-family:"SF Mono",Menlo,monospace}
-  tr:last-child td{border-bottom:none}
-  footer{margin-top:32px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:#9ca3af;text-align:center}
-  footer a{color:var(--sub);text-decoration:none}
-  footer a:hover{color:var(--ink)}
-  footer .sources{margin-top:8px;line-height:2}
-  @media (max-width:520px){.wrap{padding:40px 16px 32px}h1{font-size:28px}.link-label{display:none}}
-"""
-
-    js = """
-  document.querySelectorAll('.copy').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var url = this.getAttribute('data-copy');
-      var self = this;
-      var done = function () {
-        self.textContent = '已复制';
-        self.classList.add('done');
-        setTimeout(function () { self.textContent = '复制'; self.classList.remove('done'); }, 1500);
-      };
-      var fallback = function () {
-        var ta = document.createElement('textarea');
-        ta.value = url;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); done(); } catch (e) {}
-        document.body.removeChild(ta);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(done).catch(fallback);
-      } else { fallback(); }
-    });
-  });
-"""
-
-    return f'''<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="自动聚合、去重、协议级活性测试与综合评分排序的 BitTorrent Tracker 订阅服务">
-<title>Tracker List — BitTorrent Tracker 订阅</title>
-<style>{css}</style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="brand">Pmwiu / {html.escape(repo_name)}</div>
-    <h1>Tracker List</h1>
-    <p class="tagline">自动聚合、去重、协议级活性测试与测速排序的 BitTorrent Tracker 订阅服务</p>
-    <div class="badges">
-      <span class="badge"><span class="dot"></span>每 6 小时自动更新</span>
-      <span class="badge">{n_sources} 个精选源</span>
-      <span class="badge">txt 直链直订</span>
-    </div>
-  </header>
-
-  <section class="plans">
-{cards}
-  </section>
-
-  <section class="section">
-    <div class="section-title">按协议订阅 · &lt;协议&gt;.txt</div>
-    <div class="chips">
-{proto_chips}    </div>
-    <p class="hint">GitHub Pages 提供直链订阅；jsDelivr 直链（cdn.jsdelivr.net）作为全球加速镜像。</p>
-  </section>
-
-  <section class="section">
-    <div class="section-title">Statistics</div>
-    <table>
-      <thead><tr><th>List</th><th>Count</th></tr></thead>
-      <tbody>
-{counts_rows}      </tbody>
-    </table>
-  </section>
-
-  <footer>
-    <p>Last updated: {now}</p>
-    <p class="sources">Sources: {source_links} &middot; <a href="https://github.com/{html.escape(repo)}">GitHub</a></p>
-  </footer>
-</div>
-<script>{js}</script>
-</body>
-</html>
-'''
-
-
-def generate_pages(repo, results):
-    repo_name = repo.split("/")[-1]
-    os.makedirs(SHORT_LINKS_DIR, exist_ok=True)
-    for short, _, desc, template in SHORT_LINKS:
-        target = template.format(repo=repo_name)
-        page_content = generate_redirect_page(target, desc)
-        atomic_write(os.path.join(SHORT_LINKS_DIR, f"{short}.html"), page_content)
-        print(f"[OK]   /s/{short}")
-    index_content = generate_index_page(repo, results)
-    atomic_write(os.path.join(PAGES_DIR, "index.html"), index_content)
-    print("[OK]   index.html")
-    nj = os.path.join(PAGES_DIR, ".nojekyll")
-    if not os.path.exists(nj):
-        open(nj, "w").close()
-
-
-def sync_plain_text_files():
-    mapping = {
-        "trackers_all.txt": "all.txt",
-        "trackers_merged.txt": "merged.txt",
-        "trackers_ngosang_all.txt": "ngosang_all.txt",
-        "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
-        "trackers_ngosang_yggdrasil_ip.txt": "ngosang_yggdrasil_ip.txt",
-        "trackers_cf_all.txt": "cf_all.txt",
-        "trackers_adysec_all.txt": "adysec_all.txt",
-        "trackers_kris3713_ultimate.txt": "kris3713_ultimate.txt",
-        "trackers_entr0pia_https.txt": "entr0pia_https.txt",
-        "trackers_udp.txt": "udp.txt",
-        "trackers_http.txt": "http.txt",
-        "trackers_https.txt": "https.txt",
-        "trackers_wss.txt": "wss.txt",
-        "trackers_ws.txt": "ws.txt",
-    }
-    os.makedirs(PAGES_DIR, exist_ok=True)
-    for src, dst in mapping.items():
-        sp = os.path.join(OUTPUT_DIR, src)
-        if os.path.exists(sp):
-            with open(sp, "r", encoding="utf-8") as f:
-                content = f.read()
-            atomic_write(os.path.join(PAGES_DIR, dst), content)
-            print(f"[OK]   docs/{dst}")
-
-
-def count_trackers_in_text(text):
-    return sum(1 for line in text.splitlines() if line.strip() and not line.strip().startswith("#"))
-
-
 def main():
     # 无订阅源时优雅退出：不写运行摘要、不触发失败告警，等待配置新源后自动恢复
     if not SOURCES:
@@ -1116,7 +685,6 @@ def main():
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         repo = get_repo()
         print(f"[INFO] Repo: {repo}, Max: {MAX_ALL}")
-        cleanup_legacy_files()
 
         # 整合三类黑名单（域名/URL/动态）为单一入口，含防误杀保护集
         # 保护集来自上一轮 source_counts.json（跨源一致性>=3 的主机不被域名级误杀）
@@ -1170,19 +738,11 @@ def main():
                                              url_blacklist=url_blacklist, protected=protected)
                 source_stats[short_name] = {"http_code": 200, "lines": len(trackers), "ok": True}
             except Exception as e:
-                # 补丁 D：下载失败或异常源 → 降级到上次成功备份
-                backup = _load_backup(filename)
-                if backup is not None:
-                    print(f"[WARN] {filename} failed ({e}); using backup ({len(backup)} trackers)")
-                    trackers = backup
-                    source_stats[short_name] = {"http_code": 0, "lines": len(trackers), "ok": True}
-                else:
-                    print(f"[ERROR] {e}", file=sys.stderr)
-                    failures.append((filename, short_name, str(e)))
-                    failed_names.append(short_name)
-                    continue
+                print(f"[ERROR] {e}", file=sys.stderr)
+                failures.append((filename, short_name, str(e)))
+                failed_names.append(short_name)
+                continue
             write_trackers(os.path.join(OUTPUT_DIR, filename), trackers)
-            _backup_file(filename)
             per_source.append((short_name, trackers))
             results.append((filename, len(trackers)))
             fingerprints[short_name] = hashlib.sha1(NL.join(trackers).encode("utf-8")).hexdigest()[:12]
@@ -1273,10 +833,6 @@ def main():
         else:
             print("[ERROR] No trackers downloaded from any source!", file=sys.stderr)
             sys.exit(1)
-
-        write_mirrors_file(repo)
-        generate_pages(repo, results)
-        sync_plain_text_files()
 
         print(f"{NL}===== Summary =====")
         for n, c in results:

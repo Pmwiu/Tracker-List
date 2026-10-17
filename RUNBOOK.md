@@ -14,8 +14,8 @@ UDP connect+announce 握手 / WSS TLS），按综合评分排序，产出两个�
 |---|---|---|---|
 | **all** 存活 | ≤ 59 | `trackers/trackers_all.txt` | 全部通过完整 announce 握手的存活 tracker，按评分降序 |
 
-用户通过直链 `https://pmwiu.github.io/Tracker-List/all.txt` 订阅
-（GitHub Pages 托管；jsDelivr CDN 加速直链可选）。
+用户通过直链 `https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt` 订阅
+（jsDelivr CDN 加速直链可选）。
 
 **技术要点：纯 Python 标准库，零外部依赖；仓库不存储任何密钥。**
 
@@ -31,13 +31,12 @@ scripts/update_trackers.py        抓取 → 规范化/去重 → 域名+URL 黑
 scripts/test_trackers.py          协议级探活 → 二轮精测 → 综合评分
         │                         (速度60%自适应 + 稳定性EMA25% + 质量15% + 经典+6)
         ▼                         → all(59) / dead
-scripts/health_check.py           本地完整性 + Raw/Pages/Worker 全链路检查
+scripts/health_check.py           本地完整性 + URL 格式 + 去重 + 最低数量 + 源新鲜度
         │
         ▼  git commit & push (bot)
 分发链路:
   GitHub Raw ──► jsDelivr CDN (全球加速)
-  GitHub Pages (docs/) ──► 直链订阅
-监控: reports/run_summary.json · reports/health.json · reports/source_state.json · docs/ci-diag.md
+监控: reports/run_summary.json · reports/health.json · reports/source_state.json · .github/ci-diag.md
 ```
 
 ### 产物文件速查
@@ -50,11 +49,8 @@ scripts/health_check.py           本地完整性 + Raw/Pages/Worker 全链路�
 | `trackers/trackers_dead.txt` | 失效/被淘汰 | test_trackers.py |
 | `trackers/blacklist_dynamic.txt` | 动态黑名单（连续失效 ≥20 次） | test_trackers.py |
 | `trackers/test_state.json` | 存活率 EMA + 连续失效计数 | test_trackers.py |
-| `trackers/backup/` | 源文件降级备份 + 7 天 alive 历史 | 两个脚本共同维护 |
-| `docs/*.txt`、`docs/index.html` | GitHub Pages 站点内容 | sync/generate |
-| `trackers/MIRRORS.txt` | 全部订阅地址清单 | update_trackers.py |
 | `reports/*.json` | 运行摘要 / 健康状态 / 源新鲜度 | 各脚本 |
-| `docs/ci-diag.md` | 最近一次 CI 诊断日志 | workflow |
+| `.github/ci-diag.md` | 最近一次 CI 诊断日志 | workflow |
 
 ## 3. 常用操作
 
@@ -68,11 +64,11 @@ uv venv --python 3.12 .venv
 .venv\Scripts\python.exe scripts\update_trackers.py
 .venv\Scripts\python.exe scripts\test_trackers.py --timeout 10 --workers 30 --max-candidates 1000
 .venv\Scripts\python.exe scripts\health_check.py --skip-net      # 纯本地
-.venv\Scripts\python.exe scripts\health_check.py --rounds 3      # 含网络
+.venv\Scripts\python.exe scripts\health_check.py --rounds 3      # 多轮检查
 .venv\Scripts\python.exe scripts\monthly_subscription_check.py   # 线上地址
 ```
 
-注意：本地跑会改写 `trackers/`、`docs/`、`reports/` 下的生成物。验证完后用
+注意：本地跑会改写 `trackers/`、`reports/` 下的生成物。验证完后用
 `git checkout -- .` 还原，保持本地克隆与远程一致（线上数据以 CI 为准）。
 
 `test_trackers.py` 会向公网 tracker 发送 announce 探测包（30 并发），
@@ -91,14 +87,11 @@ uv venv --python 3.12 .venv
 `("trackers_xxx.txt", "https://源地址", "短名")`。白名单
 `ALLOWED_SOURCE_URLS` 自动从 SOURCES 派生，无需手动同步。新增源后还需同步：
 
-1. `generate_source_links()` 的 `label_map`（首页 footer 显示名）
-2. `scripts/health_check.py` 的 `TRACKER_FILES` / `PLAIN_TEXT_FILES` / `CONSISTENCY_MAP`
-3. `sync_plain_text_files()` 的 mapping（docs/ 镜像文件名）
-4. `scripts/monthly_subscription_check.py` 的 `CHECKS`（仅当新增的是主订阅地址）
-5. README 的源数量徽章与说明
+1. `scripts/health_check.py` 的 `TRACKER_FILES`
+2. `scripts/monthly_subscription_check.py` 的 `CHECKS`（仅当新增的是主订阅地址）
+3. README 的源数量徽章与说明
 
-移除源：把条目从 `SOURCES` 删掉，并把其短名加入 `REMOVED_SOURCE_NAMES`，
-脚本会自动清理残留文件。
+移除源：把条目从 `SOURCES` 删掉，并手动删除其残留的 `trackers/trackers_<短名>.txt`。
 
 ### 3.4 回滚
 
@@ -115,13 +108,13 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
 定位顺序：
 
 1. Issue 正文里的 run 链接 → Actions 日志尾部
-2. `docs/ci-diag.md`（最近一次运行的诊断：环境、锁、各源连通性）
+2. `.github/ci-diag.md`（最近一次运行的诊断：环境、锁、各源连通性）
 3. `reports/run_summary.json`（哪个源失败、`failed_sources`）
 4. `reports/health.json`（FAIL 项明细）
 5. `trackers/test_report.md`（探活明细：协议分布、死因分类）
 
 常见处置：
-- 单个源失败 → 脚本自动用 `trackers/backup/` 的备份降级，通常无需处理；
+- 单个源失败 → 脚本跳过该源继续合并，通常无需处理；
   长期失败再从 SOURCES 移除。
 - 大面积失败 → 先看 ci-diag.md 里各源连通性，区分"源挂了"还是
   "运行器网络挂了"（后者重跑即可）。
@@ -129,9 +122,9 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
 
 ## 4. 设计不变量（接管后不可破坏）
 
-2. **all ≤ 59（MAX_ALL）**：改条数需同时改 README 徽章、Worker 注释。
+2. **all ≤ 59（MAX_ALL）**：改条数需同时改 README 徽章。
 3. **纯标准库零依赖**：不要引入第三方包（CI 的 install 步骤是预留空位）。
-4. **仓库零密钥**：只用 `GITHUB_TOKEN` 临时权限；Worker 无任何凭据。
+4. **仓库零密钥**：只用 `GITHUB_TOKEN` 临时权限。
 5. **白名单校验**：`download_trackers()` 拒绝 `ALLOWED_SOURCE_URLS` 之外的
    一切 URL；`SOURCES` 里出现非白名单条目会在启动时硬失败。
 6. **仅 5 种协议**（udp/http/https/wss/ws），localhost / 内网 / 保留段地址在
@@ -141,7 +134,7 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
    UDP 须 connect+announce 双响应；WSS/WS 为 TLS/TCP 连通性（质量分级打分）。
 8. **历史状态按真实探活记录**："存活但被淘汰"（低速/同网段去重）
    绝不能记为 dead，否则稳定性 EMA 被污染、动态黑名单误杀。
-9. 失败时**保留上次 all**（熔断与备份降级机制），宁可不更新也不发坏列表。
+9. 失败时**保留上次 all**（熔断机制），宁可不更新也不发坏列表。
 10. **发现模块与生产隔离（Phase 1）**：`discover_trackers.py` 找到的候选只写
     `trackers/discovered/`，参与 merge pool 与评分，但**绝不进入 all**
     （`reports/discovered_set.json` 列出候选集，`whitelist_only_set` 参数把它们排除）。转正必须人工改 SOURCES。
@@ -181,8 +174,6 @@ CI 不跑它；改动评分/选优/发现逻辑后本地跑一遍。
 - **去重**：对 SOURCES 白名单 URL、当前 merged/alive/all 内容、过去 7 天发现结果去重
 - **CI**：`update-trackers.yml` 的 "Discover candidate trackers" 步骤，
   `continue-on-error: true`（失败不阻断主流程）
-- **设计文档**：`docs/superpowers/specs/2026-10-13-tracker-discovery-design.md`
-- **实施计划**：`docs/superpowers/plans/2026-10-13-...`
 - **本机限制**：国内网络对 `raw.githubusercontent.com` / `cdn.jsdelivr.net` 直连
   常被重置（WinError 10054），本地跑发现常得 0 条；CI（US runner）正常。
 

@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
-健康检查脚本 v3.0：验证本地文件、云端仓库与短链接的可用性。
+健康检查脚本 v3.0：验证本地文件的可用性。
 
 检查项:
   1. 本地 Tracker 文件完整性（各订阅源文件 + 合并/失效列表）
      —— 未配置订阅源（SOURCES 为空）时，数据文件缺失按 WARN 处理
-  2. 本地 GitHub Pages 文件完整性（主页 + 短链接页面 + 纯文本文件）
-  3. merged.txt 去重校验（无重复）
-  4. 内容一致性校验（trackers/ vs docs/ 纯文本文件一致）
-  5. GitHub Raw 直链 URL 的 HTTP 可达性
-  6. GitHub Pages 短链接页面可达性
-  7. Tracker URL 格式校验
+  2. merged.txt 去重校验（无重复）
+  3. Tracker URL 格式校验
+  4. 最低数量异常告警
+  5. 源新鲜度检测（内容指纹连续不变超过阈值告警）
 
 用法:
   python scripts/health_check.py              单次检查
@@ -23,8 +21,6 @@ import re
 import sys
 import time
 import json
-import urllib.request
-import urllib.error
 import datetime
 
 # 与 update_trackers.py 共享订阅源配置：SOURCES 为空时数据文件缺失属预期状态
@@ -36,17 +32,8 @@ except Exception:
     ut = None
     HAS_SOURCES = True
 
-REPO = "Pmwiu/Tracker-List"
-OWNER = REPO.split("/")[0]
-REPO_NAME = REPO.split("/")[-1]
-PAGES_BASE = f"https://{OWNER}.github.io/{REPO_NAME}"
-RAW_BASE = f"https://raw.githubusercontent.com/{REPO}/main"
-
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRACKERS_DIR = os.path.join(PROJECT_ROOT, "trackers")
-PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
-SHORT_DIR = os.path.join(PAGES_DIR, "s")
-TIMEOUT = 15
 
 TRACKER_FILES = [
     "trackers_ngosang_all.txt",
@@ -61,37 +48,7 @@ TRACKER_FILES = [
     "trackers_dead.txt",
 ]
 
-EXTRA_FILES = ["MIRRORS.txt", "test_report.md", "test_state.json"]
-
-SHORT_PAGES = [
-    "all",
-]
-
-PLAIN_TEXT_FILES = [
-    "all.txt", "merged.txt",
-    "ngosang_all.txt", "ngosang_all_ip.txt", "ngosang_yggdrasil_ip.txt",
-    "cf_all.txt", "adysec_all.txt",
-    "kris3713_ultimate.txt", "entr0pia_https.txt",
-    "udp.txt", "http.txt", "https.txt", "wss.txt", "ws.txt",
-]
-
-# trackers/ 到 docs/ 的映射
-CONSISTENCY_MAP = {
-    "trackers_all.txt": "all.txt",
-    "trackers_merged.txt": "merged.txt",
-    "trackers_ngosang_all.txt": "ngosang_all.txt",
-    "trackers_ngosang_all_ip.txt": "ngosang_all_ip.txt",
-    "trackers_ngosang_yggdrasil_ip.txt": "ngosang_yggdrasil_ip.txt",
-    "trackers_cf_all.txt": "cf_all.txt",
-    "trackers_adysec_all.txt": "adysec_all.txt",
-    "trackers_kris3713_ultimate.txt": "kris3713_ultimate.txt",
-    "trackers_entr0pia_https.txt": "entr0pia_https.txt",
-    "trackers_udp.txt": "udp.txt",
-    "trackers_http.txt": "http.txt",
-    "trackers_https.txt": "https.txt",
-    "trackers_wss.txt": "wss.txt",
-    "trackers_ws.txt": "ws.txt",
-}
+EXTRA_FILES = ["test_report.md", "test_state.json"]
 
 MIN_MERGED_WARN = 30  # 合并数低于该值告警（可能源异常或去重过度）
 STALE_SOURCE_DAYS = 7  # 源内容连续不变超过该天数告警（源可能已停止更新）
@@ -113,17 +70,6 @@ def extract_trackers(text):
     """提取文本中的 tracker 行（去注释、去空行）。"""
     return [line.strip() for line in text.splitlines()
             if line.strip() and not line.strip().startswith("#")]
-
-
-def fetch_url(url):
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "health-check/3.0"})
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-            return True, resp.read().decode("utf-8", errors="replace"), resp.status
-    except urllib.error.HTTPError as e:
-        return False, str(e), e.code
-    except Exception as e:
-        return False, str(e), 0
 
 
 def check_local_files(results):
@@ -157,40 +103,7 @@ def check_local_files(results):
             else:
                 results.append(("FAIL", f"Local {ef}", "missing"))
 
-    # index.html
-    index_path = os.path.join(PAGES_DIR, "index.html")
-    if os.path.exists(index_path) and os.path.getsize(index_path) > 0:
-        results.append(("PASS", "Local Pages index.html", "exists"))
-    else:
-        results.append(("FAIL", "Local Pages index.html", "missing"))
-
     check_discovery_output(results)
-
-    # 短链接页面
-    for sp in SHORT_PAGES:
-        path = os.path.join(SHORT_DIR, f"{sp}.html")
-        if os.path.exists(path) and os.path.getsize(path) > 0:
-            with open(path, "r", encoding="utf-8") as fh:
-                content = fh.read()
-            if 'http' in content and ('refresh' in content or 'location' in content):
-                results.append(("PASS", f"Local short page: /s/{sp}", "valid redirect"))
-            else:
-                results.append(("FAIL", f"Local short page: /s/{sp}", "invalid content"))
-        else:
-            results.append(("FAIL", f"Local short page: /s/{sp}", "missing"))
-
-    # 纯文本文件
-    for ptf in PLAIN_TEXT_FILES:
-        path = os.path.join(PAGES_DIR, ptf)
-        if os.path.exists(path):
-            if os.path.getsize(path) > 0:
-                with open(path, "r", encoding="utf-8") as fh:
-                    count = count_trackers_in_text(fh.read())
-            else:
-                count = 0  # 空协议列表（如 ws.txt 无 tracker）合法
-            results.append(("PASS", f"Plain text: /{ptf}", f"{count} trackers"))
-        else:
-            results.append(("FAIL", f"Plain text: /{ptf}", "missing"))
 
 
 def check_discovery_output(results):
@@ -244,25 +157,6 @@ def check_merged_dedup(results):
         results.append(("FAIL", "Merged dedup check", f"{dupes} duplicates found"))
 
 
-def check_consistency(results):
-    """校验 trackers/ 与 docs/ 纯文本文件内容一致。"""
-    for src, dst in CONSISTENCY_MAP.items():
-        src_path = os.path.join(TRACKERS_DIR, src)
-        dst_path = os.path.join(PAGES_DIR, dst)
-        if not os.path.exists(src_path) or not os.path.exists(dst_path):
-            results.append(("WARN", f"Consistency: {src} vs {dst}", "one side missing"))
-            continue
-        with open(src_path, "r", encoding="utf-8") as f:
-            src_trackers = set(extract_trackers(f.read()))
-        with open(dst_path, "r", encoding="utf-8") as f:
-            dst_trackers = set(extract_trackers(f.read()))
-        if src_trackers == dst_trackers:
-            results.append(("PASS", f"Consistency: {src} vs {dst}", "identical"))
-        else:
-            diff = len(src_trackers.symmetric_difference(dst_trackers))
-            results.append(("FAIL", f"Consistency: {src} vs {dst}", f"{diff} differing entries"))
-
-
 def check_url_format(results):
     """校验 merged.txt 中所有 tracker URL 格式合法。"""
     path = os.path.join(TRACKERS_DIR, "trackers_merged.txt")
@@ -276,60 +170,6 @@ def check_url_format(results):
         results.append(("PASS", "URL format check", f"all {len(trackers)} valid"))
     else:
         results.append(("FAIL", "URL format check", f"{len(invalid)} invalid URLs"))
-
-
-def check_raw_mirrors(results):
-    """检查 GitHub Raw 直链可达性，并校验 merged 非空。"""
-    urls = [
-        ("merged (Raw)", f"{RAW_BASE}/trackers/trackers_merged.txt"),
-    ]
-    for name, url in urls:
-        ok, content, status = fetch_url(url)
-        if ok:
-            count = count_trackers_in_text(content)
-            if count <= 0:
-                results.append(("FAIL", f"Raw: {name}", f"{count} trackers (empty)"))
-            else:
-                results.append(("PASS", f"Raw: {name}", f"HTTP {status}, {count} trackers"))
-        else:
-            results.append(("WARN", f"Raw: {name}", f"unreachable: {content[:80]}"))
-
-
-def _fetch_pages_retry(url, attempts=3, delay=15):
-    """抓取 Pages 资源；Pages 推送后异步部署，404 瞬时态时重试。"""
-    last = (False, "", 0)
-    for i in range(attempts):
-        ok, content, status = fetch_url(url)
-        if ok or status != 404:
-            return ok, content, status
-        last = (ok, content, status)
-        if i + 1 < attempts:
-            time.sleep(delay)
-    return last
-
-
-def check_pages_links(results):
-    """检查 GitHub Pages 短链接和纯文本可达性（容忍推送后异步部署的瞬时 404）。"""
-    # 纯文本直链
-    for ptf in ["merged.txt"]:
-        url = f"{PAGES_BASE}/{ptf}"
-        ok, content, status = _fetch_pages_retry(url)
-        if ok:
-            count = count_trackers_in_text(content)
-            results.append(("PASS", f"Pages: /{ptf}", f"HTTP {status}, {count} trackers"))
-        else:
-            results.append(("WARN", f"Pages: /{ptf}", f"unreachable: {content[:80]}"))
-
-    # 短链接页面（检查是否返回 200 且包含重定向）
-    for sp in SHORT_PAGES:
-        url = f"{PAGES_BASE}/s/{sp}"
-        ok, content, status = _fetch_pages_retry(url)
-        if ok and ('refresh' in content or 'location.replace' in content):
-            results.append(("PASS", f"Pages short: /s/{sp}", f"HTTP {status}, redirect OK"))
-        elif ok:
-            results.append(("WARN", f"Pages short: /s/{sp}", f"HTTP {status} but no redirect found"))
-        else:
-            results.append(("WARN", f"Pages short: /s/{sp}", f"unreachable: {content[:80]}"))
 
 
 def check_minimum_counts(results):
@@ -371,11 +211,7 @@ def run_single_check(round_num, skip_net=False):
     results = []
     check_local_files(results)
     check_merged_dedup(results)
-    check_consistency(results)
     check_url_format(results)
-    if not skip_net:
-        check_raw_mirrors(results)
-        check_pages_links(results)
     check_minimum_counts(results)
     if HAS_SOURCES:
         check_source_freshness(results)

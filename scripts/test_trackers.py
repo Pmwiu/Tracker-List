@@ -1368,18 +1368,6 @@ def main():
     except Exception as e:
         print(f'[WARN] Could not backfill all_lines into run_summary.json: {e}')
 
-    # 重新生成主页
-    repo = ut.get_repo()
-    page_stats = [
-        (ut.ALL_FILE, len(all_alive_list)),
-        (ut.DEAD_FILE, n_dead),
-    ]
-    ut.generate_pages(repo, page_stats)
-    print('[OK] Pages regenerated with all statistics.')
-
-    ut.sync_plain_text_files()
-    print('[OK] Plain-text files synced to docs/.')
-
 
 if __name__ == '__main__':
     main()
