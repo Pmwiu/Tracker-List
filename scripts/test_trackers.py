@@ -10,12 +10,12 @@ Tracker 活性自动测试 + 测速排序脚本（v3.0 优化版）。
      - wss/ws     : TCP + TLS 连通性检查
   3. 第二轮精测：对第一轮存活的前 100 个再次测速，取较优值
   4. 历史加权：读取上一次 alive 列表，连续存活的 tracker 获得稳定性加分
-  5. 综合评分排序：速度(60%, 自适应标度) + 历史稳定性(25%) + 响应质量(15%) + 经典高可用加分，
-     并保底 MIN_CLASSIC_TRACKERS 条经典（冷门/老种子优化）
-  6. 取前 MAX_TRACKERS 个写入 alive.txt
+  5. 综合评分排序：速度(50%, 自适应标度) + 历史稳定性(20%) + 响应质量(15%)
+     + 跨源一致性(10%) + 近期成功率(5%) + 经典高可用加分 + 反退化
+  6. 取前 MAX_ALL 个写入 all.txt
 
 输出:
-  - trackers/trackers_alive.txt   通过测试且综合评分最高的前 N 个
+  - trackers/trackers_all.txt     通过测试且综合评分最高的前 N 个
   - trackers/trackers_dead.txt    失效 / 被淘汰的 Tracker
   - trackers/test_report.md       人类可读测试报告
   - trackers/test_state.json      测试状态持久化（供下次加权）
@@ -93,91 +93,6 @@ def detect_dual_stack(host):
     has_v4 = any(fam == socket.AF_INET for fam, _, _, _, _ in infos)
     has_v6 = any(fam == socket.AF_INET6 for fam, _, _, _, _ in infos)
     return has_v4, has_v6
-
-
-ASN_CACHE_PATH = os.path.join(ut.OUTPUT_DIR, "cache", "asn_cache.json")
-ASN_CACHE_TTL_SEC = 7 * 24 * 3600
-ASN_MAX_PER_PREFIX = 3
-
-
-def _ip_to_prefix(host):
-    """IPv4 → /24 前缀；IPv6 → /48 前缀；非 IP 字符串原样返回。"""
-    try:
-        ip = ipaddress.ip_address(host)
-    except ValueError:
-        return host
-    if ip.version == 4:
-        net = ipaddress.ip_network(f"{ip}/24", strict=False)
-        return f"{net.network_address}/24"
-    net = ipaddress.ip_network(f"{ip}/48", strict=False)
-    return f"{net.network_address.compressed}/48"
-
-
-def _load_asn_cache():
-    """读取 asn_cache.json，TTL=7d。过期或缺失返回 None（调用方决定是否重建）。"""
-    if not os.path.exists(ASN_CACHE_PATH):
-        return None
-    try:
-        mtime = os.path.getmtime(ASN_CACHE_PATH)
-        if (time.time() - mtime) > ASN_CACHE_TTL_SEC:
-            return None
-        with open(ASN_CACHE_PATH, encoding="utf-8") as f:
-            data = json.load(f)
-        return data if isinstance(data, dict) else None
-    except (OSError, json.JSONDecodeError):
-        return None
-
-
-def _build_asn_cache(alive_urls):
-    """对每个 URL 解析主机名得到前缀，写入 asn_cache.json。失败静默。"""
-    out = {}
-    for url in alive_urls:
-        try:
-            host = (urllib.parse.urlparse(url).hostname or "").lower()
-            port = (urllib.parse.urlparse(url).port
-                    or (443 if url.startswith(("https://", "wss://"))
-                        else 80 if url.startswith(("http://", "ws://")) else 0))
-            # 主机名（非 IP 字面量）走此分支：解析后取首个 IP 的前缀
-            if not host or _ip_to_prefix(host) == host:
-                key = f"{host}:{port}"
-                infos = cached_getaddrinfo(host, None)
-                ip = infos[0][4][0] if infos else host
-                out[key] = _ip_to_prefix(ip)
-                continue
-            # 此处 host 已是 IP 字面量：直接取前缀（再解析一次会返回自身）
-            infos = cached_getaddrinfo(host, None)
-            for fam, _, _, _, sockaddr in infos:
-                out[f"{host}:{port}"] = _ip_to_prefix(sockaddr[0])
-        except Exception:
-            continue
-    try:
-        os.makedirs(os.path.dirname(ASN_CACHE_PATH), exist_ok=True)
-        with open(ASN_CACHE_PATH, "w", encoding="utf-8") as f:
-            json.dump(out, f, ensure_ascii=False, indent=2)
-    except OSError:
-        pass
-    return out
-
-
-def _enforce_asn_diversity(picked, prefix_cache, max_per_prefix=ASN_MAX_PER_PREFIX):
-    """对 picked 应用多样性 demotion：同一前缀至多 max_per_prefix 个。
-
-    picked 是按评分降序的列表（来自 select_top_with_quotas）；同前缀时
-    保留靠前（评分高）的，demote 靠后的。返回 demote 后的 picked。
-    prefix_cache: {host_or_hostport: prefix}。无缓存的 host 当作独立前缀。
-    """
-    if not prefix_cache:
-        return list(picked)
-    by_prefix = {}
-    kept = []
-    for h in picked:
-        # 优先用 host:port，fallback host
-        prefix = prefix_cache.get(h) or prefix_cache.get(h.split(":")[0]) or f"_solo:{h}"
-        if len(by_prefix.get(prefix, [])) >= max_per_prefix:
-            continue  # demote
-        kept.append(h)
-        by_prefix.setdefault(prefix, []).append(h)
-    return kept
 
 
 _ipv6_available = None
@@ -810,7 +725,6 @@ def quality_score(detail, scrape_seeders=None):
 
 # 经典高可用加分：长期稳定、广泛使用的公共 tracker 主机名（仅对存活 tracker 生效）
 CLASSIC_BONUS = 6.0
-MIN_CLASSIC_TRACKERS = 4  # best 保底经典高可用条数（冷门/死种/老种子加速优化）
 CLASSIC_HOSTS = {
     "tracker.opentrackr.org",
     "open.stealth.si",
@@ -918,94 +832,6 @@ def compute_score(tracker, speed, uptime, detail, *,
     if recent_outcomes and len(recent_outcomes) >= 3 and recent_outcomes[-3:] == [0, 0, 0]:
         score -= 5.0
     return score
-
-
-def select_top_with_quotas(scored, max_total, min_non_udp, min_classic, *,
-                            whitelist_only_set=None):
-    """按综合评分选取前 max_total 个，同时满足两项保底配额：
-    - min_non_udp 条非 UDP（协议多样性）
-    - min_classic 条经典高可用 tracker（冷门/死种/老种子优化：经典 tracker 长期稳定、
-      拥有深厚 peer 数据库、真正开放，对老资源加速显著）
-    按「经典保底 → 非 UDP 保底（冷门命中偏好 uptime≥0.7）→ 评分填充」三阶段选取；
-    不足配额时有多少取多少。完成后应用 ASN /24 多样性 demotion（每前缀至多 3）。
-    whitelist_only_set：若非 None，仅该集合内的 URL 可入选（用于把
-    discover 模块发现的候选排除在 best/all 之外，Phase 1 设计）。
-    返回 (selected, capped)，selected 仍按评分降序。
-    """
-    picked = []
-    seen = set()
-
-    def _pick(e):
-        if e[0] in seen:
-            return False
-        if whitelist_only_set is not None and e[0] not in whitelist_only_set:
-            return False
-        seen.add(e[0])
-        picked.append(e)
-        return True
-
-    # Stage 1：经典高可用保底（冷门/老种子）
-    classic_count = 0
-    for e in scored:
-        if classic_count >= min_classic:
-            break
-        if classic_bonus(e[0]) > 0 and _pick(e):
-            classic_count += 1
-
-    # Stage 2：非 UDP 保底（协议多样性）。冷门命中偏好：uptime_ema ≥ 0.7 的优先
-    non_udp_count = sum(1 for e in picked if not e[0].startswith('udp://'))
-    if non_udp_count < min_non_udp:
-        non_udp_high = [e for e in scored
-                        if not e[0].startswith('udp://') and e[3] >= 0.7]
-        non_udp_rest = [e for e in scored
-                        if not e[0].startswith('udp://') and e[3] < 0.7]
-        for e in non_udp_high + non_udp_rest:
-            if non_udp_count >= min_non_udp:
-                break
-            if _pick(e):
-                non_udp_count += 1
-
-    # Stage 3：按评分填充至 max_total
-    for e in scored:
-        if len(picked) >= max_total:
-            break
-        _pick(e)
-
-    # 多样性 demotion：同 /24（或 IPv6 /48）至多 ASN_MAX_PER_PREFIX 条
-    cache = _load_asn_cache()
-    if cache is None:
-        cache = _build_asn_cache([e[0] for e in scored])
-    host_to_prefix = {}
-    for url in (e[0] for e in scored):
-        try:
-            host = (urllib.parse.urlparse(url).hostname or "").lower()
-            port = urllib.parse.urlparse(url).port
-        except Exception:
-            continue
-        if not host:
-            continue
-        for key in (f"{host}:{port}", host):
-            if key in cache:
-                host_to_prefix[url] = cache[key]
-                break
-    if host_to_prefix:
-        picked_urls = [e[0] for e in picked]
-        kept = _enforce_asn_diversity(picked_urls, host_to_prefix,
-                                     max_per_prefix=ASN_MAX_PER_PREFIX)
-        if len(kept) < len(picked_urls):
-            kept_set = set(kept)
-            # 把 demote 的条目按评分降序放回 capped；从 scored 找漏掉的
-            for e in scored:
-                if e[0] in picked_urls and e[0] not in kept_set:
-                    picked.remove(e)
-            for e in scored:
-                if e[0] in kept_set and e not in picked:
-                    picked.append(e)
-
-    picked.sort(key=lambda x: (-x[1], x[2]))
-    chosen = {e[0] for e in picked}
-    capped = [e for e in scored if e[0] not in chosen]
-    return picked, capped
 
 
 DISCOVERED_TEST_CAP = 120  # 额外测活的 discovered 样本上限
@@ -1154,7 +980,7 @@ def read_merged():
 def read_candidates(max_count=500):
     """读取候选 tracker：即 all 合并列表（merged，已按源优先级精选前 MAX_ALL 条）。
 
-    best 计划从中精测，确保 best 严格子集于 all；max_count 仅作上限保护。
+    max_count 仅作上限保护。
     """
     return read_merged()[:max_count]
 
@@ -1173,7 +999,7 @@ def write_result_file(filename, trackers):
 # ============================================================
 # 写测试报告
 # ============================================================
-def write_report(results, alive_final, capped, elapsed, protocol_stats, low_speed=None,
+def write_report(results, elapsed, protocol_stats, low_speed=None,
                  same_ip_removed=None, discovered_set=None, scored=None):
     alive = [(t, d, e) for t, s, d, e in results if s == 'alive']
     dead = [(t, d, e) for t, s, d, e in results if s == 'dead']
@@ -1193,12 +1019,8 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
         f'- 无法测试 (untestable): {len(untestable)}',
         f'- 低速淘汰 (low-speed >5s): {len(low_speed or [])}',
         f'- 同网段/同域名去重 (kept fastest): {len(same_ip_removed or [])}',
-        f'- 综合评分后保留前 {ut.MAX_TRACKERS} 个，淘汰 {len(capped)} 个',
         f'- 评分维度: 速度 50% + 历史稳定性 20% + 响应质量 15%（含 peers 计数与 scrape 热度）'
         f' + 跨源一致性 10% + 近期成功率 5%（速度标度自适应 + 经典高可用加分 + 反退化）',
-        f'- 配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP + 保底 {MIN_CLASSIC_TRACKERS} 条经典高可用',
-        f'- 协议多样性配额: 保底 {ut.MIN_NON_UDP_TRACKERS} 条非 UDP，'
-        f'实际保留 {sum(1 for t, *_ in alive_final if not t.startswith("udp://"))} 条',
         f'- 耗时: {elapsed:.1f} 秒',
         '',
         '## 协议分布',
@@ -1206,10 +1028,6 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
     ]
     for proto, count in sorted(protocol_stats.items(), key=lambda x: -x[1]):
         lines.append(f'- {proto}: {count}')
-
-    lines += ['', f'## 最终订阅列表（前 {ut.MAX_TRACKERS} 个，按综合评分降序）', '']
-    for rank, (t, score, speed, up, q, cb) in enumerate(alive_final, 1):
-        lines.append(f'{rank}. `{t}` — score={score:.1f}, {speed:.0f}ms, 存活率{up*100:.0f}%, 质量{q:.0f}, 经典+{cb:.0f}')
 
     if dead:
         lines += ['', '## 失效 Tracker', '']
@@ -1237,7 +1055,7 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
             lines.append(f'- `{t}`')
 
     if discovered_set:
-        lines += ['', '## Discovery（自动发现的候选，Phase 1 隔离，不进 best/all）', '']
+        lines += ['', '## Discovery（自动发现的候选，Phase 1 隔离，不进 all）', '']
         disc_results = [(t, s, d, e) for t, s, d, e in results if t in discovered_set]
         alive_disc = [(t, d, e) for t, s, d, e in disc_results if s == 'alive']
         lines.append(f'- 候选总数: {len(disc_results)}')
@@ -1257,29 +1075,6 @@ def write_report(results, alive_final, capped, elapsed, protocol_stats, low_spee
 # ============================================================
 # 主流程
 # ============================================================
-def daily_backup_alive():
-    """把 trackers_alive.txt 按日期备份到 trackers/backup/，保留7天。"""
-    src = os.path.join(ut.OUTPUT_DIR, ut.ALIVE_FILE)
-    if not os.path.exists(src):
-        return
-    backup_dir = os.path.join(ut.OUTPUT_DIR, "backup")
-    os.makedirs(backup_dir, exist_ok=True)
-    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
-    dst = os.path.join(backup_dir, f"trackers_alive_{today}.txt")
-    with open(src, "r", encoding="utf-8") as f:
-        content = f.read()
-    ut.atomic_write(dst, content)
-    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
-    for fn in os.listdir(backup_dir):
-        if fn.startswith("trackers_alive_") and fn.endswith(".txt"):
-            try:
-                d = datetime.datetime.strptime(fn[len("trackers_alive_"):-4], "%Y%m%d").replace(tzinfo=datetime.timezone.utc)
-                if d < cutoff:
-                    os.remove(os.path.join(backup_dir, fn))
-            except ValueError:
-                pass
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', type=int, default=10)
@@ -1339,7 +1134,6 @@ def main():
     print(f'[INFO] Testing {len(trackers)} candidates '
           f'(all-pool={total_available}, timeout={args.timeout}s, '
           f'workers={args.workers})')
-    print(f'[INFO] Max alive trackers after scoring: {ut.MAX_TRACKERS}')
 
     history = load_history()
     uptime_map = history.get("uptime_ema", {})
@@ -1378,7 +1172,7 @@ def main():
             if done_count % 25 == 0 or status == 'alive':
                 print(f'  {marker} ({done_count}/{len(trackers)}) {tracker}{speed} — {detail}')
 
-            # 熔断：连续超时 → 暂停；累计次数 → 终止（保留上次 alive.txt）
+            # 熔断：连续超时 → 暂停；累计次数 → 终止（保留上次 all.txt）
             # 有存活即重置累计，避免正常的“连遇死节点”被误判为网络故障
             if status == 'dead' and detail == 'timeout':
                 consecutive_timeouts += 1
@@ -1393,7 +1187,7 @@ def main():
                       f'pausing {args.breaker_pause}s (trip {breaker_trips}/{args.breaker_trips})')
                 time.sleep(args.breaker_pause)
                 if breaker_trips >= args.breaker_trips:
-                    print('[ERROR] circuit_breaker_triggered: aborting, keeping previous trackers_alive.txt')
+                    print('[ERROR] circuit_breaker_triggered: aborting, keeping previous trackers_all.txt')
                     aborted = True
                     for f in futures:
                         f.cancel()
@@ -1403,7 +1197,7 @@ def main():
     print(f'{ut.NL}[INFO] First pass done in {first_pass_elapsed:.1f}s')
 
     if aborted:
-        print('[WARN] Circuit breaker triggered; keeping previous trackers_alive.txt, exiting.')
+        print('[WARN] Circuit breaker triggered; keeping previous trackers_all.txt, exiting.')
         return
 
     # ---- 第二轮/多样本精测：对存活的前 50 个跑 2 次额外样本（合计 3 样本），
@@ -1511,45 +1305,32 @@ def main():
     # 按综合评分降序，分数相同按速度升序
     scored.sort(key=lambda x: (-x[1], x[2]))
 
-    # Phase 1 隔离：discover 模块发现的候选不进 best/all（discovered_set 已在前面加载）
+    # Phase 1 隔离：discover 模块发现的候选不进 all（discovered_set 已在前面加载）
     whitelist_only_set = None
     if discovered_set:
         whitelist_only_set = {t for t, *_ in scored if t not in discovered_set}
-        print(f'[INFO] discovered candidates excluded from best/all: {len(discovered_set)}')
+        print(f'[INFO] discovered candidates excluded from all: {len(discovered_set)}')
 
-    # 协议多样性 + 经典高可用配额：保底非 UDP 与经典 tracker，其余按评分填充
-    selected, capped = select_top_with_quotas(
-        scored, ut.MAX_TRACKERS, ut.MIN_NON_UDP_TRACKERS, MIN_CLASSIC_TRACKERS,
-        whitelist_only_set=whitelist_only_set,
-    )
-    alive_final_list = [t for t, _, _, _, _ in selected]
-    alive_final_detail = [(t, score, speed, up,
-                           quality_score(d, scrape_seeders=scrape_map.get(t)),
-                           classic_bonus(t))
-                          for t, score, speed, up, d in selected]
-    n_non_udp_kept = sum(1 for t in alive_final_list if not t.startswith('udp://'))
-
-    # 失效 = dead + unsafe + 低速 + 同IP重复 + 被淘汰的
-    dead_final = sorted(
-        [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
-        + [t for t, _, _, _, _ in capped]
-        + sorted(low_speed_trackers)
-        + sorted(same_ip_removed)
-    )
-
-    write_result_file(ut.ALIVE_FILE, alive_final_list)
     # "all" = 全部存活（完成完整 announce 握手、返回有效响应），按综合评分降序，取前 MAX_ALL
     # 同样排除 discovered（Phase 1 隔离）
     all_pool = scored if whitelist_only_set is None else [
         e for e in scored if e[0] in whitelist_only_set]
     all_alive_list = [t for t, _, _, _, _ in all_pool[:ut.MAX_ALL]]
+
+    # 失效 = dead + unsafe + 低速 + 同IP重复
+    dead_final = sorted(
+        [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
+        + sorted(low_speed_trackers)
+        + sorted(same_ip_removed)
+    )
+
     write_result_file(ut.ALL_FILE, all_alive_list)
     write_result_file(ut.DEAD_FILE, dead_final)
-    write_report(results, alive_final_detail, capped, total_elapsed, protocol_stats, low_speed,
+    write_report(results, total_elapsed, protocol_stats, low_speed,
                  same_ip_removed, discovered_set=discovered_set, scored=scored)
 
     # 历史状态必须按「真实探活结果」记录：存活 = 本次响应成功，失效 = 本次响应失败。
-    # capped / low_speed / same_ip_removed 都是「存活但被淘汰」的 tracker，绝不能记为失效，
+    # low_speed / same_ip_removed 都是「存活但被淘汰」的 tracker，绝不能记为失效，
     # 否则它们会被错误计入连续失效、拉低稳定性 EMA，并在 20 次后被动态黑名单误杀。
     actual_alive = [t for t, s, _, _ in results if s == 'alive']
     actual_dead = [t for t, s, _, _ in results if s in ('dead', 'unsafe')]
@@ -1558,18 +1339,13 @@ def main():
     if dyn_blacklist:
         print(f'[INFO] Dynamic blacklist: {len(dyn_blacklist)} consistently-dead trackers')
 
-    n_alive = len(alive_final_list)
     n_dead = len(dead_final)
-    n_capped = len(capped)
     n_unsafe = sum(1 for _, s, _, _ in results if s == 'unsafe')
 
     print(f'{ut.NL}===== Test Summary =====')
     print(f'  Total tested:   {len(trackers)}')
     print(f'  Alive (raw):    {len(alive_with_speed)}')
-    print(f'  Alive (final):  {n_alive} (top {ut.MAX_TRACKERS} by composite score)')
-    print(f'  Non-UDP kept:   {n_non_udp_kept} (quota >= {ut.MIN_NON_UDP_TRACKERS})')
-    print(f'  Classic kept:   {sum(1 for t in alive_final_list if classic_bonus(t) > 0)} (quota >= {MIN_CLASSIC_TRACKERS})')
-    print(f'  Score-capped:   {n_capped}')
+    print(f'  All (final):    {len(all_alive_list)} (top {ut.MAX_ALL} by composite score)')
     print(f'  Unsafe filtered:{n_unsafe}')
     print(f'  Low-speed:      {len(low_speed)} (>5s excluded)')
     print(f'  Same-subnet dedup:  {len(same_ip_removed)} (kept faster)')
@@ -1581,28 +1357,25 @@ def main():
     print(f'  总计: {sum(protocol_stats.values())} 个（存活）')
     print('=========================')
 
-    # 回填 run_summary.json 的 alive_lines（update_trackers.py 先于测试运行，恒为 null）
+    # 回填 run_summary.json 的 all_lines（update_trackers.py 先于测试运行，恒为 null）
     try:
         if os.path.exists(ut.RUN_SUMMARY_FILE):
             with open(ut.RUN_SUMMARY_FILE, 'r', encoding='utf-8') as fh:
                 summary = json.load(fh)
-            summary['alive_lines'] = n_alive
+            summary['all_lines'] = len(all_alive_list)
             ut.atomic_write(ut.RUN_SUMMARY_FILE,
                             json.dumps(summary, ensure_ascii=False, indent=2) + ut.NL)
     except Exception as e:
-        print(f'[WARN] Could not backfill alive_lines into run_summary.json: {e}')
-
-    daily_backup_alive()
+        print(f'[WARN] Could not backfill all_lines into run_summary.json: {e}')
 
     # 重新生成主页
     repo = ut.get_repo()
     page_stats = [
-        (ut.ALIVE_FILE, n_alive),
         (ut.ALL_FILE, len(all_alive_list)),
         (ut.DEAD_FILE, n_dead),
     ]
     ut.generate_pages(repo, page_stats)
-    print('[OK] Pages regenerated with alive statistics.')
+    print('[OK] Pages regenerated with all statistics.')
 
     ut.sync_plain_text_files()
     print('[OK] Plain-text files synced to docs/.')

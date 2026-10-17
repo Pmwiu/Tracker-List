@@ -12,10 +12,9 @@ UDP connect+announce 握手 / WSS TLS），按综合评分排序，产出两个�
 
 | 计划 | 条数 | 文件 | 说明 |
 |---|---|---|---|
-| **best** 精选 | ≤ 25 | `trackers/trackers_alive.txt` | 评分前 25，含协议多样性配额（非 UDP ≥ 4）与经典高可用配额（≥ 4） |
 | **all** 存活 | ≤ 59 | `trackers/trackers_all.txt` | 全部通过完整 announce 握手的存活 tracker，按评分降序 |
 
-用户通过短链接 `https://tracker.pmwiu.com/best.txt` / `/all.txt` 订阅
+用户通过短链接 `https://tracker.pmwiu.com/all.txt` 订阅
 （Cloudflare Worker 网关；加 `/jsd/` 前缀走 jsDelivr 全球加速）。
 
 **技术要点：纯 Python 标准库，零外部依赖；仓库不存储任何密钥。**
@@ -31,7 +30,7 @@ scripts/update_trackers.py        抓取 → 规范化/去重 → 域名+URL 黑
         ▼
 scripts/test_trackers.py          协议级探活 → 二轮精测 → 综合评分
         │                         (速度60%自适应 + 稳定性EMA25% + 质量15% + 经典+6)
-        ▼                         → 配额选取 → alive(25) / all(59) / dead
+        ▼                         → all(59) / dead
 scripts/health_check.py           本地完整性 + Raw/Pages/Worker 全链路检查
         │
         ▼  git commit & push (bot)
@@ -48,7 +47,6 @@ scripts/health_check.py           本地完整性 + Raw/Pages/Worker 全链路�
 |---|---|---|
 | `trackers/trackers_<源>.txt` | 各源原始列表 | update_trackers.py |
 | `trackers/trackers_merged.txt` | 合并候选池（≤200） | update_trackers.py |
-| `trackers/trackers_alive.txt` | best 25（评分排序） | test_trackers.py |
 | `trackers/trackers_all.txt` | all 59（评分排序） | test_trackers.py |
 | `trackers/trackers_dead.txt` | 失效/被淘汰 | test_trackers.py |
 | `trackers/blacklist_dynamic.txt` | 动态黑名单（连续失效 ≥20 次） | test_trackers.py |
@@ -145,9 +143,7 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
 
 ## 4. 设计不变量（接管后不可破坏）
 
-1. **best ⊆ all**：`health_check.py` 有专项校验（Alive subset check）。
-2. **best ≤ 25（MAX_TRACKERS）、all ≤ 59（MAX_ALL）**：改条数需同时改
-   README 徽章、`health_check.py` 的 `MAX_ALIVE`、Worker 注释。
+2. **all ≤ 59（MAX_ALL）**：改条数需同时改 README 徽章、Worker 注释。
 3. **纯标准库零依赖**：不要引入第三方包（CI 的 install 步骤是预留空位）。
 4. **仓库零密钥**：只用 `GITHUB_TOKEN` 临时权限；Worker 无任何凭据。
 5. **白名单校验**：`download_trackers()` 拒绝 `ALLOWED_SOURCE_URLS` 之外的
@@ -157,13 +153,12 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
    （DNS 重绑定防护）。
 7. **存活判定 = 完整 announce 握手**：HTTP 须 bencoded 且无 failure reason；
    UDP 须 connect+announce 双响应；WSS/WS 为 TLS/TCP 连通性（质量分级打分）。
-8. **历史状态按真实探活记录**："存活但被淘汰"（capped/低速/同网段去重）
+8. **历史状态按真实探活记录**："存活但被淘汰"（低速/同网段去重）
    绝不能记为 dead，否则稳定性 EMA 被污染、动态黑名单误杀。
-9. 失败时**保留上次 best/all**（熔断与备份降级机制），宁可不更新也不发坏列表。
+9. 失败时**保留上次 all**（熔断与备份降级机制），宁可不更新也不发坏列表。
 10. **发现模块与生产隔离（Phase 1）**：`discover_trackers.py` 找到的候选只写
-    `trackers/discovered/`，参与 merge pool 与评分，但**绝不进入 best/all**
-    （`reports/discovered_set.json` 列出候选集，`select_top_with_quotas` 的
-    `whitelist_only_set` 参数把它们排除）。转正必须人工改 SOURCES。
+    `trackers/discovered/`，参与 merge pool 与评分，但**绝不进入 all**
+    （`reports/discovered_set.json` 列出候选集，`whitelist_only_set` 参数把它们排除）。转正必须人工改 SOURCES。
 
 ## 4b. 评分与筛选机制（v2）
 
@@ -178,9 +173,7 @@ tracker 列表（数据类提交的回滚会被下次自动更新覆盖，代码
   `max(0.7, 1 - (max-min)/median*0.3)`（最多扣 30%）。
 - **双栈测试**：udp/wss/ws 若主机名同时有 A+AAAA 记录，两栈各测一次，取较优
   （http/https 保持单栈）。
-- **ASN /24 多样性**：best/all 选优后应用 demotion，同一 /24（IPv6 /48）至多 3 条；
-  缓存 `trackers/cache/asn_cache.json`（7 天 TTL，gitignored）。
-- **冷门命中偏好**：非 UDP 保底阶段优先 uptime_ema ≥ 0.7 的候选。
+
 - **peers 计数**：HTTP/HTTPS announce 解析 compact `peers`/`peers6` 字节长度得节点数，
   detail 记为 `announce with peers:N`，质量分档 N≥3→100 / 1-2→95 / 0→90（活跃/优秀信号）。
 - **scrape 热度（BEP 15）**：对 http/https 存活者请求 `/scrape`（截断读 64KB，正则累计
@@ -244,18 +237,14 @@ CI 不跑它；改动评分/选优/发现逻辑后本地跑一遍。
 
 | 参数 | 位置 | 值 | 含义 |
 |---|---|---|---|
-| `MAX_TRACKERS` | update_trackers.py | 25 | best 条数上限 |
 | `MAX_ALL` | update_trackers.py | 59 | all 条数上限 |
 | `MAX_CANDIDATES` | update_trackers.py | 200 | 合并候选池上限 |
-| `MIN_NON_UDP_TRACKERS` | update_trackers.py | 4 | best 非 UDP 保底 |
 | `ALL_PROTOCOL_FLOORS` | update_trackers.py | wss1/ws1/https15/http15/udp20 | all 协议保底 |
-| `MIN_CLASSIC_TRACKERS` | test_trackers.py | 4 | best 经典高可用保底 |
 | `CLASSIC_BONUS` | test_trackers.py | 6.0 | 经典主机加分 |
 | 评分权重 | test_trackers.py | 50/20/15/10/5 | 速度/稳定性/质量/跨源/近期 |
 | `SCORE_*_WEIGHT` | test_trackers.py | 见上 | 五个独立权重常量 |
 | `SOURCE_AGREEMENT_SCORES` | test_trackers.py | 1:0/2:30/3:70/≥4:100 | 跨源一致性映射 |
-| `ASN_MAX_PER_PREFIX` | test_trackers.py | 3 | 每 /24 最多入选条数 |
-| `ASN_CACHE_TTL_SEC` | test_trackers.py | 604800 | ASN 缓存 7 天 |
+
 | `multi_sample_refine` | test_trackers.py | 3 样本 | 中位 + 抖动扣分（≤30%） |
 | `LOW_SPEED_THRESHOLD_MS` | test_trackers.py | 5000 | 低速淘汰线 |
 | `DEAD_BLACKLIST_RUNS` | test_trackers.py | 20 | 连续失效入动态黑名单 |

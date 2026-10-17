@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """月度订阅地址清单校验。
 
-每月（或手动 workflow_dispatch）验证 5 类订阅地址的可用性与内容：
-  - best 类地址：期望 1 <= 条数 <= MAX_TRACKERS
+每月（或手动 workflow_dispatch）验证订阅地址的可用性与内容：
   - all  类地址：期望 条数 > 0
 任一失败则退出码非 0，供 monthly-check.yml 判定失败。
 
@@ -20,19 +19,13 @@ import update_trackers as ut
 
 TIMEOUT = 20
 USER_AGENT = "monthly-subscription-check/1.0"
-BEST_MAX = ut.MAX_TRACKERS
 
 CHECKS = [
-    ("best 短链接 (Worker)", "https://tracker.pmwiu.com/best.txt", "best"),
-    ("best 加速 (jsDelivr)", "https://tracker.pmwiu.com/jsd/best.txt", "best"),
-    ("all 短链接 (Worker)", "https://tracker.pmwiu.com/all.txt", "all"),
-    ("all 加速 (jsDelivr)", "https://tracker.pmwiu.com/jsd/all.txt", "all"),
-    ("best Pages 直链", "https://pmwiu.github.io/Tracker-List/alive.txt", "best"),
-    ("all Pages 直链", "https://pmwiu.github.io/Tracker-List/all.txt", "all"),
-    ("best Raw", "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_alive.txt", "best"),
-    ("all Raw", "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt", "all"),
-    ("best jsDelivr 直链", "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_alive.txt", "best"),
-    ("all jsDelivr 直链", "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt", "all"),
+    ("all 短链接 (Worker)", "https://tracker.pmwiu.com/all.txt"),
+    ("all 加速 (jsDelivr)", "https://tracker.pmwiu.com/jsd/all.txt"),
+    ("all Pages 直链", "https://pmwiu.github.io/Tracker-List/all.txt"),
+    ("all Raw", "https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt"),
+    ("all jsDelivr 直链", "https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt"),
 ]
 
 
@@ -56,14 +49,11 @@ def main():
     print("=" * 60)
     print(" 月度订阅地址清单校验")
     print("=" * 60)
-    for name, url, kind in CHECKS:
+    for name, url in CHECKS:
         try:
             body, status = fetch(url)
             count = count_trackers(body)
-            if kind == "best" and not (0 < count <= BEST_MAX):
-                print(f"[FAIL] {name}: HTTP {status}, {count} 条 (期望 1..{BEST_MAX})")
-                fails += 1
-            elif kind == "all" and count <= 0:
+            if count <= 0:
                 print(f"[FAIL] {name}: HTTP {status}, {count} 条 (期望 > 0)")
                 fails += 1
             else:

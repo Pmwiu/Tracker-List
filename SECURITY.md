@@ -39,5 +39,5 @@ Issues 仅用于自动化失败告警（`automated-alert` 标签，由工作流�
 推荐订阅经过协议级活性测试的存活列表，避免连接失效或不可信节点：
 
 ```
-https://tracker.pmwiu.com/best.txt
+https://tracker.pmwiu.com/all.txt
 ```

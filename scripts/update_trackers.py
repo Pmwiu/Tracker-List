@@ -11,7 +11,7 @@
   - pexcn/daily trackerlist-best.txt
   - 1265578519/OpenTracker tracker.txt
   - trackers.run rw_ws（WebSocket 列表）
-  - ngosang trackers_all_i2p.txt + trackers_all_yggdrasil.txt（特殊网络，仅入 all 不计 best）
+  - ngosang trackers_all_i2p.txt + trackers_all_yggdrasil.txt（特殊网络，仅入 all）
   在下方 SOURCES 中增删 (输出文件名, 源 URL, 短名) 三元组即可调整；
   白名单 ALLOWED_SOURCE_URLS 与下游脚本会自动同步，无需其它改动。
 
@@ -67,17 +67,13 @@ SOURCES = [
 # 白名单：仅接受 SOURCES 中声明的订阅源，拒绝任何其它来源的内容
 ALLOWED_SOURCE_URLS = {url for _, url, _ in SOURCES}
 
-MAX_TRACKERS = 25   # best 存活，最多 25 条
 MAX_ALL = 59        # all 合并，最多 59 条
 MAX_CANDIDATES = 200  # 候选池测试上限（merge 阶段），独立于 MAX_ALL，确保有足够存活填满 all=59
-MIN_NON_UDP_TRACKERS = 4  # best 列表保底非 UDP（http/https/wss/ws）条数，防止单一协议失效时订阅整体不可用
 
 # all 列表协议保底：稀有协议（wss/ws）只要存在就保留；常见协议保证最小席位，其余由轮转填充
 ALL_PROTOCOL_FLOORS = {"wss": 1, "ws": 1, "https": 15, "http": 15, "udp": 20}
 
 SHORT_LINKS = [
-    ("alive", "核心订阅", "存活 Tracker（活性测试+综合评分，推荐）",
-     "https://pmwiu.github.io/{repo}/alive.txt"),
     ("all", "合并总表", "合并去重总表",
      "https://pmwiu.github.io/{repo}/merged.txt"),
 ]
@@ -95,7 +91,6 @@ INVALID_LINES_LOG = os.path.join(PROJECT_ROOT, "invalid_lines.log")
 PAGES_DIR = os.path.join(PROJECT_ROOT, "docs")
 SHORT_LINKS_DIR = os.path.join(PAGES_DIR, "s")
 MERGED_FILE = "trackers_merged.txt"
-ALIVE_FILE = "trackers_alive.txt"
 ALL_FILE = "trackers_all.txt"
 DEAD_FILE = "trackers_dead.txt"
 LOCK_FILE = os.path.join(PROJECT_ROOT, ".update.lock")
@@ -111,14 +106,14 @@ REMOVED_SOURCE_NAMES = [
 
 LEGACY_FILES = [
     os.path.join(OUTPUT_DIR, "trackers_run.txt"),
-    os.path.join(OUTPUT_DIR, "trackers_best.txt"),
+    os.path.join(OUTPUT_DIR, "trackers_alive.txt"),
     os.path.join(PAGES_DIR, "full.txt"),
-    os.path.join(PAGES_DIR, "best.txt"),
+    os.path.join(PAGES_DIR, "alive.txt"),
     os.path.join(SHORT_LINKS_DIR, "http.html"),
     os.path.join(SHORT_LINKS_DIR, "full.html"),
     os.path.join(SHORT_LINKS_DIR, "run.html"),
     os.path.join(SHORT_LINKS_DIR, "repo.html"),
-    os.path.join(SHORT_LINKS_DIR, "best.html"),
+    os.path.join(SHORT_LINKS_DIR, "alive.html"),
     os.path.join(SHORT_LINKS_DIR, "ngosang-ip.html"),
     os.path.join(SHORT_LINKS_DIR, "alive-cdn.html"),
     os.path.join(SHORT_LINKS_DIR, "all-cdn.html"),
@@ -327,7 +322,7 @@ def write_run_summary(status, duration_sec, source_stats, merged_lines, failed_s
         "duration_sec": duration_sec,
         "sources": source_stats,
         "merged_lines": merged_lines,
-        "alive_lines": None,
+        "all_lines": None,
         "failed_sources": failed_sources,
     }
     atomic_write(RUN_SUMMARY_FILE, json.dumps(summary, ensure_ascii=False, indent=2) + NL)
@@ -750,7 +745,7 @@ def append_discovered_sources(per_source, results, contribution, discovered_sour
 
     计入 MAX_CANDIDATES 与跨源统计（contribution），但不写 per-source 文件、
     不进首页统计（results 不追加）；discovered 只参与测试与报告，
-    best/all 由 test_trackers.py 的 whitelist_only_set 排除。
+    all 由 test_trackers.py 的 whitelist_only_set 排除。
     """
     for short_name, urls in discovered_sources:
         per_source.append((short_name, urls))
@@ -804,16 +799,6 @@ def write_mirrors_file(repo):
         "# 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)",
         "",
     ]
-    lines += block("best 精选 (trackers_alive.txt)", [
-        ("短链接", f"{cf}/best.txt"),
-        ("加速短链接 (jsDelivr)", f"{cf}/jsd/best.txt"),
-        ("兼容短链接", f"{cf}/alive.txt"),
-        ("Pages 短跳", f"{pages}/s/alive"),
-        ("Pages 直链", f"{pages}/alive.txt"),
-        ("Cloudflare Pages 直链", f"{cf_pages}/alive.txt"),
-        ("GitHub Raw", f"{raw_base}/trackers/trackers_alive.txt"),
-        ("jsDelivr 直链", f"{jsd_base}/trackers/trackers_alive.txt"),
-    ])
     lines += block("all 存活 (trackers_all.txt, 完整 announce 握手)", [
         ("短链接", f"{cf}/all.txt"),
         ("加速短链接 (jsDelivr)", f"{cf}/jsd/all.txt"),
@@ -933,16 +918,9 @@ def generate_index_page(repo, tracker_counts):
       <p class="card-note">{note}</p>
     </div>'''
 
-    cards = (
-        plan_card("best", "best 精选", MAX_TRACKERS,
-                  "协议级活性测试 + 综合评分（速度 60% + 稳定性 25% + 质量 15%，速度标度自适应 + 经典高可用优先），保底 "
-                  f"{MIN_NON_UDP_TRACKERS} 条非 UDP",
-                  "qBittorrent / Aria2 等客户端直接粘贴订阅")
-        + "\n"
-        + plan_card("all", "all 存活", MAX_ALL,
-                    f"{n_sources} 个精选源按优先级合并去重",
-                    "追求覆盖面的完整列表")
-    )
+    cards = plan_card("all", "all 存活", MAX_ALL,
+                      f"{n_sources} 个精选源按优先级合并去重",
+                      "追求覆盖面的完整列表")
 
     proto_chips = "".join(
         f'      <a class="chip" href="{short_base}/p/{p}.txt">{p}.txt</a>\n'
@@ -1056,7 +1034,6 @@ def generate_index_page(repo, tracker_counts):
     <div class="badges">
       <span class="badge"><span class="dot"></span>每 6 小时自动更新</span>
       <span class="badge">{n_sources} 个精选源</span>
-      <span class="badge">best 保底 {MIN_NON_UDP_TRACKERS} 条非 UDP</span>
       <span class="badge">txt 短链接直订</span>
     </div>
   </header>
@@ -1110,7 +1087,6 @@ def generate_pages(repo, results):
 
 def sync_plain_text_files():
     mapping = {
-        "trackers_alive.txt": "alive.txt",
         "trackers_all.txt": "all.txt",
         "trackers_merged.txt": "merged.txt",
         "trackers_ngosang_best.txt": "ngosang_best.txt",
@@ -1163,7 +1139,7 @@ def main():
     try:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         repo = get_repo()
-        print(f"[INFO] Repo: {repo}, Max: {MAX_TRACKERS}")
+        print(f"[INFO] Repo: {repo}, Max: {MAX_ALL}")
         cleanup_legacy_files()
 
         # 整合三类黑名单（域名/URL/动态）为单一入口，含防误杀保护集
@@ -1191,7 +1167,7 @@ def main():
         fingerprints = {}        # {short_name: 内容指纹}，用于源新鲜度检测
 
         # 加载发现模块（discover_trackers.py）产出的候选，作为"报告源"参与 merge pool；
-        # 套用与白名单源相同的黑名单过滤，不会进入 best/all（select_top_with_quotas 排除）
+        # 套用与白名单源相同的黑名单过滤，不会进入 all（whitelist_only_set 排除）
         discovered_sources = load_discovered_candidates(
             blacklist=blacklist, url_blacklist=url_blacklist, protected=protected)
         if discovered_sources:
@@ -1299,7 +1275,7 @@ def main():
 
         if all_merged:
             # 候选池写入 trackers_merged.txt（大小受 MAX_CANDIDATES 限制）；
-            # 下游 test_trackers 从中按综合评分选 best(MAX_TRACKERS) 与 all(MAX_ALL)。
+            # 下游 test_trackers 从中按综合评分选 all(MAX_ALL)。
             merged = sorted(all_merged)
             write_trackers(os.path.join(OUTPUT_DIR, MERGED_FILE), merged)
             results.append((MERGED_FILE, len(merged)))
@@ -1313,7 +1289,7 @@ def main():
             atomic_write(SOURCE_COUNTS_FILE,
                          json.dumps(source_counts, ensure_ascii=False, indent=2) + NL)
             print(f"[OK]   source_counts.json ({len(source_counts)})")
-            # discovered URL 集合：test_trackers 读这个文件，在 best/all 选优时排除
+            # discovered URL 集合：test_trackers 读这个文件，在 all 选优时排除
             atomic_write(DISCOVERED_SET_FILE,
                          json.dumps(sorted(discovered_urls), ensure_ascii=False, indent=2) + NL)
             if discovered_urls:
@@ -1329,7 +1305,6 @@ def main():
         print(f"{NL}===== Summary =====")
         for n, c in results:
             print(f"  {n}: {c}")
-        print(f"  alive capped at {MAX_TRACKERS} after test+sort")
         if failures:
             print(f"  FAILED SOURCES: {len(failures)}")
         print("===================")

@@ -2,7 +2,7 @@
 
 > **状态：已于 2026-10-13 经 API 部署上线**（KV `tracker-cache` id `3b405b92…`、
 > Worker `tracker-proxy` 加固 ES-Module 版、**每日 cron `17 3 * * *` 已挂**）。
-> 验证：`/health` 返回 `{"status":"ok"}`、`best.txt` `cache-control: public, max-age=300,
+> 验证：`/health` 返回 `{"status":"ok"}`、`all.txt` `cache-control: public, max-age=300,
 > stale-while-revalidate=3600`、KV 绑定已挂、schedules 端点确认 cron 存在。
 > 注：cron 经 wrangler 部署成功（原始 `/schedules` PUT 对 JSON body 报 10026，wrangler 走
 > 正确通道）。以下步骤保留为重建/回滚 runbook。
@@ -49,10 +49,10 @@
 
 ```bash
 curl -s https://tracker.pmwiu.com/health          # {"status":"ok",...}
-curl -sI https://tracker.pmwiu.com/best.txt | grep -i cache-control   # public, max-age=300...
+curl -sI https://tracker.pmwiu.com/all.txt | grep -i cache-control   # public, max-age=300...
 curl -s https://tracker.pmwiu.com/stats           # 访问统计
 ```
-降级验证（可选）：临时把上游打不通时，`/best.txt` 应返回带 `x-tracker-stale: 1` 的 KV 缓存副本而非 502。
+降级验证（可选）：临时把上游打不通时，`/all.txt` 应返回带 `x-tracker-stale: 1` 的 KV 缓存副本而非 502。
 
 ## 回滚
 

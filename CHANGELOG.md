@@ -3,6 +3,14 @@
 本文件记录项目的主要变更。格式：`## [日期] - 类型` + 变更描述。
 
 ## [2026-10-17] - chore
+- **移除 best 订阅分类**：删除 `trackers_alive.txt`、`docs/alive.txt`、
+  `docs/s/alive.html` 及 7 个 alive 备份文件；清理 `select_top_with_quotas`/
+  `MIN_CLASSIC_TRACKERS`/`MAX_TRACKERS`/`MIN_NON_UDP_TRACKERS` 及 ASN 多样性
+  demotion 基础设施；移除 Worker `best.txt`/`alive.txt` 路由、MIRRORS best 块、
+  health_check 中 alive 数量与 best⊆all 子集校验、monthly-check 中 best 验证。
+  只保留 all 订阅，评分排序与自动发现功能不受影响。
+
+## [2026-10-17] - chore
 - **移除备选库 reserve 功能**：删除 `trackers_reserve.txt`、`docs/reserve.txt`、
   `reports/promote_queue.json`、`trackers/discovered/PROMOTE.md` 及 Phase 2 计划文档；
   清理 `build_reserve`/`select_reserve`/`update_promote_queue`/`check_reserve_pool` 函数、

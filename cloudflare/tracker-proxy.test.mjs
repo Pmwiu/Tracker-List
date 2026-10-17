@@ -32,20 +32,20 @@ test('noteRoute caps distinct routes into other', () => {
 
 test('normalize handles root and index', () => {
   assert.strictEqual(normalize('/'), 'index.html');
-  assert.strictEqual(normalize('/Best.TXT'), 'best.txt');
+  assert.strictEqual(normalize('/All.TXT'), 'all.txt');
   assert.strictEqual(normalize('/s'), 'index.html'); // 裸 /s 归首页（原设计）
-  assert.strictEqual(normalize('/s/alive'), 's/alive');
+  assert.strictEqual(normalize('/s/all'), 's/all');
 });
 
 test('resolveRepoPath maps aliases and dynamic', () => {
-  assert.strictEqual(resolveRepoPath('best.txt'), 'trackers/trackers_alive.txt');
+  assert.strictEqual(resolveRepoPath('all.txt'), 'trackers/trackers_all.txt');
   assert.strictEqual(resolveRepoPath('p/udp.txt'), 'trackers/trackers_udp.txt');
   assert.strictEqual(resolveRepoPath('src/ngosang_best.txt'), 'trackers/trackers_ngosang_best.txt');
   assert.strictEqual(resolveRepoPath('foo'), 'docs/foo');
 });
 
 test('cacheControlFor: txt cached, html short', () => {
-  assert.match(cacheControlFor('trackers/trackers_alive.txt'), /max-age=300/);
+  assert.match(cacheControlFor('trackers/trackers_all.txt'), /max-age=300/);
   assert.match(cacheControlFor('docs/index.html'), /max-age=60/);
 });
 

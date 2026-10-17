@@ -3,16 +3,15 @@
 健康检查脚本 v3.0：验证本地文件、云端仓库与短链接的可用性。
 
 检查项:
-  1. 本地 Tracker 文件完整性（各订阅源文件 + 合并/存活/失效列表）
+  1. 本地 Tracker 文件完整性（各订阅源文件 + 合并/失效列表）
      —— 未配置订阅源（SOURCES 为空）时，数据文件缺失按 WARN 处理
   2. 本地 GitHub Pages 文件完整性（主页 + 短链接页面 + 纯文本文件）
-  3. alive.txt 数量校验（0 <= count <= MAX_ALIVE）
-  4. merged.txt 去重校验（无重复）
-  5. 内容一致性校验（trackers/ vs docs/ 纯文本文件一致）
-  6. GitHub Raw 直链 URL 的 HTTP 可达性
-  7. GitHub Pages 短链接页面可达性
-  8. Tracker URL 格式校验
-  9. Cloudflare Worker 短链接 + jsDelivr 加速短链接可达性
+  3. merged.txt 去重校验（无重复）
+  4. 内容一致性校验（trackers/ vs docs/ 纯文本文件一致）
+  5. GitHub Raw 直链 URL 的 HTTP 可达性
+  6. GitHub Pages 短链接页面可达性
+  7. Tracker URL 格式校验
+  8. Cloudflare Worker 短链接 + jsDelivr 加速短链接可达性
 
 用法:
   python scripts/health_check.py              单次检查
@@ -67,7 +66,6 @@ TRACKER_FILES = [
     "trackers_ngosang_i2p.txt",
     "trackers_ngosang_yggdrasil.txt",
     "trackers_merged.txt",
-    "trackers_alive.txt",
     "trackers_all.txt",
     "trackers_dead.txt",
 ]
@@ -75,11 +73,11 @@ TRACKER_FILES = [
 EXTRA_FILES = ["MIRRORS.txt", "test_report.md", "test_state.json"]
 
 SHORT_PAGES = [
-    "alive", "all",
+    "all",
 ]
 
 PLAIN_TEXT_FILES = [
-    "alive.txt", "all.txt", "merged.txt",
+    "all.txt", "merged.txt",
     "ngosang_best.txt", "ngosang_best_ip.txt", "cf_best.txt", "adysec_best.txt",
     "gonghailink_best.txt", "pandamen_best.txt", "gspu_best.txt", "linuxjin_best.txt",
     "alphacatmeow_best.txt", "pexcn_best.txt", "opentracker.txt", "run_ws.txt",
@@ -89,7 +87,6 @@ PLAIN_TEXT_FILES = [
 
 # trackers/ 到 docs/ 的映射
 CONSISTENCY_MAP = {
-    "trackers_alive.txt": "alive.txt",
     "trackers_all.txt": "all.txt",
     "trackers_merged.txt": "merged.txt",
     "trackers_ngosang_best.txt": "ngosang_best.txt",
@@ -113,16 +110,11 @@ CONSISTENCY_MAP = {
     "trackers_ws.txt": "ws.txt",
 }
 
-MAX_ALIVE = 25
-MIN_ALIVE_WARN = 5    # 存活数低于该值告警（可能源大面积失效）
 MIN_MERGED_WARN = 30  # 合并数低于该值告警（可能源异常或去重过度）
 STALE_SOURCE_DAYS = 7  # 源内容连续不变超过该天数告警（源可能已停止更新）
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 HEALTH_FILE = os.path.join(REPORTS_DIR, "health.json")
 TRACKER_PATTERN = re.compile(r'^(udp|http|https|wss|ws)://[^\s/$.?#].[^\s]*$', re.IGNORECASE)
-
-# best 计划条数上限：从 update_trackers 共享，导入失败时回落到 25（与历史一致）
-MAX_ALIVE = getattr(ut, "MAX_TRACKERS", 25) if ut is not None else 25
 
 
 def count_trackers_in_text(text):
@@ -253,20 +245,6 @@ def check_discovery_output(results):
                         f"{total} candidates in {len(paths)} file(s)"))
 
 
-def check_alive_count(results):
-    """校验 alive.txt 数量在 [0, MAX_ALIVE] 区间内。"""
-    path = os.path.join(TRACKERS_DIR, "trackers_alive.txt")
-    if not os.path.exists(path):
-        results.append(("FAIL", "Alive count check", "file missing"))
-        return
-    with open(path, "r", encoding="utf-8") as f:
-        count = count_trackers_in_text(f.read())
-    if 0 <= count <= MAX_ALIVE:
-        results.append(("PASS", "Alive count check", f"{count} in [0, {MAX_ALIVE}]"))
-    else:
-        results.append(("FAIL", "Alive count check", f"{count} out of [0, {MAX_ALIVE}]"))
-
-
 def check_merged_dedup(results):
     """校验 merged.txt 无重复。"""
     path = os.path.join(TRACKERS_DIR, "trackers_merged.txt")
@@ -281,29 +259,6 @@ def check_merged_dedup(results):
     else:
         dupes = len(trackers) - len(unique)
         results.append(("FAIL", "Merged dedup check", f"{dupes} duplicates found"))
-
-
-def check_alive_subset_of_all(results):
-    """校验 best (alive) 是 all (trackers_all.txt) 子集的设计不变量。
-
-    best 由综合评分 + 配额（经典高可用 ≥4、非 UDP ≥4）从 scored 池中选取；
-    若配额将低分条目拉入 best 而该条目不在 all 前 MAX_ALL 名次内，
-    best 子集关系即被破坏。原实现检查的是 best ⊆ merged（候选池），
-    那是平凡不变量，无法捕获配额越界。
-    """
-    alive_path = os.path.join(TRACKERS_DIR, "trackers_alive.txt")
-    all_path = os.path.join(TRACKERS_DIR, "trackers_all.txt")
-    if not os.path.exists(alive_path) or not os.path.exists(all_path):
-        results.append(("WARN", "Alive subset-of-all check", "file missing"))
-        return
-    alive = set(extract_trackers(open(alive_path, "r", encoding="utf-8").read()))
-    all_set = set(extract_trackers(open(all_path, "r", encoding="utf-8").read()))
-    outside = alive - all_set
-    if outside:
-        results.append(("FAIL", "Alive subset-of-all check", f"{len(outside)} best trackers not in all"))
-    else:
-        results.append(("PASS", "Alive subset-of-all check",
-                         f"all {len(alive)} best trackers present in all ({len(all_set)})"))
 
 
 def check_consistency(results):
@@ -341,18 +296,15 @@ def check_url_format(results):
 
 
 def check_raw_mirrors(results):
-    """检查 GitHub Raw 直链可达性，并校验 alive ≤ MAX_ALIVE、merged 非空。"""
+    """检查 GitHub Raw 直链可达性，并校验 merged 非空。"""
     urls = [
-        ("alive (Raw)", f"{RAW_BASE}/trackers/trackers_alive.txt", "alive"),
-        ("merged (Raw)", f"{RAW_BASE}/trackers/trackers_merged.txt", "merged"),
+        ("merged (Raw)", f"{RAW_BASE}/trackers/trackers_merged.txt"),
     ]
-    for name, url, kind in urls:
+    for name, url in urls:
         ok, content, status = fetch_url(url)
         if ok:
             count = count_trackers_in_text(content)
-            if kind == "alive" and count > MAX_ALIVE:
-                results.append(("FAIL", f"Raw: {name}", f"{count} > {MAX_ALIVE}"))
-            elif kind == "merged" and count <= 0:
+            if count <= 0:
                 results.append(("FAIL", f"Raw: {name}", f"{count} trackers (empty)"))
             else:
                 results.append(("PASS", f"Raw: {name}", f"HTTP {status}, {count} trackers"))
@@ -376,7 +328,7 @@ def _fetch_pages_retry(url, attempts=3, delay=15):
 def check_pages_links(results):
     """检查 GitHub Pages 短链接和纯文本可达性（容忍推送后异步部署的瞬时 404）。"""
     # 纯文本直链
-    for ptf in ["alive.txt", "merged.txt"]:
+    for ptf in ["merged.txt"]:
         url = f"{PAGES_BASE}/{ptf}"
         ok, content, status = _fetch_pages_retry(url)
         if ok:
@@ -400,18 +352,14 @@ def check_pages_links(results):
 def check_worker_links(results):
     """检查 Cloudflare Worker 短链接与 jsDelivr 加速短链接可达性。"""
     checks = [
-        ("Worker best 短链", f"{WORKER_BASE}/best.txt", "alive"),
-        ("Worker all 短链", f"{WORKER_BASE}/all.txt", "merged"),
-        ("Worker best 加速", f"{WORKER_BASE}/jsd/best.txt", "alive"),
-        ("Worker all 加速", f"{WORKER_BASE}/jsd/all.txt", "merged"),
+        ("Worker all 短链", f"{WORKER_BASE}/all.txt"),
+        ("Worker all 加速", f"{WORKER_BASE}/jsd/all.txt"),
     ]
-    for name, url, kind in checks:
+    for name, url in checks:
         ok, content, status = fetch_url(url)
         if ok:
             count = count_trackers_in_text(content)
-            if kind == "alive" and count > MAX_ALIVE:
-                results.append(("FAIL", name, f"{count} > {MAX_ALIVE}"))
-            elif count <= 0:
+            if count <= 0:
                 results.append(("FAIL", name, f"{count} trackers (empty)"))
             else:
                 results.append(("PASS", name, f"HTTP {status}, {count} trackers"))
@@ -420,7 +368,7 @@ def check_worker_links(results):
 
 
 def check_minimum_counts(results):
-    """最低数量异常告警：alive/merged 数量过低时告警，避免静默退化。"""
+    """最低数量异常告警：merged 数量过低时告警，避免静默退化。"""
     def _count(filename):
         path = os.path.join(TRACKERS_DIR, filename)
         if not os.path.exists(path):
@@ -428,10 +376,7 @@ def check_minimum_counts(results):
         with open(path, "r", encoding="utf-8") as f:
             return count_trackers_in_text(f.read())
 
-    alive = _count("trackers_alive.txt")
     merged = _count("trackers_merged.txt")
-    if alive is not None and alive < MIN_ALIVE_WARN:
-        results.append(("WARN", "Minimum alive count", f"{alive} < {MIN_ALIVE_WARN}"))
     if merged is not None and merged < MIN_MERGED_WARN:
         results.append(("WARN", "Minimum merged count", f"{merged} < {MIN_MERGED_WARN}"))
 
@@ -460,9 +405,7 @@ def check_source_freshness(results):
 def run_single_check(round_num, skip_net=False):
     results = []
     check_local_files(results)
-    check_alive_count(results)
     check_merged_dedup(results)
-    check_alive_subset_of_all(results)
     check_consistency(results)
     check_url_format(results)
     if not skip_net:
@@ -497,7 +440,7 @@ def run_single_check(round_num, skip_net=False):
 
 
 def write_health_json(rounds, total_passes, total_warns, total_fails):
-    """生成 reports/health.json 健康检查结果（含 alive/merged 当前计数）。"""
+    """生成 reports/health.json 健康检查结果（含 merged 当前计数）。"""
     os.makedirs(REPORTS_DIR, exist_ok=True)
 
     def _count(filename):
@@ -513,7 +456,6 @@ def write_health_json(rounds, total_passes, total_warns, total_fails):
         "pass": total_passes,
         "warn": total_warns,
         "fail": total_fails,
-        "alive": _count("trackers_alive.txt"),
         "merged": _count("trackers_merged.txt"),
         "status": "healthy" if total_fails == 0 else "issues",
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""自动发现公开 tracker 候选（Phase 1：纯观察 + 报告，不进 best/all）。
+"""自动发现公开 tracker 候选（Phase 1：纯观察 + 报告，不进 all）。
 
 - 从 GitHub topic（bt-tracker / public-tracker / tracker-list）搜索仓库
 - 每个仓库抓 README + 名称含 tracker 的 .txt 文件（≤10 文件、≤100KB）
@@ -162,7 +162,7 @@ def _collect_known_urls():
         for _name, url, _short in ut.SOURCES:
             known.add(url)
     project_root = ut.PROJECT_ROOT
-    for fname in ("trackers_merged.txt", "trackers_alive.txt",
+    for fname in ("trackers_merged.txt",
                   "trackers_all.txt"):
         path = os.path.join(project_root, "trackers", fname)
         if os.path.exists(path):

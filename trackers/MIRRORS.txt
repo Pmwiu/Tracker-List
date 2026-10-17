@@ -3,24 +3,6 @@
 # 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr
 # 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)
 
-# === best 精选 (trackers_alive.txt) ===
-# [短链接]
-https://tracker.pmwiu.com/best.txt
-# [加速短链接 (jsDelivr)]
-https://tracker.pmwiu.com/jsd/best.txt
-# [兼容短链接]
-https://tracker.pmwiu.com/alive.txt
-# [Pages 短跳]
-https://pmwiu.github.io/Tracker-List/s/alive
-# [Pages 直链]
-https://pmwiu.github.io/Tracker-List/alive.txt
-# [Cloudflare Pages 直链]
-https://tracker-list-edj.pages.dev/alive.txt
-# [GitHub Raw]
-https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_alive.txt
-# [jsDelivr 直链]
-https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_alive.txt
-
 # === all 存活 (trackers_all.txt, 完整 announce 握手) ===
 # [短链接]
 https://tracker.pmwiu.com/all.txt

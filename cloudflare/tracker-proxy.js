@@ -3,10 +3,9 @@
 // 路由: tracker.pmwiu.com/*
 //
 // 端点:
-//   /best.txt /alive.txt -> trackers_alive.txt | /all.txt -> trackers_all.txt
-//   /merged.txt -> trackers_merged.txt
+//   /all.txt -> trackers_all.txt | /merged.txt -> trackers_merged.txt
 //   /p/<proto>.txt | /src/<name>.txt | /jsd/<路径> (jsDelivr 加速)
-//   / 或 /index.html | /s/alive /s/all | /mirrors.txt
+//   / 或 /index.html | /s/all | /mirrors.txt
 //   /health -> 200 ok / 502 degraded（探上游，供监控）
 //   /stats  -> 访问统计（单 isolate 内存，冷启动重置）
 // 稳定性:
@@ -30,7 +29,6 @@ const UPSTREAM_TIMEOUT_MS = 4000;
 const KV_TTL_SEC = 7 * 86400;      // last-known-good 保留 7 天
 // 每日 Cron 预热的关键文件
 const PREWARM_KEYS = [
-  "trackers/trackers_alive.txt",
   "trackers/trackers_all.txt",
   "trackers/trackers_merged.txt",
   "trackers/trackers_udp.txt",
@@ -41,8 +39,6 @@ const PREWARM_KEYS = [
 ];
 
 const ALIASES = {
-  "alive.txt": "trackers/trackers_alive.txt",
-  "best.txt": "trackers/trackers_alive.txt",
   "all.txt": "trackers/trackers_all.txt",
   "merged.txt": "trackers/trackers_merged.txt",
   "udp.txt": "trackers/trackers_udp.txt",
@@ -54,7 +50,6 @@ const ALIASES = {
   "ngosang_best.txt": "trackers/trackers_ngosang_best.txt",
   "mirrors.txt": "trackers/MIRRORS.txt",
   "index.html": "docs/index.html",
-  "s/alive": "docs/s/alive.html",
   "s/all": "docs/s/all.html",
   "health.json": "reports/health.json",
 };
@@ -213,9 +208,9 @@ async function handle(request, env, ctx) {
   if (p === "health") {
     let ok = false, by = "";
     try {
-      const body = await tryFetch(REPO_RAW + "/trackers/trackers_alive.txt", 30, true);
+      const body = await tryFetch(REPO_RAW + "/trackers/trackers_all.txt", 30, true);
       if (body !== null) { ok = true; by = REPO_RAW; }
-      else { const c = await kvGet(env, "trackers/trackers_alive.txt"); if (c !== null) { ok = true; by = "kv"; } }
+      else { const c = await kvGet(env, "trackers/trackers_all.txt"); if (c !== null) { ok = true; by = "kv"; } }
     } catch (e) {}
     const payload = JSON.stringify({
       status: ok ? "ok" : "degraded", upstream: by,

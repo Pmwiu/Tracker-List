@@ -72,7 +72,7 @@ jobs:
             done
           } 2>&1 | tee diag.log
 
-      # 自动发现候选 tracker（Phase 1：仅写 trackers/discovered/，不进 best/all）
+      # 自动发现候选 tracker（Phase 1：仅写 trackers/discovered/，不进 all）
       # 失败不中断主流程
       - name: Discover candidate trackers
         if: steps.sources.outputs.enabled == 'true'
