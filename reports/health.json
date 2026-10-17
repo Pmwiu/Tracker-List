@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-17 15:46:23 UTC",
-  "rounds": 1,
-  "pass": 14,
+  "timestamp": "2026-10-17 15:46:40 UTC",
+  "rounds": 3,
+  "pass": 42,
   "warn": 0,
-  "fail": 1,
+  "fail": 3,
   "merged": 200,
   "status": "issues"
 }
