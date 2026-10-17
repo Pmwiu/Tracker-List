@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-16 21:26:36 UTC",
+  "timestamp": "2026-10-17 00:00:23 UTC",
   "status": "success",
-  "duration_sec": 1.6,
+  "duration_sec": 4.2,
   "sources": {
     "ngosang-best": {
       "http_code": 200,
@@ -20,7 +20,7 @@
     },
     "adysec-best": {
       "http_code": 200,
-      "lines": 244,
+      "lines": 241,
       "ok": true
     },
     "gonghailink-best": {
@@ -60,7 +60,7 @@
     },
     "trackersrun-ws": {
       "http_code": 200,
-      "lines": 51,
+      "lines": 52,
       "ok": true
     },
     "ngosang-i2p": {
