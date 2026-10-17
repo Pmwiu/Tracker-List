@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-17 11:00:17 UTC",
+  "timestamp": "2026-10-17 15:45:30 UTC",
   "status": "failure",
   "duration_sec": 0.5,
   "sources": {
@@ -40,7 +40,7 @@
     }
   },
   "merged_lines": 200,
-  "all_lines": 53,
+  "all_lines": 50,
   "failed_sources": [
     "ngosang-yggdrasil-ip"
   ]
