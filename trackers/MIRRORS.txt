@@ -1,0 +1,80 @@
+# Tracker 订阅地址清单
+# Generated: 2026-10-17 02:20:32 UTC
+# 短链接网关: tracker.pmwiu.com (Cloudflare Worker)；加速: /jsd/ 前缀走 jsDelivr
+# 双托管: GitHub Pages + Cloudflare Pages (tracker-list-edj.pages.dev)
+
+# === all 存活 (trackers_all.txt, 完整 announce 握手) ===
+# [短链接]
+https://tracker.pmwiu.com/all.txt
+# [加速短链接 (jsDelivr)]
+https://tracker.pmwiu.com/jsd/all.txt
+# [Pages 直链]
+https://pmwiu.github.io/Tracker-List/all.txt
+# [Cloudflare Pages 直链]
+https://tracker-list-edj.pages.dev/all.txt
+# [GitHub Raw]
+https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_all.txt
+# [jsDelivr 直链]
+https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_all.txt
+
+# === merged 原始候选池 (trackers_merged.txt) ===
+# [短链接]
+https://tracker.pmwiu.com/merged.txt
+# [Pages 直链]
+https://pmwiu.github.io/Tracker-List/merged.txt
+# [GitHub Raw]
+https://raw.githubusercontent.com/Pmwiu/Tracker-List/main/trackers/trackers_merged.txt
+# [jsDelivr 直链]
+https://cdn.jsdelivr.net/gh/Pmwiu/Tracker-List@main/trackers/trackers_merged.txt
+
+# === 按协议 /p/<协议>.txt ===
+# [udp 短链接]
+https://tracker.pmwiu.com/p/udp.txt
+# [udp 加速]
+https://tracker.pmwiu.com/jsd/p/udp.txt
+# [http 短链接]
+https://tracker.pmwiu.com/p/http.txt
+# [http 加速]
+https://tracker.pmwiu.com/jsd/p/http.txt
+# [https 短链接]
+https://tracker.pmwiu.com/p/https.txt
+# [https 加速]
+https://tracker.pmwiu.com/jsd/p/https.txt
+# [wss 短链接]
+https://tracker.pmwiu.com/p/wss.txt
+# [wss 加速]
+https://tracker.pmwiu.com/jsd/p/wss.txt
+# [ws 短链接]
+https://tracker.pmwiu.com/p/ws.txt
+# [ws 加速]
+https://tracker.pmwiu.com/jsd/p/ws.txt
+
+# === 按源 /src/<源>.txt ===
+# [ngosang-all 短链接]
+https://tracker.pmwiu.com/src/ngosang_all.txt
+# [ngosang-all 加速]
+https://tracker.pmwiu.com/jsd/src/ngosang_all.txt
+# [ngosang-all-ip 短链接]
+https://tracker.pmwiu.com/src/ngosang_all_ip.txt
+# [ngosang-all-ip 加速]
+https://tracker.pmwiu.com/jsd/src/ngosang_all_ip.txt
+# [ngosang-yggdrasil-ip 短链接]
+https://tracker.pmwiu.com/src/ngosang_yggdrasil_ip.txt
+# [ngosang-yggdrasil-ip 加速]
+https://tracker.pmwiu.com/jsd/src/ngosang_yggdrasil_ip.txt
+# [cf-all 短链接]
+https://tracker.pmwiu.com/src/cf_all.txt
+# [cf-all 加速]
+https://tracker.pmwiu.com/jsd/src/cf_all.txt
+# [adysec-all 短链接]
+https://tracker.pmwiu.com/src/adysec_all.txt
+# [adysec-all 加速]
+https://tracker.pmwiu.com/jsd/src/adysec_all.txt
+# [kris3713-ultimate 短链接]
+https://tracker.pmwiu.com/src/kris3713_ultimate.txt
+# [kris3713-ultimate 加速]
+https://tracker.pmwiu.com/jsd/src/kris3713_ultimate.txt
+# [entr0pia-https 短链接]
+https://tracker.pmwiu.com/src/entr0pia_https.txt
+# [entr0pia-https 加速]
+https://tracker.pmwiu.com/jsd/src/entr0pia_https.txt
